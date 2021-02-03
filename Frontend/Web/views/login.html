@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <title>Microblog:Sign In</title>
+        <meta charset="utf-8">
+        <link href="../styles/Basic.css" rel="stylesheet">
+
+        <script type="text/javascript" src="../scripts/vue.js"></script>
+
+        <body>
+            <div id = "login" style = "text-align: center;">
+                <h1>Microblog:Sign In</h1>
+                <p class="vspace">
+                    <button type="button" onclick="location.href = '../main.html'">Home</button>
+                </p>
+
+                <form method="POST" @submit.prevent="getData">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username">
+                    <span class="error_message"> {{ messages.username }} </span>
+    
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password">
+                    <span class="error_message"> {{ messages.password }} </span>
+                    
+                    <label>
+                        <input type="checkbox" id="show_password" onclick="login.togglePasswordVisibility()">   Show password
+                    </label>
+    
+                    <input class="vspace" type="submit" value="Sign in">
+                </form>
+            </div>
+
+            <script type = "text/javascript" src="../scripts/login.js"></script>
+        </body>
+    </head>
+</html>

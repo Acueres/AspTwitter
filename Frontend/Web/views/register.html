@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <title>Microblog:Register</title>
+        <meta charset="utf-8">
+        <link href="../styles/Basic.css" rel="stylesheet">
+
+        <script type="text/javascript" src="../scripts/vue.js"></script>
+    </head>
+
+    <body>
+        <div id = "register" style = "text-align: center;">
+            <h1>Microblog:Register</h1>
+
+            <p class="vspace">
+                <button type="button" onclick="location.href = '../main.html'">Home</button>
+            </p>
+            
+            <form method="POST" @submit.prevent="getData">
+                <label for="username">Username*</label>
+                <input type="text" id="username" name="username">
+                <span class="error_message"> {{ messages.username }} </span>
+
+                <label for="email">Email</label>
+                <input type="text" id="email" name="email">
+                <span class="error_message"> {{ messages.email }} </span>
+
+                <label for="password">Password*</label>
+                <input type="password" id="password" name="password">
+                <span class="error_message"> {{ messages.password }} </span>
+
+                <label for="repeat_password">Repeat Password*</label>
+                <input type="password" id="repeat_password" name="repeat_password">
+                <span class="error_message"> {{ messages.repeatPassword }} </span>
+                
+                <label>
+                    <input type="checkbox" id="show_password" onclick="register.togglePasswordVisibility()">   Show password
+                </label>
+                <label>* - field required</label>
+
+                <input class="vspace" type="submit" value="Register">
+            </form>
+        </div>
+
+        <script type = "text/javascript" src="../scripts/register.js"></script>
+    </body>
+</html>

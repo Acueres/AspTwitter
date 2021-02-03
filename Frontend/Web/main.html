@@ -1,0 +1,30 @@
+<html>
+    <head>
+        <title> Microblog </title>
+        <meta charset="utf-8">
+
+        <script type="text/javascript" src="scripts/vue.js"></script>
+    </head>
+
+    <body>
+        <div id = "main" style = "text-align: center;">
+            <h1>Microblog:Home</h1>
+            
+            <span>
+                <button type="button" onclick="location.href = 'views/login.html'">Login</button>
+                <button type="button" onclick="location.href = 'views/register.html'">Register</button>
+            </span>
+            <button type="button" onclick="post()">Post</button>
+
+            <div v-for = "entry in entries" style = "text-align: left;">
+                Id: {{ entry.id }}<br>
+                Time: {{ entry.timestamp }}<br>
+                Author: {{ entry.author }}<br>
+                AuthorId: {{ entry.authorId }}<br>
+                Text: {{ entry.text }}<br>
+            </div>
+        </div>
+
+        <script type = "text/javascript" src="scripts/main.js"></script>
+    </body>
+</html>
