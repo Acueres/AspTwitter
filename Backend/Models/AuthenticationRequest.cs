@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-
 namespace AspTwitter.Models
 {
     public class AuthenticationRequest

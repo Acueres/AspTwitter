@@ -1,10 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 using AspTwitter.Models;
-
-using System;
-
 
 namespace AspTwitter.AppData
 {

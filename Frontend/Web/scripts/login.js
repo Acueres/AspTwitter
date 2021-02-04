@@ -53,7 +53,6 @@ var login = new Vue({
                     }
                 }
 
-
                 let dataReceived = true;
 
                 for (let i = 0; i < this.fieldNames.length; i++)

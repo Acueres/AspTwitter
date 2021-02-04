@@ -20,7 +20,7 @@ input[type="checkbox"] {
     display: inline-block;
     width: 200px;
     word-break: break-all; 
-  }
+ }
 
 .error_message
 {

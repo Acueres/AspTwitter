@@ -21,7 +21,7 @@ async function post()
 {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-    const post = await fetch('http://localhost:5000/api/entries', {
+    const response = await fetch('http://localhost:5000/api/entries', {
         method: 'POST',
         credentials: 'omit',
         redirect: 'follow',

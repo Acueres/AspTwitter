@@ -32,14 +32,12 @@ namespace AspTwitter.Controllers
             userAuthentication = userAuth;
         }
 
-        // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await context.Users.ToListAsync();
         }
 
-        // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(long id)
         {
@@ -53,8 +51,6 @@ namespace AspTwitter.Controllers
             return user;
         }
 
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(long id, User user)
@@ -129,7 +125,6 @@ namespace AspTwitter.Controllers
             return Ok(userAuthentication.Authenticate(user));
         }
 
-        // DELETE: api/Users/5
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(long id)
