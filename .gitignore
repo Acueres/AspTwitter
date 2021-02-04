@@ -10,3 +10,9 @@
 /.vs/AspTwitter/v16/.suo
 /.vs/ProjectSettings.json
 /.vs/slnx.sqlite
+/Frontend/Web/.vscode/launch.json
+/Frontend/Web/scripts/vue.js
+/Properties/launchSettings.json
+/appsettings.Development.json
+/appsettings.json
+/AspTwitter.csproj
