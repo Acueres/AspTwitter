@@ -28,7 +28,8 @@ namespace AspTwitter
         {
             services.AddEntityFrameworkSqlite();
             services.AddDbContext<AppDbContext>(opt =>
-                opt.UseSqlite($"Data Source={Directory.GetCurrentDirectory()}/Backend/AppData/data.db"));
+                opt.UseLazyLoadingProxies().
+                    UseSqlite($"Data Source={Directory.GetCurrentDirectory()}/Backend/AppData/data.db"));
 
             services.Configure<AppSettings>(Configuration.GetSection("JWT"));
             services.AddScoped<IUserAuthentication, UserAuthentication>();

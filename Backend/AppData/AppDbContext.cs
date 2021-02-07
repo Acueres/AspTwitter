@@ -2,6 +2,7 @@
 
 using AspTwitter.Models;
 
+
 namespace AspTwitter.AppData
 {
     public class AppDbContext : DbContext
@@ -24,7 +25,8 @@ namespace AspTwitter.AppData
             builder.Entity<User>().Property(x => x.Username).IsRequired().IsUnicode().HasMaxLength(64);
             builder.Entity<User>().Property(x => x.Email).IsUnicode().HasMaxLength(128);
             builder.Entity<User>().Property(x => x.PasswordHash).IsRequired().HasMaxLength(128);
-            builder.Entity<User>().HasMany(x => x.Entries).WithOne(x => x.Author).HasForeignKey(x => x.AuthorId);
+            builder.Entity<User>().HasMany(x => x.Entries).WithOne();
+            //builder.Entity<User>().Navigation(b => b.Entries).UsePropertyAccessMode(PropertyAccessMode.Property);
 
             builder.Entity<User>().HasData
             (
@@ -41,7 +43,10 @@ namespace AspTwitter.AppData
             builder.Entity<Entry>().HasKey(x => x.Id);
             builder.Entity<Entry>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
             builder.Entity<Entry>().Property(x => x.AuthorId).IsRequired();
+            builder.Entity<Entry>().Property(x => x.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
             builder.Entity<Entry>().Property(x => x.Text).IsRequired().IsUnicode().HasMaxLength(256);
+            builder.Entity<Entry>().HasOne(x => x.Author).WithMany(x => x.Entries).
+                                    HasForeignKey(x => x.AuthorId);
 
             builder.Entity<Entry>().HasData
             (

@@ -12,6 +12,7 @@ namespace AspTwitter.Models
         [JsonIgnore]
         public string PasswordHash { get; set; }
 
-        public IList<Entry> Entries { get; set; } = new List<Entry>();
+        [JsonIgnore]
+        public virtual IList<Entry> Entries { get; set; } = new List<Entry>();
     }
 }
