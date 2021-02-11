@@ -1,120 +1,71 @@
 var login = new Vue({
     el: '#login',
-        data: 
-        {
-            fields: {
-                username: null,
-                password: null
-            },
+    data:
+    {
+        usernameInvalid: false,
+        passwordInvalid: false,
+        usernameMessage: '',
+        passwordMessage: '',
 
-            fieldNames: null,
+        errorMessages: {
+            usernameEmpty: 'Username required',
+            passwordEmpty: 'Password required',
+            usernameNull: 'User doesn\'t exist',
+            passwordIncorrect: 'Incorrect password'
+        }
+    },
 
-            messages: {
-                username: null,
-                password: null
-            },
+    methods:
+    {
+        login: function () {
+            let usernameField = document.getElementById('loginUsername');
+            let passwordField = document.getElementById('loginPassword');
 
-            errors: {
-                empty: '[This field is required]',
-                username: '[Incorrect username]',
-                password: '[Incorrect password]'
-            },
+            let username = usernameField.value;
+            let password = passwordField.value;
 
-            postFields:{
-                Username: null,
-                Password: null
+            this.usernameMessage = this.errorMessages.usernameEmpty;
+            this.passwordMessage = this.errorMessages.passwordEmpty;
+
+            this.usernameInvalid = username == '';
+            this.passwordInvalid = password == '';
+
+            if (!(this.usernameInvalid || this.passwordInvalid)) {
+                this.post(username, password);
             }
         },
 
-        methods:
-        {
-            getData: function(event)
-            {
-                this.fields.username = event.target.elements.username.value;
-                this.fields.password = event.target.elements.password.value;
+        post: async function (username, password) {
+            const response = await fetch('http://localhost:5000/api/users/login', {
+                method: 'POST',
+                cache: 'no-cache',
+                credentials: 'omit',
+                redirect: 'follow',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Username: username, Password: password })
+            });
 
-                if (this.fieldNames == null)
-                {
-                    this.fieldNames = Object.keys(this.fields);
-                }
+            const responseData = await response.json();
 
+            if (response.status === 404) {
+                this.usernameMessage = this.errorMessages.usernameNull;
+                this.usernameInvalid = true;
+            }
+            else if (response.status === 401) {
+                this.passwordMessage = this.errorMessages.passwordIncorrect;
+                this.passwordInvalid = true;
+            }
+            else {
+                localStorage.setItem('currentUser', JSON.stringify(responseData));
 
-                for (let i = 0; i < this.fieldNames.length; i++)
-                {
-                    let fieldName = this.fieldNames[i];
+                main.logged = true;
+                main.username = username;
 
-                    if (this.fields[fieldName] == '')
-                    {
-                        this.messages[fieldName] = this.errors.empty;
-                    }
-                    else
-                    {
-                        this.messages[fieldName] = null;
-                    }
-                }
+                let modal = bootstrap.Modal.getInstance(document.getElementById('login'));
+                modal.toggle();
 
-                let dataReceived = true;
-
-                for (let i = 0; i < this.fieldNames.length; i++)
-                {
-                    let fieldName = this.fieldNames[i];
-
-                    if (this.messages[fieldName] !== null)
-                    {
-                        dataReceived = false;
-                        break;
-                    }
-                }
-
-                if (dataReceived)
-                {
-                    this.postFields.Username = this.fields.username;
-                    this.postFields.Password = this.fields.password;
-
-                    this.postData();
-                }
-            },
-
-            postData: async function()
-            {
-                const response = await fetch('http://localhost:5000/api/users/login', {
-                    method: 'POST',
-                    cache: 'no-cache',
-                    credentials: 'omit',
-                    redirect: 'follow',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(this.postFields)
-                  });
-                
-                const responseData = await response.json();
-                
-                if (response.status === 404)
-                {
-                    this.messages.username = this.errors.username;
-                }
-                else if (response.status === 401)
-                {
-                    this.messages.password = this.errors.password;
-                }
-                else
-                {
-                    localStorage.setItem('currentUser', JSON.stringify(responseData));
-                    window.location.href = '../main.html';
-                }
-            },
-
-            togglePasswordVisibility: function()
-            {
-                let field = document.getElementById("password");
-
-                if (field.type === "password")
-                {
-                    field.type = "text";
-                } 
-                else 
-                {
-                    field.type = "password";
-                }
+                location.reload();
             }
         }
+    }
 });
