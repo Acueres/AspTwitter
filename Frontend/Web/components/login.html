@@ -1,0 +1,32 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Login</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+            <div class="mb-3">
+                <input type="form-control" class="form-control" v-bind:class="usernameInvalid ? 'is-invalid': ''"
+                    id="loginUsername" rows="1" placeholder="Username" required aria-describedby="usernameValidation">
+
+                <div id="usernameValidation" class="invalid-feedback">
+                    {{ usernameMessage }}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <input type="password" class="form-control" v-bind:class="passwordInvalid ? 'is-invalid': ''"
+                    id="loginPassword" placeholder="Password" required aria-describedby="passwordValidation">
+
+                <div id="passwordValidation" class="invalid-feedback">
+                    {{ passwordMessage }}
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" v-on:click="login">Sign in</button>
+        </div>
+    </div>
+</div>

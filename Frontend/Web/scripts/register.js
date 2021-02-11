@@ -76,8 +76,8 @@ var register = new Vue({
                 localStorage.setItem('currentUser', JSON.stringify(responseData));
                 console.log(responseData);
 
-                main.logged = true;
-                main.username = username;
+                nav.logged = true;
+                nav.username = username;
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('register'));
                 modal.toggle();

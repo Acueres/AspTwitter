@@ -45,6 +45,7 @@ namespace AspTwitter
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
             app.UseRouting();
 

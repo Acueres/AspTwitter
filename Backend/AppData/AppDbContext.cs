@@ -22,18 +22,19 @@ namespace AspTwitter.AppData
             builder.Entity<User>().ToTable("Users");
             builder.Entity<User>().HasKey(x => x.Id);
             builder.Entity<User>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
+            builder.Entity<User>().Property(x => x.Name).IsRequired().IsUnicode().HasMaxLength(128);
             builder.Entity<User>().Property(x => x.Username).IsRequired().IsUnicode().HasMaxLength(64);
             builder.Entity<User>().Property(x => x.Email).IsUnicode().HasMaxLength(128);
             builder.Entity<User>().Property(x => x.PasswordHash).IsRequired().HasMaxLength(128);
             builder.Entity<User>().HasMany(x => x.Entries).WithOne();
-            //builder.Entity<User>().Navigation(b => b.Entries).UsePropertyAccessMode(PropertyAccessMode.Property);
 
             builder.Entity<User>().HasData
             (
                 new User
                 {
                     Id = 1,
-                    Username = "Donald Trump",
+                    Name = "Donald Trump",
+                    Username = "donaldTrump",
                     Email = "realDonaldTrump@loser.com",
                     PasswordHash = "covfefe"
                 }

@@ -83,9 +83,9 @@ namespace AspTwitter.Controllers
 
         [HttpPost]
         [Route("login")]
-        public ActionResult Login([FromBody] AuthenticationRequest request)
+        public async Task<ActionResult> Login([FromBody] AuthenticationRequest request)
         {
-            User user = context.Users.Where(x => x.Username == request.Username).Single();
+            User user = await context.Users.Where(x => x.Username == request.Username).SingleOrDefaultAsync();
 
             if (user is null)
             {
@@ -114,6 +114,7 @@ namespace AspTwitter.Controllers
 
             User user = new User()
             {
+                Name = request.Name,
                 Username = request.Username,
                 Email = request.Email,
                 PasswordHash = Hash(request.Password)

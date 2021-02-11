@@ -1,0 +1,60 @@
+﻿<!doctype html>
+<html>
+
+<head>
+  <title> AspTwitter </title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+  <script type="text/javascript" src="lib/vue.js"></script>
+  <script type="text/javascript" src="lib/jquery-3.5.1.min.js"></script>
+</head>
+
+<body style="background-color: lightgray;">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+    crossorigin="anonymous"></script>
+
+    <!--Navbar-->
+  <div id="nav"></div>
+
+  <!--Main field-->
+  <div id="main"></div>
+
+  <!--Login modal-->
+  <div class="modal fade" id="login" tabindex="-1"></div>
+
+  <!--Register modal-->
+  <div class="modal fade" id="register" tabindex="-1"></div>
+
+  <script>
+    $(function () {
+      $("#nav").load("components/nav.html", function () {
+        $.getScript("scripts/nav.js");
+      });
+    });
+
+    $(function () {
+      $("#login").load("components/login.html", function () {
+        $.getScript("scripts/login.js");
+      });
+    });
+
+    $(function () {
+      $("#register").load("components/register.html", function () {
+        $.getScript("scripts/register.js");
+      });
+    });
+
+    $(function () {
+      $("#main").load("components/main.html", function () {
+        $.getScript("scripts/main.js");
+      });
+    });
+  </script>
+</body>
+
+</html>
