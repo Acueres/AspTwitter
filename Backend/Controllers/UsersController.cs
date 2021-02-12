@@ -43,12 +43,23 @@ namespace AspTwitter.Controllers
         {
             User user = await context.Users.FindAsync(id);
 
-            if (user == null)
+            if (user is null)
             {
                 return NotFound();
             }
 
             return user;
+        }
+
+        [HttpGet("{id}/entries")]
+        public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(long id)
+        {
+            if (await context.Users.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
+            return await context.Entries.Where(x => x.AuthorId == id).ToListAsync();
         }
 
         [Authorize]

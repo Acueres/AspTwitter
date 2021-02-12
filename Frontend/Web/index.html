@@ -13,16 +13,16 @@
   <script type="text/javascript" src="lib/jquery-3.5.1.min.js"></script>
 </head>
 
-<body style="background-color: lightgray;">
+<body style="background-color:lavender">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
     crossorigin="anonymous"></script>
 
-    <!--Navbar-->
+  <!--Navbar-->
   <div id="nav"></div>
 
-  <!--Main field-->
-  <div id="main"></div>
+  <!--Home section-->
+  <div id="home"></div>
 
   <!--Login modal-->
   <div class="modal fade" id="login" tabindex="-1"></div>
@@ -50,8 +50,8 @@
     });
 
     $(function () {
-      $("#main").load("components/main.html", function () {
-        $.getScript("scripts/main.js");
+      $("#home").load("components/home.html", function () {
+        $.getScript("scripts/home.js");
       });
     });
   </script>

@@ -1,0 +1,40 @@
+<div class="position-absolute toast bg-success text-white top-0 start-50 translate-middle-x w-auto" role="alert"
+  id="successToast" aria-live="assertive" aria-atomic="true">
+  <div class="toast-body">
+    Tweeted successfully!
+  </div>
+</div>
+
+<div class="container-fluid px-5 p-3">
+  <div class="row gx-3">
+
+    <!--Left padding-->
+    <div class="col-2"></div>
+
+    <!--Entries column-->
+    <div class="col-5">
+      <div class="p-3 border bg-light" v-if="logged">
+        <textarea type="text" style="resize: none; overflow: hidden;" id="post" class="form-control" maxlength="256"
+          placeholder="What's happening?" v-model="text" aria-describedby="charCounter"
+          oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
+
+        <div class="d-flex p-2 justify-content-between" v-if="charactersLeft != null">
+          <div id="charCounter" class="form-text">
+            {{ charactersLeft }}
+          </div>
+          <button type="button" class="btn btn-primary" v-on:click="post">Tweet</button>
+        </div>
+      </div>
+
+      <div class="p-3 border bg-light" v-for="entry in entries" v-bind:key="entry.id">
+        <b style="font-size: large;">{{ entry.author.name }}</b> @{{ entry.author.username }} <br>
+        <a style="color: black;">{{ entry.text }}</a>
+      </div>
+    </div>
+
+
+    <div class="col-3">
+      <div class="p-3 border bg-light">Reserved</div>
+    </div>
+  </div>
+</div>
