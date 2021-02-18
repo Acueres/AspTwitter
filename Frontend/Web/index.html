@@ -30,6 +30,9 @@
   <!--Register modal-->
   <div class="modal fade" id="register" tabindex="-1"></div>
 
+  <!--Profile edit modal-->
+  <div class="modal fade" id="edit" tabindex="-1"></div>
+
   <script>
     $(function () {
       $("#nav").load("components/nav.html", function () {
@@ -46,6 +49,12 @@
     $(function () {
       $("#register").load("components/register.html", function () {
         $.getScript("scripts/register.js");
+      });
+    });
+
+    $(function () {
+      $("#edit").load("components/edit.html", function () {
+        $.getScript("scripts/edit.js");
       });
     });
 

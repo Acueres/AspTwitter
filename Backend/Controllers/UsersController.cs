@@ -62,14 +62,44 @@ namespace AspTwitter.Controllers
             return await context.Entries.Where(x => x.AuthorId == id).ToListAsync();
         }
 
+        [HttpGet("{id}/avatar")]
+        public IActionResult GetAvatar(long id)
+        {
+            var image = System.IO.File.OpenRead($"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg");
+            return File(image, "image/jpeg");
+        }
+
+        [Authorize]
+        [HttpPost("{id}/avatar")]
+        [Consumes("multipart/form-data", "image/jpg", "image/png")]
+        public async Task<IActionResult> PostAvatar(long id, [FromForm(Name = "avatar")] IFormFile image)
+        {
+            string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
+
+            using var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate);
+            await image.CopyToAsync(stream);
+
+            return Ok();
+        }
+
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, User user)
+        public async Task<IActionResult> PutUser(long id, UpdateUserRequest request)
         {
-            if (id != user.Id)
+            User user = await context.Users.FindAsync(id);
+
+            if (user is null)
             {
-                return BadRequest();
+                return NotFound();
             }
+
+            if (request.Name != null && request.Name != "")
+            {
+                user.Name = request.Name;
+            }
+
+            user.About = request.About;
+
 
             context.Entry(user).State = EntityState.Modified;
 
@@ -79,17 +109,11 @@ namespace AspTwitter.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
-            return NoContent();
+            return Ok();
         }
 
         [HttpPost]
@@ -151,11 +175,6 @@ namespace AspTwitter.Controllers
             await context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool UserExists(long id)
-        {
-            return context.Users.Any(e => e.Id == id);
         }
 
         private string Hash(string password)

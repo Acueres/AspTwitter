@@ -25,6 +25,7 @@ namespace AspTwitter.AppData
             builder.Entity<User>().Property(x => x.Name).IsRequired().IsUnicode().HasMaxLength(128);
             builder.Entity<User>().Property(x => x.Username).IsRequired().IsUnicode().HasMaxLength(64);
             builder.Entity<User>().Property(x => x.Email).IsUnicode().HasMaxLength(128);
+            builder.Entity<User>().Property(x => x.About).IsUnicode().HasMaxLength(160);
             builder.Entity<User>().Property(x => x.PasswordHash).IsRequired().HasMaxLength(128);
             builder.Entity<User>().HasMany(x => x.Entries).WithOne();
 

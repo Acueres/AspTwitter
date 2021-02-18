@@ -9,6 +9,7 @@ namespace AspTwitter.Models
         public string Name { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
+        public string About { get; set; }
 
         [JsonIgnore]
         public string PasswordHash { get; set; }

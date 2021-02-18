@@ -1,0 +1,44 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+            <div class="mb-3">
+                <input type="image" id="editAvatar" v-bind:src="avatar" class="img-fluid rounded-circle float-left"
+                    style="width: 100px; height: 100px; outline: none;" alt="Avatar"
+                    onclick="document.getElementById('imageInput').click()">
+                <input id="imageInput" type="file" accept="image/*" enctype="multipart/form-data"
+                    onchange="edit.uploadImage()" style="display: none;">
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="form-control" class="form-control" v-bind:class="nameInvalid ? 'is-invalid': ''"
+                    id="editName" v-model="name" :placeholder="name" required aria-describedby="nameValidation">
+                <label for="editName">Name</label>
+
+                <div id="nameValidation" class="invalid-feedback">
+                    Name can't be empty
+                </div>
+            </div>
+
+            <div class="form-floating mb-3">
+                <textarea type="form-control" type="text" style="resize: none; overflow: hidden;" class="form-control"
+                    id="about" maxlength="160" v-model="aboutText" aria-describedby="charCounter"
+                    oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
+                <label for="about">About</label>
+
+                <div class="d-flex p-2" v-if="charactersLeft != null">
+                    <div id="charCounter" class="form-text">
+                        {{ charactersLeft }}
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" v-on:click="save">Save</button>
+            </div>
+        </div>
+    </div>
