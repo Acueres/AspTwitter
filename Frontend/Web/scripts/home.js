@@ -10,20 +10,10 @@ var home = new Vue(
         },
 
         created: async function () {
-            const id = JSON.parse(localStorage.getItem('currentUser')).id;
-
-            if (id !== undefined && id != '') {
-                const response = await fetch(`http://localhost:5000/api/users/${id}/entries`);
-                const data = await response.json();
-                this.entries = data;
-                this.entries.reverse();
-            }
-            else {
-                const response = await fetch(`http://localhost:5000/api/entries`);
-                const data = await response.json();
-                this.entries = data;
-                this.entries.reverse();
-            }
+            const response = await fetch(`http://localhost:5000/api/entries`);
+            const data = await response.json();
+            this.entries = data;
+            this.entries.reverse();
         },
 
         methods:

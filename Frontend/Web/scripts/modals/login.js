@@ -63,8 +63,6 @@ var login = new Vue({
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('login'));
                 modal.toggle();
-
-                location.reload();
             }
         }
     }

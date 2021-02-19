@@ -21,8 +21,15 @@
   <!--Navbar-->
   <div id="nav"></div>
 
-  <!--Home section-->
-  <div id="home"></div>
+  <div class="tab-content" id="tabs">
+    <!--Home section-->
+    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab"></div>
+
+    <!--Profile section-->
+    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab" v-if="logged"></div>
+
+    <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab" v-if="logged"></div>
+  </div>
 
   <!--Login modal-->
   <div class="modal fade" id="login" tabindex="-1"></div>
@@ -41,26 +48,32 @@
     });
 
     $(function () {
-      $("#login").load("components/login.html", function () {
-        $.getScript("scripts/login.js");
-      });
-    });
-
-    $(function () {
-      $("#register").load("components/register.html", function () {
-        $.getScript("scripts/register.js");
-      });
-    });
-
-    $(function () {
-      $("#edit").load("components/edit.html", function () {
-        $.getScript("scripts/edit.js");
-      });
-    });
-
-    $(function () {
       $("#home").load("components/home.html", function () {
         $.getScript("scripts/home.js");
+      });
+    });
+
+    $(function () {
+      $("#profile").load("components/profile.html", function () {
+        $.getScript("scripts/profile.js");
+      });
+    });
+
+    $(function () {
+      $("#login").load("components/modals/login.html", function () {
+        $.getScript("scripts/modals/login.js");
+      });
+    });
+
+    $(function () {
+      $("#register").load("components/modals/register.html", function () {
+        $.getScript("scripts/modals/register.js");
+      });
+    });
+
+    $(function () {
+      $("#edit").load("components/modals/edit.html", function () {
+        $.getScript("scripts/modals/edit.js");
       });
     });
   </script>

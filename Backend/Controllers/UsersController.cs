@@ -65,8 +65,17 @@ namespace AspTwitter.Controllers
         [HttpGet("{id}/avatar")]
         public IActionResult GetAvatar(long id)
         {
-            var image = System.IO.File.OpenRead($"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg");
-            return File(image, "image/jpeg");
+            string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
+            if (System.IO.File.Exists(path))
+            {
+                var image = System.IO.File.OpenRead(path);
+                return File(image, "image/jpeg");
+            }
+            else
+            {
+                var image = System.IO.File.OpenRead($"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/default.png");
+                return File(image, "image/jpeg");
+            }
         }
 
         [Authorize]

@@ -5,15 +5,6 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-
-            <div class="mb-3">
-                <input type="image" id="editAvatar" v-bind:src="avatar" class="img-fluid rounded-circle float-left"
-                    style="width: 100px; height: 100px; outline: none;" alt="Avatar"
-                    onclick="document.getElementById('imageInput').click()">
-                <input id="imageInput" type="file" accept="image/*" enctype="multipart/form-data"
-                    onchange="edit.uploadImage()" style="display: none;">
-            </div>
-
             <div class="form-floating mb-3">
                 <input type="form-control" class="form-control" v-bind:class="nameInvalid ? 'is-invalid': ''"
                     id="editName" v-model="name" :placeholder="name" required aria-describedby="nameValidation">
@@ -26,7 +17,7 @@
 
             <div class="form-floating mb-3">
                 <textarea type="form-control" type="text" style="resize: none; overflow: hidden;" class="form-control"
-                    id="about" maxlength="160" v-model="aboutText" aria-describedby="charCounter"
+                    id="about" maxlength="160" v-model="about" aria-describedby="charCounter"
                     oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
                 <label for="about">About</label>
 

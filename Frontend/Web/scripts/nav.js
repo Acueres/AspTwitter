@@ -20,8 +20,7 @@ var nav = new Vue(
             logout: function () {
                 this.logged = false;
                 this.username = '';
-                localStorage.setItem('currentUser', JSON.stringify({ id: '', username: '', token: '' }));
-                location.reload();
+                localStorage.setItem('currentUser', JSON.stringify({ id: '', username: '', token: '', about: '' }));
             }
         }
     });
