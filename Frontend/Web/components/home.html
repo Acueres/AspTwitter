@@ -13,7 +13,7 @@
 
     <!--Entries column-->
     <div class="col-5 bg-light" style="height: 90vh;">
-      <div class="p-3 border-bottom bg-light" v-if="logged">
+      <div class="p-3 border-bottom bg-light" v-if="user.logged">
         <textarea type="text" style="resize: none; overflow: hidden;" id="post" class="form-control" maxlength="256"
           placeholder="What's happening?" v-model="text" aria-describedby="charCounter"
           oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
@@ -26,7 +26,7 @@
         </div>
       </div>
 
-      <div class="bg-light overflow-auto" v-bind:style="logged ? 'height: 80vh;': 'height: 90vh;'">
+      <div class="bg-light overflow-auto" v-bind:style="user.logged ? 'height: 80vh;': 'height: 90vh;'">
         <div class="p-3 border-bottom bg-light" v-for="entry in entries" v-bind:key="entry.id">
           <b style="font-size: large;">{{ entry.author.name }}</b> @{{ entry.author.username }} <br>
           <a style="color: black;">{{ entry.text }}</a>

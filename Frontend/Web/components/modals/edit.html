@@ -7,7 +7,8 @@
         <div class="modal-body">
             <div class="form-floating mb-3">
                 <input type="form-control" class="form-control" v-bind:class="nameInvalid ? 'is-invalid': ''"
-                    id="editName" v-model="name" :placeholder="name" required aria-describedby="nameValidation">
+                    id="editName" v-model="originalName" :placeholder="originalName" required
+                    aria-describedby="nameValidation">
                 <label for="editName">Name</label>
 
                 <div id="nameValidation" class="invalid-feedback">

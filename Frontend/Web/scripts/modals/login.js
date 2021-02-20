@@ -56,10 +56,7 @@ var login = new Vue({
                 this.passwordInvalid = true;
             }
             else {
-                localStorage.setItem('currentUser', JSON.stringify(responseData));
-
-                nav.logged = true;
-                nav.username = username;
+                user.set(responseData);
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('login'));
                 modal.toggle();

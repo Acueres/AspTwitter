@@ -4,7 +4,7 @@ var home = new Vue(
 
         data:
         {
-            logged: isLogged(),
+            user: user,
             entries: [],
             text: ''
         },
@@ -19,8 +19,6 @@ var home = new Vue(
         methods:
         {
             post: async function () {
-                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
                 const response = await fetch('http://localhost:5000/api/entries', {
                     method: 'POST',
                     credentials: 'omit',
@@ -28,18 +26,18 @@ var home = new Vue(
                     cache: 'no-cache',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + currentUser.token
+                        'Authorization': 'Bearer ' + user.token
                     },
                     body: JSON.stringify({
-                        authorId: currentUser.id,
+                        authorId: user.id,
                         text: this.text
                     })
                 });
 
                 if (response.status === 200) {
                     this.entries.splice(0, 0, {
-                        author: currentUser,
-                        authorId: currentUser.id,
+                        author: user,
+                        authorId: user.id,
                         text: String(this.text)
                     });
 

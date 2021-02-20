@@ -73,16 +73,10 @@ var register = new Vue({
                 this.usernameMessage = this.errorMessages.usernameExists;
             }
             else {
-                localStorage.setItem('currentUser', JSON.stringify(responseData));
-                console.log(responseData);
-
-                nav.logged = true;
-                nav.username = username;
+                user.set(responseData);
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('register'));
                 modal.toggle();
-
-                location.reload();
             }
         }
     }

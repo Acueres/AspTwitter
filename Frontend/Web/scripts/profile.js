@@ -3,23 +3,23 @@ var profile = new Vue({
 
     data:
     {
-        name: JSON.parse(localStorage.getItem('currentUser')).name,
-        username: JSON.parse(localStorage.getItem('currentUser')).username,
-        about: JSON.parse(localStorage.getItem('currentUser')).about,
-        logged: isLogged(),
+        user: user,
         entries: []
     },
 
     created: async function () {
-        const id = JSON.parse(localStorage.getItem('currentUser')).id;
-
-        if (id != '') {
-            const response = await fetch(`http://localhost:5000/api/users/${id}/entries`);
+        if (user.id != null) {
+            const response = await fetch(`http://localhost:5000/api/users/${user.id}/entries`);
             const data = await response.json();
             this.entries = data;
             this.entries.reverse();
         }
 
+        //Update edit modal default values when changing user
+        jQuery('#edit').on('show.bs.modal', function () {
+            edit.name = user.name;
+            edit.about = user.about;
+          });
     },
 
     methods:
@@ -40,19 +40,17 @@ var profile = new Vue({
                 let form = new FormData();
                 form.append("avatar", image);
 
-                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
                 let settings = {
                     "async": true,
                     "crossDomain": true,
-                    "url": `http://localhost:5000/api/users/${currentUser.id}/avatar`,
+                    "url": `http://localhost:5000/api/users/${user.id}/avatar`,
                     "method": "POST",
                     "processData": false,
                     "contentType": false,
                     "mimeType": "multipart/form-data",
                     "data": form,
                     beforeSend: function (xhr) {
-                        xhr.setRequestHeader("Authorization", 'Bearer ' + currentUser.token);
+                        xhr.setRequestHeader("Authorization", 'Bearer ' + user.token);
                     }
                 };
 
@@ -64,10 +62,8 @@ var profile = new Vue({
     computed:
     {
         avatar: async function () {
-            const id = JSON.parse(localStorage.getItem('currentUser')).id;
-
-            if (id != '') {
-                const response = await fetch(`http://localhost:5000/api/users/${id}/avatar`);
+            if (user.id != null) {
+                const response = await fetch(`http://localhost:5000/api/users/${user.id}/avatar`);
 
                 const image = await response.blob();
 

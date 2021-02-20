@@ -3,9 +3,9 @@ var edit = new Vue({
 
     data:
     {
-        nameInvalid: false,
-        name: JSON.parse(localStorage.getItem('currentUser')).name,
-        about: JSON.parse(localStorage.getItem('currentUser')).about
+        originalName: user.name,
+        about: user.about,
+        nameInvalid: false
     },
 
     methods:
@@ -17,16 +17,14 @@ var edit = new Vue({
 
             this.nameInvalid = name == '';
 
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-
-            const response = await fetch(`http://localhost:5000/api/users/${currentUser.id}`, {
+            const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
                 method: 'PUT',
                 credentials: 'omit',
                 redirect: 'follow',
                 cache: 'no-cache',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + currentUser.token
+                    'Authorization': 'Bearer ' + user.token
                 },
                 body: JSON.stringify({
                     name: name,
@@ -35,9 +33,9 @@ var edit = new Vue({
             });
 
             if (response.status === 200) {
-                currentUser.name = name;
-                currentUser.about = this.about;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                user.name = name;
+                user.about = this.about;
+                user.updateStorage();
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('edit'));
                 modal.toggle();

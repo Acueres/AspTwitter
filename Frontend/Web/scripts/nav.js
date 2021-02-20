@@ -4,9 +4,8 @@ var nav = new Vue(
 
         data:
         {
-            username: getUsername(),
-            entries: [],
-            logged: isLogged()
+            user: user,
+            entries: []
         },
 
         methods:
@@ -18,26 +17,11 @@ var nav = new Vue(
             },
 
             logout: function () {
-                this.logged = false;
-                this.username = '';
-                localStorage.setItem('currentUser', JSON.stringify({ id: '', username: '', token: '', about: '' }));
+                let home = document.querySelector('#home-tab');
+                let tab = new bootstrap.Tab(home);
+                tab.show();
+
+                user.logout();
             }
         }
     });
-
-function isLogged() {
-    let id = JSON.parse(localStorage.getItem('currentUser')).id;
-    if (id == undefined) {
-        return false;
-    }
-    return id !== '';
-}
-
-function getUsername() {
-    let res = JSON.parse(localStorage.getItem('currentUser')).username;
-    if (res == undefined) {
-        return '';
-    }
-
-    return res;
-}
