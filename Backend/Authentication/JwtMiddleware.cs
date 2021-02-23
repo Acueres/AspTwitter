@@ -22,19 +22,19 @@ namespace AspTwitter.Authentication
             this.appSettings = appSettings.Value;
         }
 
-        public async Task Invoke(HttpContext context, IUserAuthentication userAuth)
+        public async Task Invoke(HttpContext context, IAuthenticationManager auth)
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
             if (token != null)
             {
-                AttachUserToContext(context, userAuth, token);
+                AttachUserToContext(context, auth, token);
             }
 
             await next(context);
         }
 
-        private void AttachUserToContext(HttpContext context, IUserAuthentication userAuth, string token)
+        private void AttachUserToContext(HttpContext context, IAuthenticationManager auth, string token)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace AspTwitter.Authentication
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 long userId = long.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-                context.Items["User"] = userAuth.GetUser(userId);
+                context.Items["User"] = auth.GetUser(userId);
             }
             catch { }
         }

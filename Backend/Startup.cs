@@ -32,7 +32,7 @@ namespace AspTwitter
                     UseSqlite($"Data Source={Directory.GetCurrentDirectory()}/Backend/AppData/data.db"));
 
             services.Configure<AppSettings>(Configuration.GetSection("JWT"));
-            services.AddScoped<IUserAuthentication, UserAuthentication>();
+            services.AddScoped<IAuthenticationManager, AuthenticationManager>();
 
             services.AddControllers();
         }

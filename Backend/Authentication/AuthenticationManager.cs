@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Linq;
@@ -12,24 +11,25 @@ using System.Collections.Generic;
 
 using AspTwitter.AppData;
 using AspTwitter.Models;
+using AspTwitter.Requests;
 
 
 namespace AspTwitter.Authentication
 {
-    public interface IUserAuthentication
+    public interface IAuthenticationManager
     {
         AuthenticationResponse Authenticate(AuthenticationRequest request);
         AuthenticationResponse Authenticate(User user);
         User GetUser(long id);
     }
 
-    public class UserAuthentication : IUserAuthentication
+    public class AuthenticationManager : IAuthenticationManager
     {
         private readonly AppDbContext context;
         private readonly IConfiguration configuration;
 
 
-        public UserAuthentication(AppDbContext context, IConfiguration configuration)
+        public AuthenticationManager(AppDbContext context, IConfiguration configuration)
         {
             this.context = context;
             this.configuration = configuration;
@@ -73,7 +73,7 @@ namespace AspTwitter.Authentication
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddHours(8),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
             };
 

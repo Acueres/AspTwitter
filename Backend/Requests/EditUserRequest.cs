@@ -1,9 +1,6 @@
-﻿using System;
-
-
-namespace AspTwitter.Models
+﻿namespace AspTwitter.Requests
 {
-    public class UpdateUserRequest
+    public class EditUserRequest
     {
         public string Name { get; set; }
         public string About { get; set; }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,14 +46,13 @@ namespace AspTwitter.Controllers
         }
 
         // PUT: api/Entries/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEntry(long id, Entry entry)
         {
-            if (id != entry.Id)
+            if (!HasPermission(entry.AuthorId))
             {
-                return BadRequest();
+                return StatusCode(StatusCodes.Status403Forbidden);
             }
 
             context.Entry(entry).State = EntityState.Modified;
@@ -77,15 +77,19 @@ namespace AspTwitter.Controllers
         }
 
         // POST: api/Entries
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPost]
         public async Task<ActionResult<Entry>> PostEntry(Entry entry)
         {
+            if (!HasPermission(entry.AuthorId))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
             context.Entries.Add(entry);
             await context.SaveChangesAsync();
 
-            return Ok(new Response { Status = "Success", Message = $"Entry created" });
+            return Ok(new { Id = entry.Id });
         }
 
         // DELETE: api/Entries/5
@@ -93,16 +97,27 @@ namespace AspTwitter.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEntry(long id)
         {
-            var entry = await context.Entries.FindAsync(id);
-            if (entry == null)
+            Entry entry = await context.Entries.FindAsync(id);
+
+            if (entry is null)
             {
                 return NotFound();
+            }
+
+            if (!HasPermission(entry.AuthorId))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
             }
 
             context.Entries.Remove(entry);
             await context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok();
+        }
+
+        private bool HasPermission(long id)
+        {
+            return ((User)HttpContext.Items["User"]).Id == id;
         }
 
         private bool EntryExists(long id)

@@ -1,4 +1,7 @@
-﻿namespace AspTwitter.Models
+﻿using AspTwitter.Models;
+
+
+namespace AspTwitter.Authentication
 {
     public class AuthenticationResponse
     {

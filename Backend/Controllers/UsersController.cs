@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 
 using AspTwitter.Models;
+using AspTwitter.Requests;
 using AspTwitter.AppData;
 using AspTwitter.Authentication;
 
@@ -23,21 +24,23 @@ namespace AspTwitter.Controllers
     {
         private readonly AppDbContext context;
         private readonly IConfiguration configuration;
-        private IUserAuthentication userAuthentication;
+        private IAuthenticationManager auth;
 
-        public UsersController(AppDbContext context, IConfiguration configuration, IUserAuthentication userAuth)
+        public UsersController(AppDbContext context, IConfiguration configuration, IAuthenticationManager auth)
         {
             this.context = context;
             this.configuration = configuration;
-            userAuthentication = userAuth;
+            this.auth = auth;
         }
 
+        // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await context.Users.ToListAsync();
         }
 
+        // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(long id)
         {
@@ -51,6 +54,7 @@ namespace AspTwitter.Controllers
             return user;
         }
 
+        // GET: api/Users/5/entries
         [HttpGet("{id}/entries")]
         public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(long id)
         {
@@ -62,6 +66,7 @@ namespace AspTwitter.Controllers
             return await context.Entries.Where(x => x.AuthorId == id).ToListAsync();
         }
 
+        // GET: api/Users/5/avatar
         [HttpGet("{id}/avatar")]
         public IActionResult GetAvatar(long id)
         {
@@ -78,11 +83,17 @@ namespace AspTwitter.Controllers
             }
         }
 
+        // POST: api/Users/5/avatar
         [Authorize]
         [HttpPost("{id}/avatar")]
         [Consumes("multipart/form-data", "image/jpg", "image/png")]
         public async Task<IActionResult> PostAvatar(long id, [FromForm(Name = "avatar")] IFormFile image)
         {
+            if (!HasPermission(id))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
             string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
 
             using var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate);
@@ -91,15 +102,21 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
+        // PUT: api/Users/5
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, UpdateUserRequest request)
+        public async Task<IActionResult> PutUser(long id, EditUserRequest request)
         {
             User user = await context.Users.FindAsync(id);
 
             if (user is null)
             {
                 return NotFound();
+            }
+
+            if (!HasPermission(id))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
             }
 
             if (request.Name != null && request.Name != "")
@@ -125,6 +142,7 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
+        // POST: api/Users/login
         [HttpPost]
         [Route("login")]
         public async Task<ActionResult> Login([FromBody] AuthenticationRequest request)
@@ -133,27 +151,25 @@ namespace AspTwitter.Controllers
 
             if (user is null)
             {
-                return StatusCode(StatusCodes.Status404NotFound,
-                       new Response { Status = "Error", Message = $"User \"{request.Username}\" does not exist" });
+                return StatusCode(StatusCodes.Status404NotFound);
             }
 
             if (!CompareHash(request.Password, user.PasswordHash))
             {
-                return StatusCode(StatusCodes.Status401Unauthorized,
-                       new Response { Status = "Error", Message = $"Incorrect password" });
+                return StatusCode(StatusCodes.Status401Unauthorized);
             }
 
-            return Ok(userAuthentication.Authenticate(request));
+            return Ok(auth.Authenticate(request));
         }
 
+        // POST: api/Users/register
         [HttpPost]
         [Route("register")]
         public async Task<ActionResult> Register([FromBody] RegisterRequest request)
         {
             if (context.Users.Any(e => e.Username == request.Username))
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                       new Response { Status = "Error", Message = "User already exists" });
+                return StatusCode(StatusCodes.Status409Conflict);
             }
 
             User user = new User()
@@ -167,15 +183,21 @@ namespace AspTwitter.Controllers
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            return Ok(userAuthentication.Authenticate(user));
+            return Ok(auth.Authenticate(user));
         }
 
+        // DELETE: api/Users/5
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(long id)
         {
+            if (!HasPermission(id))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
             var user = await context.Users.FindAsync(id);
-            if (user == null)
+            if (user is null)
             {
                 return NotFound();
             }
@@ -184,6 +206,11 @@ namespace AspTwitter.Controllers
             await context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private bool HasPermission(long id)
+        {
+            return ((User)HttpContext.Items["User"]).Id == id;
         }
 
         private string Hash(string password)
