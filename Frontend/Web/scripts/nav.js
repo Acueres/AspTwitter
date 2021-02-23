@@ -21,6 +21,7 @@ var nav = new Vue(
                 let tab = new bootstrap.Tab(home);
                 tab.show();
 
+                entries.userEntries = null;
                 user.logout();
             }
         }

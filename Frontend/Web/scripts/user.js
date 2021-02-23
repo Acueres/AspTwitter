@@ -8,7 +8,7 @@ class User {
 
     constructor() {
         let data = JSON.parse(localStorage.getItem('user'));
-        if (data != undefined && data.id != '') {
+        if (data != undefined) {
             this._setData(data);
             this.logged = true;
         }

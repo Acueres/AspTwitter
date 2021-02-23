@@ -5,19 +5,31 @@ var home = new Vue(
         data:
         {
             user: user,
-            entries: [],
+            entries: entries,
             text: ''
-        },
-
-        created: async function () {
-            const response = await fetch(`http://localhost:5000/api/entries`);
-            const data = await response.json();
-            this.entries = data;
-            this.entries.reverse();
         },
 
         methods:
         {
+            deleteEntry: async function(index, id) {
+
+                const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'omit',
+                    redirect: 'follow',
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + user.token
+                    }
+                });
+    
+                if (response.status == 200)
+                {
+                    entries.deleteFromHome(index, id);
+                }
+            },
+            
             post: async function () {
                 const response = await fetch('http://localhost:5000/api/entries', {
                     method: 'POST',
@@ -35,11 +47,16 @@ var home = new Vue(
                 });
 
                 if (response.status === 200) {
-                    this.entries.splice(0, 0, {
+                    const responseData = await response.json();
+
+                    let entry =  {
+                        id: responseData.id,
                         author: user,
                         authorId: user.id,
                         text: String(this.text)
-                    });
+                    };
+
+                    entries.add(entry);
 
                     this.text = '';
                     document.getElementById('post').value = '';
@@ -53,10 +70,6 @@ var home = new Vue(
         computed:
         {
             charactersLeft: function () {
-                if (this.text.length == 0) {
-                    return null;
-                }
-
                 return this.text.length + '/' + '256';
             }
         }

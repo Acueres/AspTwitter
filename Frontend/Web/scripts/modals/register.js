@@ -3,6 +3,8 @@ var register = new Vue({
 
     data:
     {
+        passwordVisible: false,
+        
         nameInvalid: false,
         usernameInvalid: false,
         emailInvalid: false,

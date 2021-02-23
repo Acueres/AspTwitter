@@ -16,8 +16,17 @@
             </div>
 
             <div class="mb-3">
-                <input type="password" class="form-control" v-bind:class="passwordInvalid ? 'is-invalid': ''"
-                    id="loginPassword" placeholder="Password" required aria-describedby="passwordValidation">
+                <div class="input-group">
+                    <input v-bind:type="passwordVisible ? 'text': 'password'" class="form-control"
+                        v-bind:class="passwordInvalid ? 'is-invalid': ''" id="loginPassword" placeholder="Password"
+                        required aria-describedby="passwordValidation">
+                    <div class="input-group-addon">
+                        <button class="btn btn-default reveal shadow-none" type="button"
+                            v-on:click="passwordVisible = !passwordVisible">
+                            <i class="fa" v-bind:class="passwordVisible ? 'fa-eye': 'fa-eye-slash'" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
 
                 <div id="passwordValidation" class="invalid-feedback">
                     {{ passwordMessage }}

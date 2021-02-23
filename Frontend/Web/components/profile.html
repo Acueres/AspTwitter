@@ -25,8 +25,13 @@
 
 
             <div class="bg-light overflow-auto" style="height: 63vh;">
-                <div class="p-3 border-bottom bg-light" v-for="entry in entries" v-bind:key="entry.id">
-                    <b style="font-size: large;">{{ entry.author.name }}</b> @{{ entry.author.username }} <br>
+                <div class="p-3 border-bottom bg-light" v-for="(entry, index) in entries.userEntries" :key="entry.id">
+                    <b style="font-size: large;">{{ entry.author.name }}</b> @{{ entry.author.username }}
+
+                    <button type="button" class="btn btn-default" aria-label="Left Align"
+                        v-on:click="deleteEntry(index, entry.id)">
+                        <span class="fa fa-trash" aria-hidden="true"></span>
+                    </button> <br>
                     <a style="color: black;">{{ entry.text }}</a>
                 </div>
             </div>

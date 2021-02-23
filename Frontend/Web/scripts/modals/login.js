@@ -2,6 +2,8 @@ var login = new Vue({
     el: '#login',
     data:
     {
+        passwordVisible: false,
+
         usernameInvalid: false,
         passwordInvalid: false,
         usernameMessage: '',
@@ -57,6 +59,7 @@ var login = new Vue({
             }
             else {
                 user.set(responseData);
+                entries.loadUserEntries();
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('login'));
                 modal.toggle();

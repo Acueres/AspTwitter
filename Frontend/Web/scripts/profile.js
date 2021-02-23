@@ -4,26 +4,41 @@ var profile = new Vue({
     data:
     {
         user: user,
-        entries: []
+        entries: entries
     },
 
     created: async function () {
         if (user.id != null) {
-            const response = await fetch(`http://localhost:5000/api/users/${user.id}/entries`);
-            const data = await response.json();
-            this.entries = data;
-            this.entries.reverse();
+            await entries.loadUserEntries(user.id);
         }
 
         //Update edit modal default values when changing user
         jQuery('#edit').on('show.bs.modal', function () {
             edit.name = user.name;
             edit.about = user.about;
-          });
+        });
     },
 
     methods:
     {
+        deleteEntry: async function (index, id) {
+
+            const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
+                method: 'DELETE',
+                credentials: 'omit',
+                redirect: 'follow',
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + user.token
+                }
+            });
+
+            if (response.status == 200) {
+                entries.deleteFromProfile(index, id);
+            }
+        },
+
         uploadImage: function () {
             let imageInput = document.getElementById("imageInput");
             let avatar = document.getElementById("editAvatar");
