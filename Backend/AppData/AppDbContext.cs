@@ -29,18 +29,6 @@ namespace AspTwitter.AppData
             builder.Entity<User>().Property(x => x.PasswordHash).IsRequired().HasMaxLength(128);
             builder.Entity<User>().HasMany(x => x.Entries).WithOne();
 
-            builder.Entity<User>().HasData
-            (
-                new User
-                {
-                    Id = 1,
-                    Name = "Donald Trump",
-                    Username = "donaldTrump",
-                    Email = "realDonaldTrump@loser.com",
-                    PasswordHash = "covfefe"
-                }
-            );
-
             builder.Entity<Entry>().ToTable("Entries");
             builder.Entity<Entry>().HasKey(x => x.Id);
             builder.Entity<Entry>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
@@ -49,23 +37,6 @@ namespace AspTwitter.AppData
             builder.Entity<Entry>().Property(x => x.Text).IsRequired().IsUnicode().HasMaxLength(256);
             builder.Entity<Entry>().HasOne(x => x.Author).WithMany(x => x.Entries).
                                     HasForeignKey(x => x.AuthorId);
-
-            builder.Entity<Entry>().HasData
-            (
-                new Entry
-                {
-                    Id = 1,
-                    AuthorId = 1,
-                    Text = "Example1"
-                },
-
-                new Entry
-                {
-                    Id = 2,
-                    AuthorId = 1,
-                    Text = "Example2"
-                }
-            );
         }
     }
 }

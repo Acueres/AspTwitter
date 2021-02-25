@@ -20,5 +20,7 @@ namespace AspTwitter.Authentication
             About = user.About;
             Token = token;
         }
+
+        public AuthenticationResponse() { }
     }
 }

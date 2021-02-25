@@ -59,7 +59,7 @@ var register = new Vue({
         },
 
         post: async function (name, username, email, password) {
-            const response = await fetch('http://localhost:5000/api/users/register', {
+            const response = await fetch('http://localhost:5000/api/authentication/register', {
                 method: 'POST',
                 cache: 'no-cache',
                 credentials: 'omit',
