@@ -24,3 +24,7 @@
 /Backend/AppData/Avatars/2.jpg
 /Frontend/Web/images/default_avatar.png
 /Backend/AppData/Avatars
+/Backend/Tests/bin/Debug/net5.0
+/Backend/Tests/obj
+/Backend/Tests/Tests.csproj
+/.vs/AspTwitter/v16/TestStore/0
