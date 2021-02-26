@@ -18,11 +18,9 @@ namespace AspTwitter.Tests
     public class AuthenticationTests : IClassFixture<WebAppFactory<Startup>>
     {
         private readonly HttpClient client;
-        private readonly WebAppFactory<Startup> factory;
 
         public AuthenticationTests(WebAppFactory<Startup> factory)
         {
-            this.factory = factory;
             client = factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 AllowAutoRedirect = false
@@ -30,7 +28,7 @@ namespace AspTwitter.Tests
         }
 
         [Fact]
-        public async Task Test1()
+        public async Task Test()
         {
             await UserRegistration();
             await RegistrationDataHandling();
@@ -88,7 +86,7 @@ namespace AspTwitter.Tests
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadAsStringAsync();
+            string result = await response.Content.ReadAsStringAsync();
             var authResponse = JsonConvert.DeserializeObject<AuthenticationResponse>(result);
 
             Assert.True(authResponse.Name == "User 2");
@@ -110,7 +108,7 @@ namespace AspTwitter.Tests
                 Content = new StringContent(JsonConvert.SerializeObject(
                 new RegisterRequest
                 {
-                    Name = null,
+                    Name = "  ",
                     Username = "",
                     Password = " "
                 }), Encoding.UTF8, "application/json")
@@ -144,8 +142,8 @@ namespace AspTwitter.Tests
                 Content = new StringContent(JsonConvert.SerializeObject(
                 new AuthenticationRequest
                 {
-                    Username = " ",
-                    Password = null
+                    Username = null,
+                    Password = " "
                 }), Encoding.UTF8, "application/json")
             };
 
@@ -158,8 +156,8 @@ namespace AspTwitter.Tests
                 Content = new StringContent(JsonConvert.SerializeObject(
                 new AuthenticationRequest
                 {
-                    Username = "user3",
-                    Password = "testpassword1"
+                    Username = "usernone",
+                    Password = "testpassword"
                 }), Encoding.UTF8, "application/json")
             };
 

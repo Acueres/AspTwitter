@@ -89,10 +89,17 @@ namespace AspTwitter.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
 
-            string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
+            try
+            {
+                string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
 
-            using var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate);
-            await image.CopyToAsync(stream);
+                using var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate);
+                await image.CopyToAsync(stream);
+            }
+            catch
+            {
+                return BadRequest();
+            }
 
             return Ok();
         }
@@ -102,11 +109,22 @@ namespace AspTwitter.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(long id, EditUserRequest request)
         {
-            User user = await context.Users.FindAsync(id);
-
-            if (user is null)
+            if (request.Name is null)
             {
-                return NotFound();
+                return BadRequest();
+            }
+
+            request.Name = request.Name.Trim();
+
+            if (request.About != null)
+            {
+                request.About = request.About.Trim();
+            }
+
+            if (request.Name == string.Empty ||
+                request.About == string.Empty)
+            {
+                return BadRequest();
             }
 
             if (!HasPermission(id))
@@ -114,13 +132,18 @@ namespace AspTwitter.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
 
-            if (request.Name != null && request.Name != "")
+            User user = await context.Users.FindAsync(id);
+
+            if (user is null)
             {
-                user.Name = request.Name;
+                return NotFound();
             }
 
-            user.About = request.About;
+            request.Name = Truncate(request.Name, MaxLength.Name);
+            request.About = Truncate(request.About, MaxLength.About);
 
+            user.Name = request.Name;
+            user.About = request.About;
 
             context.Entry(user).State = EntityState.Modified;
 
@@ -131,7 +154,7 @@ namespace AspTwitter.Controllers
             catch (DbUpdateConcurrencyException)
             {
 
-                throw;
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             return Ok();
@@ -147,7 +170,7 @@ namespace AspTwitter.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
 
-            var user = await context.Users.FindAsync(id);
+            User user = await context.Users.FindAsync(id);
             if (user is null)
             {
                 return NotFound();
@@ -156,7 +179,17 @@ namespace AspTwitter.Controllers
             context.Users.Remove(user);
             await context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok();
+        }
+
+        private string Truncate(string val, MaxLength length)
+        {
+            if (val.Length > (int)length)
+            {
+                return val.Substring(0, (int)length);
+            }
+
+            return val;
         }
 
         private bool HasPermission(long id)

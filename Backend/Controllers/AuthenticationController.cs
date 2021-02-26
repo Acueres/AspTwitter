@@ -37,11 +37,16 @@ namespace AspTwitter.Controllers
         [Route("login")]
         public async Task<ActionResult> Login([FromBody] AuthenticationRequest request)
         {
+            if (request.Username is null || request.Password is null)
+            {
+                return BadRequest();
+            }
+
             request.Username = request.Username.Replace(" ", string.Empty);
             request.Password = request.Password.Replace(" ", string.Empty);
 
-            if (string.IsNullOrEmpty(request.Username) ||
-                string.IsNullOrEmpty(request.Password))
+            if (request.Username == string.Empty ||
+                request.Password == string.Empty)
             {
                 return BadRequest();
             }
@@ -66,14 +71,26 @@ namespace AspTwitter.Controllers
         [Route("register")]
         public async Task<ActionResult> Register([FromBody] RegisterRequest request)
         {
+            if (request.Name is null || request.Username is null || request.Password is null)
+            {
+                return BadRequest();
+            }
+
             //Clean whitespace
             request.Name = request.Name.Trim();
             request.Username = request.Username.Replace(" ", string.Empty);
             request.Password = request.Password.Replace(" ", string.Empty);
 
-            if (string.IsNullOrEmpty(request.Name) ||
-                string.IsNullOrEmpty(request.Username) ||
-                string.IsNullOrEmpty(request.Password))
+            if (request.Name == string.Empty ||
+                request.Username == string.Empty ||
+                request.Password == string.Empty)
+            {
+                return BadRequest();
+            }
+
+            if (ExceedsLength(request.Name, MaxLength.Name) ||
+                ExceedsLength(request.Username, MaxLength.Username) ||
+                ExceedsLength(request.Password, MaxLength.Password))
             {
                 return BadRequest();
             }
@@ -82,7 +99,12 @@ namespace AspTwitter.Controllers
             {
                 request.Email = request.Email.Replace(" ", string.Empty);
 
-                //Ignore email if format is incorrect
+                //Ignore email if it exceeds max length or its format is incorrect
+                if (ExceedsLength(request.Email, MaxLength.Email))
+                {
+                    request.Email = null;
+                }
+
                 try
                 {
                     var address = new System.Net.Mail.MailAddress(request.Email);
@@ -110,6 +132,11 @@ namespace AspTwitter.Controllers
             await context.SaveChangesAsync();
 
             return Ok(auth.Authenticate(user));
+        }
+
+        private bool ExceedsLength(string val, MaxLength length)
+        {
+            return val.Length > (int)length;
         }
 
         private string Hash(string password)

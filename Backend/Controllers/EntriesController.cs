@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 using AspTwitter.AppData;
 using AspTwitter.Models;
+using AspTwitter.Requests;
 using AspTwitter.Authentication;
 
 
@@ -35,9 +36,9 @@ namespace AspTwitter.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Entry>> GetEntry(long id)
         {
-            var entry = await context.Entries.FindAsync(id);
+            Entry entry = await context.Entries.FindAsync(id);
 
-            if (entry == null)
+            if (entry is null)
             {
                 return NotFound();
             }
@@ -48,12 +49,34 @@ namespace AspTwitter.Controllers
         // PUT: api/Entries/5
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEntry(long id, Entry entry)
+        public async Task<IActionResult> PutEntry(long id, EntryRequest request)
         {
-            if (!HasPermission(entry.AuthorId))
+            if (!HasPermission(request.AuthorId))
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
+
+            if (request.Text is null)
+            {
+                return BadRequest();
+            }
+
+            request.Text = request.Text.Trim();
+
+            if (request.Text == string.Empty)
+            {
+                return BadRequest();
+            }
+
+            Entry entry = await context.Entries.FindAsync(id);
+
+            if (entry is null)
+            {
+                return NotFound();
+            }
+
+            request.Text = Truncate(request.Text, MaxLength.Entry);
+            entry.Text = request.Text;
 
             context.Entry(entry).State = EntityState.Modified;
 
@@ -63,33 +86,47 @@ namespace AspTwitter.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!EntryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // POST: api/Entries
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Entry>> PostEntry(Entry entry)
+        public async Task<ActionResult<Entry>> PostEntry(EntryRequest request)
         {
-            if (!HasPermission(entry.AuthorId))
+            if (!HasPermission(request.AuthorId))
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
 
+            if (request.Text is null)
+            {
+                return BadRequest();
+            }
+
+            request.Text = request.Text.Trim();
+
+            if (request.Text == string.Empty)
+            {
+                return BadRequest();
+            }
+
+            request.Text = Truncate(request.Text, MaxLength.Entry);
+
+            Entry entry = new Entry
+            {
+                AuthorId = request.AuthorId,
+                Text = request.Text
+            };
+
             context.Entries.Add(entry);
             await context.SaveChangesAsync();
 
-            return Ok(new { Id = entry.Id });
+            return Ok(entry.Id);
         }
 
         // DELETE: api/Entries/5
@@ -115,14 +152,19 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
+        private string Truncate(string val, MaxLength length)
+        {
+            if (val.Length > (int)length)
+            {
+                return val.Substring(0, (int)length);
+            }
+
+            return val;
+        }
+
         private bool HasPermission(long id)
         {
             return ((User)HttpContext.Items["User"]).Id == id;
-        }
-
-        private bool EntryExists(long id)
-        {
-            return context.Entries.Any(e => e.Id == id);
         }
     }
 }
