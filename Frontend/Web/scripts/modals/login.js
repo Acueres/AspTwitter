@@ -57,13 +57,21 @@ var login = new Vue({
                 this.passwordMessage = this.errorMessages.passwordIncorrect;
                 this.passwordInvalid = true;
             }
-            else {
+            else if (response.status == 200) {
                 user.set(responseData);
-                entries.loadUserEntries();
+                entries.loadUserEntries(user.id);
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('login'));
                 modal.toggle();
             }
+        },
+
+        clear: function() {
+            let usernameField = document.getElementById('loginUsername');
+            let passwordField = document.getElementById('loginPassword');
+
+            usernameField.value = '';
+            passwordField.value = '';
         }
     }
 });

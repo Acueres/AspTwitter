@@ -1,6 +1,6 @@
 class Entries {
-    all = null;
-    userEntries = null;
+    all = [];
+    userEntries = [];
 
     constructor() {
         this.loadEntries();

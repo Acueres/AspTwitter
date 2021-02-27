@@ -47,11 +47,11 @@ var home = new Vue(
                 });
 
                 if (response.status === 200) {
-                    const responseData = await response.json();
+                    const entryId = parseInt(await response.json());
 
                     let entry =  {
-                        id: responseData.id,
-                        author: user,
+                        id: entryId,
+                        author: Object.assign({}, user),
                         authorId: user.id,
                         text: String(this.text)
                     };

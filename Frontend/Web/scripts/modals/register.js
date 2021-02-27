@@ -70,16 +70,30 @@ var register = new Vue({
 
             const responseData = await response.json();
 
-            if (response.status === 500) {
+            if (response.status === 409) {
                 this.usernameInvalid = true;
                 this.usernameMessage = this.errorMessages.usernameExists;
             }
-            else {
+            else if (response.status == 200) {
                 user.set(responseData);
+
+                this.clear();
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('register'));
                 modal.toggle();
             }
+        },
+
+        clear: function() {
+            let nameField = document.getElementById('registerName');
+            let usernameField = document.getElementById('registerUsername');
+            let emailField = document.getElementById('registerEmail');
+            let passwordField = document.getElementById('registerPassword');
+
+            nameField.value = '';
+            usernameField.value = '';
+            emailField.value = '';
+            passwordField.value = '';
         }
     }
 });
