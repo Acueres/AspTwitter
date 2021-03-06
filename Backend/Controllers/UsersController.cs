@@ -89,6 +89,13 @@ namespace AspTwitter.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
 
+            int mb = 1024 * 1024;
+
+            if (image != null && image.Length > mb)
+            {
+                return BadRequest();
+            }
+
             try
             {
                 string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
@@ -116,15 +123,14 @@ namespace AspTwitter.Controllers
 
             request.Name = request.Name.Trim();
 
+            if (request.Name == string.Empty)
+            {
+                return BadRequest();
+            }
+
             if (request.About != null)
             {
                 request.About = request.About.Trim();
-            }
-
-            if (request.Name == string.Empty ||
-                request.About == string.Empty)
-            {
-                return BadRequest();
             }
 
             if (!HasPermission(id))
@@ -178,6 +184,12 @@ namespace AspTwitter.Controllers
 
             context.Users.Remove(user);
             await context.SaveChangesAsync();
+
+            string avatarPath = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
+            if (System.IO.File.Exists(avatarPath))
+            {
+                System.IO.File.Delete(avatarPath);
+            }
 
             return Ok();
         }

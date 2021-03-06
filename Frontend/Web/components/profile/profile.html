@@ -1,0 +1,44 @@
+<div class="container-fluid p-3">
+    <div class="row gx-3" style="height: 90vh;">
+
+        <!--Left padding-->
+        <div class="col-2"></div>
+
+        <!--Entries column-->
+        <div class="col-5 bg-light">
+            <div class="position-relative p-3 border-bottom bg-light">
+                <input type="image" id="editAvatar"
+                    v-bind:src='"http://localhost:5000/api/users/" + user.id + "/avatar"'
+                    class="img rounded-circle float-left" style="width: 100px; height: 100px; outline: none;"
+                    alt="avatar" onclick="document.getElementById('imageInput').click()">
+                <input id="imageInput" type="file" accept="image/*" enctype="multipart/form-data"
+                    onchange="profile.uploadImage()" style="display: none;">
+
+                <button class="btn btn-outline-success position-absolute m-3 top-20 end-0" data-bs-toggle="modal"
+                    data-bs-target="#edit" type="button">Edit profile</button>
+
+                <p>
+                    <b style="font-size: large;">{{ user.name }}</b><br>
+                    @{{ user.username }}
+                </p>
+                <p style="color: black; word-wrap: break-word;">{{ user.about }}</p>
+            </div>
+
+            <div class="bg-light">
+                <div class="container p-3 bg-light">
+                    <tweet v-for="(entry, index) in entries.userEntries" 
+                    v-bind:key="entry.id" v-bind:index="index"
+                    v-bind:entry="entry" 
+                    v-bind:user="user"
+                    v-bind:avatar="getAvatar(entry.author.id)"
+                    v-bind:delete-entry="deleteEntry">
+                    </tweet>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-4">
+            <div class="p-3 border-bottom bg-light">Reserved</div>
+        </div>
+    </div>
+</div>

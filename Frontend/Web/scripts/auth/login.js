@@ -72,6 +72,9 @@ var login = new Vue({
 
             usernameField.value = '';
             passwordField.value = '';
+
+            this.usernameInvalid = false;
+            this.passwordInvalid = false;
         }
     }
 });

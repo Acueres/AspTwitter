@@ -9,9 +9,13 @@ var home = new Vue(
             text: ''
         },
 
+        components: {
+            'tweet': tweet
+        },
+
         methods:
         {
-            deleteEntry: async function(index, id) {
+            deleteEntry: async function (index, id) {
 
                 const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
                     method: 'DELETE',
@@ -23,13 +27,12 @@ var home = new Vue(
                         'Authorization': 'Bearer ' + user.token
                     }
                 });
-    
-                if (response.status == 200)
-                {
+
+                if (response.status == 200) {
                     entries.deleteFromHome(index, id);
                 }
             },
-            
+
             post: async function () {
                 const response = await fetch('http://localhost:5000/api/entries', {
                     method: 'POST',
@@ -49,7 +52,7 @@ var home = new Vue(
                 if (response.status === 200) {
                     const entryId = parseInt(await response.json());
 
-                    let entry =  {
+                    let entry = {
                         id: entryId,
                         author: Object.assign({}, user),
                         authorId: user.id,
@@ -64,6 +67,10 @@ var home = new Vue(
                     let toast = new bootstrap.Toast(document.getElementById('successToast'));
                     toast.show();
                 }
+            },
+
+            getAvatar: function(id) {
+                return `http://localhost:5000/api/users/${id}/avatar`;
             }
         },
 

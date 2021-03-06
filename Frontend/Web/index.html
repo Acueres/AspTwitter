@@ -9,13 +9,14 @@
   <!--CSS-->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
 
   <!--Scripts-->
   <script type="text/javascript" src="lib/vue.js"></script>
   <script type="text/javascript" src="lib/jquery-3.5.1.min.js"></script>
   <script type="text/javascript" src="scripts/user.js"></script>
   <script type="text/javascript" src="scripts/entries.js"></script>
+  <script type="text/javascript" src="scripts/templates/tweet.js"></script>
 </head>
 
 <body style="background-color:lavender">
@@ -24,17 +25,20 @@
     crossorigin="anonymous"></script>
 
   <!--Navbar-->
-  <div id="nav"></div>
+  <div id="nav" class="sticky-top"></div>
 
   <div class="tab-content" id="tabs">
     <!--Home tab-->
     <div class="tab-pane show active" id="home" role="tabpanel" aria-labelledby="home-tab"></div>
 
-    <!--Profile tab-->
-    <div class="tab-pane" id="profile" role="tabpanel" aria-labelledby="profile-tab" v-if="user.logged"></div>
+    <!--Explore tab-->
+    <div class="tab-pane" id="explore" role="tabpanel" aria-labelledby="profile-tab"></div>
 
     <!--Messages tab-->
     <div class="tab-pane" id="messages" role="tabpanel" aria-labelledby="messages-tab" v-if="user.logged"></div>
+
+    <!--Profile tab-->
+    <div class="tab-pane" id="profile" role="tabpanel" aria-labelledby="profile-tab" v-if="user.logged"></div>
   </div>
 
   <!--Login modal-->
@@ -60,26 +64,26 @@
     });
 
     $(function () {
-      $("#profile").load("components/profile.html", function () {
-        $.getScript("scripts/profile.js");
+      $("#profile").load("components/profile/profile.html", function () {
+        $.getScript("scripts/profile/profile.js");
       });
     });
 
     $(function () {
-      $("#login").load("components/modals/login.html", function () {
-        $.getScript("scripts/modals/login.js");
+      $("#edit").load("components/profile/edit.html", function () {
+        $.getScript("scripts/profile/edit.js");
       });
     });
 
     $(function () {
-      $("#register").load("components/modals/register.html", function () {
-        $.getScript("scripts/modals/register.js");
+      $("#login").load("components/auth/login.html", function () {
+        $.getScript("scripts/auth/login.js");
       });
     });
 
     $(function () {
-      $("#edit").load("components/modals/edit.html", function () {
-        $.getScript("scripts/modals/edit.js");
+      $("#register").load("components/auth/register.html", function () {
+        $.getScript("scripts/auth/register.js");
       });
     });
   </script>

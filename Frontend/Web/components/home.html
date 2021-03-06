@@ -6,17 +6,16 @@
 </div>
 
 <div class="container-fluid p-3">
-  <div class="row gx-3">
+  <div class="row gx-3" style="height: 90vh;">
 
     <!--Left padding-->
     <div class="col-2"></div>
 
     <!--Entries column-->
-    <div class="col-5 bg-light" style="height: 90vh;">
+    <div class="col-5 bg-light">
       <div class="p-3 border-bottom bg-light" v-if="user.logged">
-        <textarea type="text" style="resize: none; overflow: hidden;" id="post" class="form-control" maxlength="256"
-          placeholder="What's happening?" v-model="text" aria-describedby="charCounter"
-          oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
+        <textarea type="text" style="resize: none;" id="post" class="form-control overflow-auto" maxlength="256"
+          placeholder="What's happening?" v-model="text" aria-describedby="charCounter" rows="3"></textarea>
 
         <div class="d-flex p-2 justify-content-between">
           <div id="charCounter" class="form-text">
@@ -26,15 +25,16 @@
         </div>
       </div>
 
-      <div class="bg-light overflow-auto" v-bind:style="user.logged ? 'height: 73vh;': 'height: 90vh;'">
-        <div class="p-3 border-bottom bg-light" v-for="(entry, index) in entries.all" :key="entry.id">
-          <b style="font-size: large;">{{ entry.author.name }}</b> @{{ entry.author.username }}
-
-          <button type="button" class="btn btn-default" aria-label="Left Align"
-            v-on:click="deleteEntry(index, entry.id)" v-if="entry.author.id == user.id">
-            <span class="fa fa-trash" aria-hidden="true"></span>
-          </button> <br>
-          <a style="color: black;">{{ entry.text }}</a>
+      <div class="bg-light">
+        <div class="container p-3 bg-light">
+          <tweet v-for="(entry, index) in entries.all"
+          v-bind:key="entry.id"
+          v-bind:index="index"
+          v-bind:entry="entry" 
+          v-bind:user="user" 
+          v-bind:avatar="getAvatar(entry.author.id)"
+          v-bind:delete-entry="deleteEntry">
+          </tweet>
         </div>
       </div>
     </div>

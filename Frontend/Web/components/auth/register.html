@@ -2,7 +2,7 @@
   <div class="modal-content">
     <div class="modal-header">
       <h5 class="modal-title">Register</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" v-on:click="clear"></button>
     </div>
     <div class="modal-body">
 
@@ -26,7 +26,7 @@
 
       <div class="mb-3">
         <input type="email" class="form-control" id="registerEmail" v-bind:class="emailInvalid ? 'is-invalid': ''"
-          aria-describedby="emailValidation" placeholder="Email">
+          aria-describedby="emailValidation" placeholder="Email (optional)">
 
         <div id="emailValidation" class="invalid-feedback">
           Invalid email format
@@ -42,16 +42,15 @@
           <div class="input-group-addon">
             <button class="btn btn-default reveal shadow-none" type="button"
               v-on:click="passwordVisible = !passwordVisible">
-              <i class="fa" v-bind:class="passwordVisible ? 'fa-eye': 'fa-eye-slash'" aria-hidden="true"></i>
+              <i class="la" v-bind:class="passwordVisible ? 'la-eye': 'la-eye-slash'" aria-hidden="true"></i>
             </button>
           </div>
-        </div>
 
-        <div id="passwordValidation" class="invalid-feedback">
-          {{ passwordMessage }}
+          <div id="passwordValidation" class="invalid-feedback">
+            {{ passwordMessage }}
+          </div>
         </div>
       </div>
-
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-primary" v-on:click="register">Sign up</button>

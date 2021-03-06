@@ -4,7 +4,11 @@ var profile = new Vue({
     data:
     {
         user: user,
-        entries: entries
+        entries: entries,
+    },
+
+    components: {
+        'tweet': tweet
     },
 
     created: async function () {
@@ -45,9 +49,11 @@ var profile = new Vue({
 
             let reader = new FileReader();
 
-            if (imageInput.files && imageInput.files[0]) {
+            let mb = 1024 * 1024;
+
+            if (imageInput.files && imageInput.files[0] && imageInput.files[0].size <= mb) {
                 reader.onload = (e) => {
-                    avatar.setAttribute('src', e.target.result);
+                    avatar.src = e.target.result;
                 }
                 reader.readAsDataURL(imageInput.files[0]);
 
@@ -71,26 +77,10 @@ var profile = new Vue({
 
                 jQuery.ajax(settings);
             }
-        }
-    },
+        },
 
-    computed:
-    {
-        avatar: async function () {
-            if (user.id != null) {
-                const response = await fetch(`http://localhost:5000/api/users/${user.id}/avatar`);
-
-                const image = await response.blob();
-
-                let avatar = document.getElementById("editAvatar");
-
-                var reader = new FileReader();
-                reader.onload = (e) => {
-                    avatar.src = e.target.result;
-                };
-
-                reader.readAsDataURL(image);
-            }
+        getAvatar: function(id) {
+            return `http://localhost:5000/api/users/${id}/avatar`;
         }
     }
 });

@@ -18,7 +18,8 @@ var register = new Vue({
             passwordEmpty: 'Password required',
             usernameExists: 'Username already exists',
             usernameFormat: 'Incorrect username format',
-            passwordIncorrect: 'Password must be at least 5 characters long'
+            passwordLength: 'Password must be at least 5 characters long',
+            passwordWhitespace: 'Password cannot contain whitespace'
         }
     },
 
@@ -51,6 +52,16 @@ var register = new Vue({
             if (email != null) {
                 let re = /^\w+([\.-]?\w+)+@\w+([\.:]?\w+)+(\.[a-zA-Z0-9]{2,3})+$/;
                 this.emailInvalid = !re.test(email);
+            }
+
+            if (password.includes(' ')) {
+                this.passwordInvalid = true;
+                this.passwordMessage = this.errorMessages.passwordWhitespace;
+            }
+
+            if (password.length < 5) {
+                this.passwordInvalid = true;
+                this.passwordMessage = this.errorMessages.passwordLength;;
             }
 
             if (!(this.nameInvalid || this.usernameInvalid || this.passwordInvalid)) {
@@ -94,6 +105,11 @@ var register = new Vue({
             usernameField.value = '';
             emailField.value = '';
             passwordField.value = '';
+
+            this.nameInvalid = false;
+            this.usernameInvalid = false;
+            this.emailInvalid = false;
+            this.passwordInvalid = false;
         }
     }
 });
