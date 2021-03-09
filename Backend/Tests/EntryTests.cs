@@ -41,13 +41,12 @@ namespace AspTwitter.Tests
             await PostEntries(auth1, auth2);
             await EditEntries(auth1, auth2);
             await DeleteEntries(auth1, auth2);
+            await LikeEntries(auth1, auth2);
         }
 
         private async Task<AuthenticationResponse[]> CreateUsers()
         {
-            string url = "api/authentication/register";
-
-            RegisterRequest registerRequest = new RegisterRequest
+            RegisterRequest registerData = new()
             {
                 Name = "User4",
                 Username = "user4",
@@ -55,35 +54,17 @@ namespace AspTwitter.Tests
                 Password = "testpassword4"
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(registerRequest), Encoding.UTF8, "application/json")
-            };
-
-            var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            string result = await response.Content.ReadAsStringAsync();
-            var auth1 = JsonConvert.DeserializeObject<AuthenticationResponse>(result);
+            var auth1 = await CreateUser(registerData);
             Assert.True(auth1.Token != null);
 
-            registerRequest = new RegisterRequest
+            registerData = new()
             {
                 Name = "User5",
                 Username = "user5",
                 Password = "testpassword5"
             };
 
-            request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(registerRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            result = await response.Content.ReadAsStringAsync();
-            var auth2 = JsonConvert.DeserializeObject<AuthenticationResponse>(result);
+            var auth2 = await CreateUser(registerData);
             Assert.True(auth2.Token != null);
 
             return new AuthenticationResponse[] { auth1, auth2 };
@@ -91,202 +72,242 @@ namespace AspTwitter.Tests
 
         private async Task PostEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
-            string url = "api/entries";
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth1.Token);
+            SetUser(auth1);
 
             //Ensure entry creation
-            EntryRequest entryRequest = new EntryRequest
+            EntryRequest entryData = new()
             {
                 AuthorId = auth1.Id,
                 Text = "text"
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            await CreateEntry(entryData);
+           
+            var response = await CreateEntry(new
             {
-                Content = new StringContent(JsonConvert.SerializeObject(entryRequest), Encoding.UTF8, "application/json")
-            };
-
-            var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            //Ensure incorrect author id handling
-            request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(new
-                {
-                    AuthorId = "not a number",
-                    Text = "text"
-                }), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
+                AuthorId = "not a number",
+                Text = "text"
+            });
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
             //Ensure empty data handling
-            entryRequest = new EntryRequest
+            entryData = new EntryRequest
             {
                 AuthorId = auth1.Id,
                 Text = " "
             };
-
-            request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(entryRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
+            response = await CreateEntry(entryData);
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
             //Ensure that users cannot post for other users
-            entryRequest = new EntryRequest
+            entryData = new EntryRequest
             {
                 AuthorId = auth2.Id,
                 Text = "text"
             };
-
-            request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(entryRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
+            response = await CreateEntry(entryData);
             Assert.True(response.StatusCode == HttpStatusCode.Forbidden);
 
             //Ensure text truncation in case of exceeding 256 symbol limit
-            entryRequest = new EntryRequest
+            entryData = new EntryRequest
             {
                 AuthorId = auth1.Id,
                 Text = new string('*', (int)MaxLength.Entry + 10)
             };
-
-            request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(entryRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            response = await CreateEntry(entryData);
 
             //Get entry and check text length
-            long entryId = long.Parse(await response.Content.ReadAsStringAsync());
-            response = await client.GetAsync($"api/entries/{entryId}");
-            response.EnsureSuccessStatusCode();
-
-            string result = await response.Content.ReadAsStringAsync();
-            Entry entry = JsonConvert.DeserializeObject<Entry>(result);
-
+            uint entryId = await GetEntryId(response);
+            Entry entry = await GetEntry(entryId);
             Assert.True(entry.Text.Length <= (int)MaxLength.Entry);
         }
 
         private async Task EditEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth1.Token);
+            SetUser(auth1);
 
             //Add a test entry and get its id
-            EntryRequest entryRequest = new EntryRequest
+            EntryRequest entryData = new()
             {
                 AuthorId = auth1.Id,
                 Text = "text"
             };
-
-            var request = new HttpRequestMessage(HttpMethod.Post, "api/entries")
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(entryRequest), Encoding.UTF8, "application/json")
-            };
-
-            var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            long entryId = long.Parse(await response.Content.ReadAsStringAsync());
+            var response = await CreateEntry(entryData);
+            uint entryId = await GetEntryId(response);
 
             //Ensure entry editing and data handling
-            EntryRequest editEntryRequest = new EntryRequest
+            EntryRequest editEntryData = new()
             {
                 AuthorId = auth1.Id,
                 Text = " text edited "
             };
-
-            request = new HttpRequestMessage(HttpMethod.Put, $"api/entries/{entryId}")
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(editEntryRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
+            response = await EditEntry(entryId, editEntryData);
             response.EnsureSuccessStatusCode();
 
             //Get entry and check its correctness
-            response = await client.GetAsync($"api/entries/{entryId}");
-            response.EnsureSuccessStatusCode();
-
-            string result = await response.Content.ReadAsStringAsync();
-            Entry entry = JsonConvert.DeserializeObject<Entry>(result);
-
+            Entry entry = await GetEntry(entryId);
             Assert.True(entry.Text == "text edited");
 
             //Ensure that authorized users cannot edit other users' entries
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth2.Token);
+            SetUser(auth2);
 
-            editEntryRequest = new EntryRequest
+            editEntryData = new EntryRequest
             {
                 AuthorId = auth1.Id,
                 Text = "new text"
             };
-
-            request = new HttpRequestMessage(HttpMethod.Put, $"api/entries/{entryId}")
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(editEntryRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
-
+            response = await EditEntry(entryId, editEntryData);
             Assert.True(response.StatusCode == HttpStatusCode.Forbidden);
         }
 
         private async Task DeleteEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth1.Token);
+            SetUser(auth1);
 
             //Add a test entry to delete it later
-            EntryRequest entryRequest = new EntryRequest
+            EntryRequest entryData = new()
             {
                 AuthorId = auth1.Id,
                 Text = "delete"
             };
-
-            var request = new HttpRequestMessage(HttpMethod.Post, "api/entries")
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(entryRequest), Encoding.UTF8, "application/json")
-            };
-
-            var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            long entryId = long.Parse(await response.Content.ReadAsStringAsync());
+            var response = await CreateEntry(entryData);
+            uint entryId = await GetEntryId(response);
 
             //Ensure that authorized users cannot delete other users' entries
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth2.Token);
+            SetUser(auth2);
 
-            response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{entryId}"));
-
+            response = await DeleteEntry(entryId);
             Assert.True(response.StatusCode == HttpStatusCode.Forbidden);
 
             //Ensure entry deletion
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth1.Token);
+            SetUser(auth1);
 
-            response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{entryId}"));
-
+            response = await DeleteEntry(entryId);
             response.EnsureSuccessStatusCode();
 
-            //Ensure that the user has been deleted
+            //Ensure that the entry has been deleted
             response = await client.GetAsync($"api/entries/{entryId}");
-
             Assert.True(response.StatusCode == HttpStatusCode.NotFound);
 
             //Ensure that it's impossible to delete a non-existent entry
-            response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, "api/entries/42"));
-
+            response = await DeleteEntry(42);
             Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+        }
+
+        private async Task LikeEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
+        {
+            SetUser(auth1);
+
+            //Create an entry for and get its id
+            EntryRequest entryData = new()
+            {
+                AuthorId = auth1.Id,
+                Text = "text"
+            };
+            var response = await CreateEntry(entryData);
+            uint entryId = await GetEntryId(response);
+
+            //Like the entry as the first user
+            response = await AddLike(entryId);
+            response.EnsureSuccessStatusCode();
+
+            //Ensure that users cannot like the same entry more than once
+            response = await AddLike(entryId);
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
+            //Like the entry as the second user
+            SetUser(auth2);
+
+            response = await AddLike(entryId);
+            response.EnsureSuccessStatusCode();
+
+            //Ensure that all likes have been recorded
+            Entry entry = await GetEntry(entryId);
+            Assert.True(entry.LikesCount == 2);
+
+            //Remove like as the second user
+            response = await RemoveLike(entryId);
+            response.EnsureSuccessStatusCode();
+
+            //Ensure that users cannot remove like from the same entry more than once
+            response = await RemoveLike(entryId);
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
+            //Ensure that like has been removed
+            entry = await GetEntry(entryId);
+            Assert.True(entry.LikesCount == 1);
+        }
+
+        private void SetUser(AuthenticationResponse auth)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+        }
+
+        private async Task<AuthenticationResponse> CreateUser(RegisterRequest data)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/authentication/register")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
+            };
+
+            var response = await client.SendAsync(request);
+
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<AuthenticationResponse>(result);
+        }
+
+        private async Task<HttpResponseMessage> CreateEntry(object data)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/entries")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
+            };
+
+            var response = await client.SendAsync(request);
+
+            return response;
+        }
+
+        private async Task<HttpResponseMessage> EditEntry(uint id, EntryRequest data)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, $"api/entries/{id}")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
+            };
+
+            var response = await client.SendAsync(request);
+
+            return response;
+        }
+
+        private async Task<HttpResponseMessage> DeleteEntry(uint id)
+        {
+            return await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{id}"));
+        }
+
+        private async Task<Entry> GetEntry(uint id)
+        {
+            var response = await client.GetAsync($"api/entries/{id}");
+
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Entry>(result);
+        }
+
+        private async Task<uint> GetEntryId(HttpResponseMessage response)
+        {
+            return uint.Parse(await response.Content.ReadAsStringAsync());
+        }
+
+        private async Task<HttpResponseMessage> AddLike(uint id)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"api/entries/{id}/favorite");
+            return await client.SendAsync(request);
+        }
+
+        private async Task<HttpResponseMessage> RemoveLike(uint id)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{id}/favorite");
+            return await client.SendAsync(request);
         }
     }
 }

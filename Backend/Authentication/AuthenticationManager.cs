@@ -20,7 +20,7 @@ namespace AspTwitter.Authentication
     {
         AuthenticationResponse Authenticate(AuthenticationRequest request);
         AuthenticationResponse Authenticate(User user);
-        User GetUser(long id);
+        User GetUser(uint id);
     }
 
     public class AuthenticationManager : IAuthenticationManager
@@ -61,7 +61,7 @@ namespace AspTwitter.Authentication
             return new AuthenticationResponse(user, token);
         }
 
-        public User GetUser(long id)
+        public User GetUser(uint id)
         {
             return context.Users.Find(id);
         }

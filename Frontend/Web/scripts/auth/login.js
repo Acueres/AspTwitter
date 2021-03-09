@@ -58,7 +58,8 @@ var login = new Vue({
                 this.passwordInvalid = true;
             }
             else if (response.status == 200) {
-                user.set(responseData);
+                user.update(responseData);
+                await user.getFavorites();
                 entries.loadUserEntries(user.id);
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('login'));

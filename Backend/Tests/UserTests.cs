@@ -43,45 +43,23 @@ namespace AspTwitter.Tests
 
         private async Task<AuthenticationResponse[]> CreateUsers()
         {
-            string url = "api/authentication/register";
-
-            RegisterRequest registerRequest = new RegisterRequest
+            RegisterRequest registerData = new()
             {
                 Name = "User3",
                 Username = "user3",
                 Email = "test@email.com",
                 Password = "testpassword3"
             };
-
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(registerRequest), Encoding.UTF8, "application/json")
-            };
-
-            var response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            string result = await response.Content.ReadAsStringAsync();
-            var auth1 = JsonConvert.DeserializeObject<AuthenticationResponse>(result);
+            var auth1 = await CreateUser(registerData);
             Assert.True(auth1.Token != null);
 
-            registerRequest = new RegisterRequest
+            registerData = new()
             {
                 Name = "User Delete",
                 Username = "userdelete",
                 Password = "testpassword"
             };
-
-            request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(registerRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            result = await response.Content.ReadAsStringAsync();
-            var auth2 = JsonConvert.DeserializeObject<AuthenticationResponse>(result);
+            var auth2 = await CreateUser(registerData);
             Assert.True(auth2.Token != null);
 
             return new AuthenticationResponse[] { auth1, auth2 };
@@ -89,76 +67,95 @@ namespace AspTwitter.Tests
 
         private async Task EditUsers(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth1.Token);
+            SetUser(auth1);
 
             //Ensure correct empty data handling
-            EditUserRequest editUserRequest = new EditUserRequest
+            EditUserRequest editUserData = new()
             {
                 Name = " ",
                 About = ""
             };
-
-            var request = new HttpRequestMessage(HttpMethod.Put, $"api/users/{auth1.Id}")
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(editUserRequest), Encoding.UTF8, "application/json")
-            };
-
-            var response = await client.SendAsync(request);
+            var response = await EditUser(auth1.Id, editUserData);
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
             //Ensure successful user editing
-            editUserRequest = new EditUserRequest
+            editUserData = new()
             {
                 Name = " User 3 Edited ",
                 About = " Test text "
             };
-
-            request = new HttpRequestMessage(HttpMethod.Put, $"api/users/{auth1.Id}")
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(editUserRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
+            response = await EditUser(auth1.Id, editUserData);
             response.EnsureSuccessStatusCode();
 
-            //Ensure correct data handling
-            response = await client.GetAsync($"api/Users/{auth1.Id}");
-            response.EnsureSuccessStatusCode();
-
-            string result = await response.Content.ReadAsStringAsync();
-            User editedUser = JsonConvert.DeserializeObject<User>(result);
-
+            User editedUser = await GetUser(auth1.Id);
             Assert.True(editedUser.Name == "User 3 Edited");
             Assert.True(editedUser.About == "Test text");
 
             //Ensure that authorized users cannot edit other users' data
-            request = new HttpRequestMessage(HttpMethod.Put, $"api/users/{auth2.Id}")
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(editUserRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
+            response = await EditUser(auth2.Id, editUserData);
             Assert.True(response.StatusCode == HttpStatusCode.Forbidden);
         }
 
         private async Task DeleteUsers(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
             //Ensure that authorized users cannot delete other users
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth1.Token);
-            var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/users/{auth2.Id}"));
+            SetUser(auth1);
 
+            var response = await DeleteUser(auth2.Id);
             Assert.True(response.StatusCode == HttpStatusCode.Forbidden);
 
             //Ensure user deletion
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth2.Token);
-            response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/users/{auth2.Id}"));
+            SetUser(auth2);
 
+            response = await DeleteUser(auth2.Id);
             response.EnsureSuccessStatusCode();
 
             //Ensure that the user has been deleted
             response = await client.GetAsync($"api/users/{auth2.Id}");
-
             Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+        }
+
+        private void SetUser(AuthenticationResponse auth)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+        }
+
+        private async Task<AuthenticationResponse> CreateUser(RegisterRequest data)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/authentication/register")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
+            };
+
+            var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<AuthenticationResponse>(result);
+        }
+
+        private async Task<HttpResponseMessage> EditUser(uint id, EditUserRequest data)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, $"api/users/{id}")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
+            };
+
+            var response = await client.SendAsync(request);
+
+            return response;
+        }
+
+        private async Task<User> GetUser(uint id)
+        {
+            var response = await client.GetAsync($"api/users/{id}");
+            var result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<User>(result);
+        }
+
+        private async Task<HttpResponseMessage> DeleteUser(uint id)
+        {
+            return await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/users/{id}"));
         }
     }
 }

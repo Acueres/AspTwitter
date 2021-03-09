@@ -37,146 +37,126 @@ namespace AspTwitter.Tests
 
         private async Task UserRegistration()
         {
-            string url = "api/authentication/register";
-
             //Ensure user creation
-            RegisterRequest registerRequest = new RegisterRequest
+            RegisterRequest registerData = new()
             {
                 Name = "User1",
                 Username = "user1",
                 Email = "test@email.com",
                 Password = "testpassword1"
             };
-
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(registerRequest), Encoding.UTF8, "application/json")
-            };
-
-            var response = await client.SendAsync(request);
+            var response = await RegisterUser(registerData);
             response.EnsureSuccessStatusCode();
 
             //Ensure username uniqueness condition
-            request = new HttpRequestMessage(HttpMethod.Post, url)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(registerRequest), Encoding.UTF8, "application/json")
-            };
-
-            response = await client.SendAsync(request);
+            response = await RegisterUser(registerData);
             Assert.True(response.StatusCode == HttpStatusCode.Conflict);
         }
 
         private async Task RegistrationDataHandling()
         {
-            string url = "api/authentication/register";
-
-            //Add dirty data
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            //Ensure that whitespace is handled
+            RegisterRequest registerData = new()
             {
-                Content = new StringContent(JsonConvert.SerializeObject(
-                new RegisterRequest
-                {
-                    Name = "  User 2 ",
-                    Username = " user 2  ",
-                    Email = "email",
-                    Password = " test pass  word 2 "
-                }), Encoding.UTF8, "application/json")
+                Name = "  User 2 ",
+                Username = " user 2  ",
+                Email = "email",
+                Password = " test pass  word 2 "
             };
-
-            var response = await client.SendAsync(request);
+            var response = await RegisterUser(registerData);
             response.EnsureSuccessStatusCode();
 
-            string result = await response.Content.ReadAsStringAsync();
-            var authResponse = JsonConvert.DeserializeObject<AuthenticationResponse>(result);
+            var auth = await GetAuthData(response);
 
-            Assert.True(authResponse.Name == "User 2");
-            Assert.True(authResponse.Username == "user2");
-            Assert.True(authResponse.Token != null);
+            Assert.True(auth.Name == "User 2");
+            Assert.True(auth.Username == "user2");
+            Assert.True(auth.Token != null);
 
             //Ensure that incorrect email format is ignored
-            response = await client.GetAsync($"api/Users/{authResponse.Id}");
-            response.EnsureSuccessStatusCode();
-
-            result = await response.Content.ReadAsStringAsync();
-            User user = JsonConvert.DeserializeObject<User>(result);
-
+            User user = await GetUser(auth.Id);
             Assert.True(user.Email is null);
 
             //Ensure that empty data is rejected
-            request = new HttpRequestMessage(HttpMethod.Post, url)
+            registerData = new()
             {
-                Content = new StringContent(JsonConvert.SerializeObject(
-                new RegisterRequest
-                {
-                    Name = "  ",
-                    Username = "",
-                    Password = " "
-                }), Encoding.UTF8, "application/json")
+                Name = "  ",
+                Username = "",
+                Password = " "
             };
-
-            response = await client.SendAsync(request);
+            response = await RegisterUser(registerData);
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
         }
 
         private async Task UserLogin()
         {
-            string url = "api/authentication/login";
-
             //Ensure user login and password cleanup from previous request
-            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            AuthenticationRequest loginData = new()
             {
-                Content = new StringContent(JsonConvert.SerializeObject(
-                new AuthenticationRequest
-                {
-                    Username = "user2",
-                    Password = "testpassword2"
-                }), Encoding.UTF8, "application/json")
+                Username = "user2",
+                Password = "testpassword2"
             };
-
-            var response = await client.SendAsync(request);
+            var response = await LoginUser(loginData);
             response.EnsureSuccessStatusCode();
 
-            //Ensure null data handling
-            request = new HttpRequestMessage(HttpMethod.Post, url)
+            //Ensure empty data handling
+            loginData = new()
             {
-                Content = new StringContent(JsonConvert.SerializeObject(
-                new AuthenticationRequest
-                {
-                    Username = null,
-                    Password = " "
-                }), Encoding.UTF8, "application/json")
+                Username = null,
+                Password = " "
             };
-
-            response = await client.SendAsync(request);
+            response = await LoginUser(loginData);
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
             //Ensure username handling
-            request = new HttpRequestMessage(HttpMethod.Post, url)
+            loginData = new()
             {
-                Content = new StringContent(JsonConvert.SerializeObject(
-                new AuthenticationRequest
-                {
-                    Username = "usernone",
-                    Password = "testpassword"
-                }), Encoding.UTF8, "application/json")
+                Username = "usernone",
+                Password = "testpassword"
             };
-
-            response = await client.SendAsync(request);
+            response = await LoginUser(loginData);
             Assert.True(response.StatusCode == HttpStatusCode.NotFound);
 
             //Ensure password handling
-            request = new HttpRequestMessage(HttpMethod.Post, url)
+            loginData = new()
             {
-                Content = new StringContent(JsonConvert.SerializeObject(
-                new AuthenticationRequest
-                {
-                    Username = "user1",
-                    Password = "testpassword2"
-                }), Encoding.UTF8, "application/json")
+                Username = "user1",
+                Password = "testpassword2"
+            };
+            response = await LoginUser(loginData);
+            Assert.True(response.StatusCode == HttpStatusCode.Unauthorized);
+        }
+
+        private async Task<HttpResponseMessage> RegisterUser(RegisterRequest data)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/authentication/register")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
             };
 
-            response = await client.SendAsync(request);
-            Assert.True(response.StatusCode == HttpStatusCode.Unauthorized);
+            return await client.SendAsync(request);
+        }
+
+        private async Task<HttpResponseMessage> LoginUser(AuthenticationRequest data)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/authentication/login")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
+            };
+
+            return await client.SendAsync(request);
+        }
+
+        private async Task<AuthenticationResponse> GetAuthData(HttpResponseMessage response)
+        {
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<AuthenticationResponse>(result);
+        }
+
+        private async Task<User> GetUser(uint id)
+        {
+            var response = await client.GetAsync($"api/users/{id}");
+            var result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<User>(result);
         }
     }
 }

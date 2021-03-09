@@ -37,7 +37,7 @@ namespace AspTwitter.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(long id)
+        public async Task<ActionResult<User>> GetUser(uint id)
         {
             User user = await context.Users.FindAsync(id);
 
@@ -51,7 +51,7 @@ namespace AspTwitter.Controllers
 
         // GET: api/Users/5/entries
         [HttpGet("{id}/entries")]
-        public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(long id)
+        public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(uint id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -63,7 +63,7 @@ namespace AspTwitter.Controllers
 
         // GET: api/Users/5/avatar
         [HttpGet("{id}/avatar")]
-        public IActionResult GetAvatar(long id)
+        public IActionResult GetAvatar(uint id)
         {
             string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
             if (System.IO.File.Exists(path))
@@ -82,7 +82,7 @@ namespace AspTwitter.Controllers
         [Authorize]
         [HttpPost("{id}/avatar")]
         [Consumes("multipart/form-data", "image/jpg", "image/png")]
-        public async Task<IActionResult> PostAvatar(long id, [FromForm(Name = "avatar")] IFormFile image)
+        public async Task<IActionResult> PostAvatar(uint id, [FromForm(Name = "avatar")] IFormFile image)
         {
             if (!HasPermission(id))
             {
@@ -114,7 +114,7 @@ namespace AspTwitter.Controllers
         // PUT: api/Users/5
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, EditUserRequest request)
+        public async Task<IActionResult> PutUser(uint id, EditUserRequest request)
         {
             if (request.Name is null)
             {
@@ -169,7 +169,7 @@ namespace AspTwitter.Controllers
         // DELETE: api/Users/5
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(long id)
+        public async Task<IActionResult> DeleteUser(uint id)
         {
             if (!HasPermission(id))
             {
@@ -194,6 +194,14 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
+        // GET: api/Users/5/favorites
+        [HttpGet("{id}/favorites")]
+        public async Task<ActionResult<IEnumerable<uint>>> GetFavorites(uint id)
+        {
+            return await context.Relationships.
+                Where(x => x.UserId == id && x.Type == RelationshipType.Like).Select(x => x.EntryId).ToListAsync();
+        }
+
         private string Truncate(string val, MaxLength length)
         {
             if (val.Length > (int)length)
@@ -204,7 +212,7 @@ namespace AspTwitter.Controllers
             return val;
         }
 
-        private bool HasPermission(long id)
+        private bool HasPermission(uint id)
         {
             return ((User)HttpContext.Items["User"]).Id == id;
         }

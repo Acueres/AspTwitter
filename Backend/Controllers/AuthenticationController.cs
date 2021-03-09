@@ -120,7 +120,7 @@ namespace AspTwitter.Controllers
                 return StatusCode(StatusCodes.Status409Conflict);
             }
 
-            User user = new User()
+            User user = new()
             {
                 Name = request.Name,
                 Username = request.Username,

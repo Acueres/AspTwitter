@@ -51,7 +51,7 @@ namespace AspTwitter.Authentication
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                long userId = long.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                uint userId = uint.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
                 context.Items["User"] = auth.GetUser(userId);
             }

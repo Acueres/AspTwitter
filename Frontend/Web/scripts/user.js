@@ -5,21 +5,30 @@ class User {
     username = null;
     about = null;
     token = null;
+    favorites = [];
 
     constructor() {
-        let data = JSON.parse(localStorage.getItem('user'));
-        if (data != undefined) {
-            this._setData(data);
+        let storageData = JSON.parse(localStorage.getItem('user'));
+        if (storageData != undefined) {
+            this._setData(storageData);
             this.logged = true;
         }
     }
 
-    set(data) {
+    update(data) {
         localStorage.setItem('user', JSON.stringify(data));
         this._setData(data);
         this.logged = true;
     }
 
+    async getFavorites() {
+        if (this.id != null) {
+            const response = await fetch(`http://localhost:5000/api/users/${this.id}/favorites`);
+            this.favorites = await response.json();
+        }
+    }
+
+    //Use after editing user data
     updateStorage() {
         localStorage.setItem('user', JSON.stringify({
             id: this.id,
@@ -37,6 +46,7 @@ class User {
         this.username = null;
         this.about = null;
         this.token = null;
+        this.favorites = [];
         localStorage.removeItem('user');
     }
 
@@ -50,3 +60,4 @@ class User {
 }
 
 var user = new User();
+user.getFavorites();

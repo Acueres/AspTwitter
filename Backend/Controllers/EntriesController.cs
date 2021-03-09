@@ -34,7 +34,7 @@ namespace AspTwitter.Controllers
 
         // GET: api/Entries/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Entry>> GetEntry(long id)
+        public async Task<ActionResult<Entry>> GetEntry(uint id)
         {
             Entry entry = await context.Entries.FindAsync(id);
 
@@ -49,7 +49,7 @@ namespace AspTwitter.Controllers
         // PUT: api/Entries/5
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEntry(long id, EntryRequest request)
+        public async Task<IActionResult> PutEntry(uint id, EntryRequest request)
         {
             if (!HasPermission(request.AuthorId))
             {
@@ -117,7 +117,7 @@ namespace AspTwitter.Controllers
 
             request.Text = Truncate(request.Text, MaxLength.Entry);
 
-            Entry entry = new Entry
+            Entry entry = new()
             {
                 AuthorId = request.AuthorId,
                 Text = request.Text
@@ -132,7 +132,7 @@ namespace AspTwitter.Controllers
         // DELETE: api/Entries/5
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEntry(long id)
+        public async Task<IActionResult> DeleteEntry(uint id)
         {
             Entry entry = await context.Entries.FindAsync(id);
 
@@ -152,6 +152,67 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
+        //POST api/Entries/5/favorite
+        [Authorize]
+        [HttpPost("{id}/favorite")]
+        public async Task<IActionResult> AddFavorite(uint id)
+        {
+            uint userId = ((User)HttpContext.Items["User"]).Id;
+            Relationship relationship = await context.Relationships.Where(x =>
+            x.Type == RelationshipType.Like &&
+            x.UserId == userId &&
+            x.EntryId == id).SingleOrDefaultAsync();
+
+            if (relationship != null)
+            {
+                return BadRequest();
+            }
+
+            relationship = new()
+            {
+                Type = RelationshipType.Like,
+                UserId = userId,
+                EntryId = id
+            };
+
+            context.Relationships.Add(relationship);
+
+            Entry entry = await context.Entries.FindAsync(id);
+            entry.LikesCount++;
+            context.Entry(entry).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        //DELETE api/Entries/5/favorite
+        [Authorize]
+        [HttpDelete("{id}/favorite")]
+        public async Task<IActionResult> RemoveFavorite(uint id)
+        {
+            uint userId = ((User)HttpContext.Items["User"]).Id;
+            Relationship relationship = await context.Relationships.Where(x =>
+            x.Type == RelationshipType.Like &&
+            x.UserId == userId &&
+            x.EntryId == id).SingleOrDefaultAsync();
+
+            if (relationship is null)
+            {
+                return BadRequest();
+            }
+
+            context.Relationships.Remove(relationship);
+
+            Entry entry = await context.Entries.FindAsync(id);
+            entry.LikesCount--;
+            context.Entry(entry).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         private string Truncate(string val, MaxLength length)
         {
             if (val.Length > (int)length)
@@ -162,7 +223,7 @@ namespace AspTwitter.Controllers
             return val;
         }
 
-        private bool HasPermission(long id)
+        private bool HasPermission(uint id)
         {
             return ((User)HttpContext.Items["User"]).Id == id;
         }
