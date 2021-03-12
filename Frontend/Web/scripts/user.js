@@ -5,31 +5,41 @@ class User {
     username = null;
     about = null;
     token = null;
+    entries = [];
     favorites = [];
+    retweets = [];
 
     constructor() {
         let storageData = JSON.parse(localStorage.getItem('user'));
         if (storageData != undefined) {
             this._setData(storageData);
             this.logged = true;
+            this.loadEntries();
         }
     }
 
-    update(data) {
+    set(data, load = true) {
         localStorage.setItem('user', JSON.stringify(data));
         this._setData(data);
         this.logged = true;
-    }
 
-    async getFavorites() {
-        if (this.id != null) {
-            const response = await fetch(`http://localhost:5000/api/users/${this.id}/favorites`);
-            this.favorites = await response.json();
+        if (load) {
+            this.loadEntries();
         }
     }
 
-    //Use after editing user data
-    updateStorage() {
+    addEntry(entry) {
+        this.entries.splice(0, 0, entry);
+    }
+
+    deleteEntry(id) {
+        let index = this.entries.findIndex((e) => e.id == id);
+        if (index != -1) {
+            this.entries.splice(index, 1);
+        }
+    }
+
+    update() {
         localStorage.setItem('user', JSON.stringify({
             id: this.id,
             name: this.name,
@@ -39,7 +49,7 @@ class User {
         }));
     }
 
-    logout() {
+    clear() {
         this.logged = false;
         this.id = null;
         this.name = null;
@@ -48,6 +58,17 @@ class User {
         this.token = null;
         this.favorites = [];
         localStorage.removeItem('user');
+    }
+
+    async loadEntries() {
+        let response = await fetch(`http://localhost:5000/api/users/${this.id}/entries`);
+        this.entries = await response.json();
+        this.entries.reverse();
+
+        response = await fetch(`http://localhost:5000/api/users/${this.id}/favorites`);
+        this.favorites = await response.json();
+
+        this.retweets = this.entries.filter(x => x.authorId != this.id);
     }
 
     _setData(data) {
@@ -60,4 +81,3 @@ class User {
 }
 
 var user = new User();
-user.getFavorites();

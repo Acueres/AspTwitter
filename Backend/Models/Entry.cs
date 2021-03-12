@@ -10,7 +10,8 @@ namespace AspTwitter.Models
         public uint Id { get; set; }
         public DateTime Timestamp { get; set; }
 
-        public uint LikesCount { get; set; }
+        public uint LikeCount { get; set; }
+        public uint RetweetCount { get; set; }
 
         public virtual User Author { get; set; }
         public uint AuthorId { get; set; }

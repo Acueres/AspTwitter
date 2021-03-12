@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Xunit;
 
 using System.Text;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net;
@@ -42,6 +43,7 @@ namespace AspTwitter.Tests
             await EditEntries(auth1, auth2);
             await DeleteEntries(auth1, auth2);
             await LikeEntries(auth1, auth2);
+            await RetweetEntries(auth1, auth2);
         }
 
         private async Task<AuthenticationResponse[]> CreateUsers()
@@ -72,9 +74,9 @@ namespace AspTwitter.Tests
 
         private async Task PostEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
+            //Ensure entry creation
             SetUser(auth1);
 
-            //Ensure entry creation
             EntryRequest entryData = new()
             {
                 AuthorId = auth1.Id,
@@ -124,9 +126,9 @@ namespace AspTwitter.Tests
 
         private async Task EditEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
+            //Add a test entry and get its id
             SetUser(auth1);
 
-            //Add a test entry and get its id
             EntryRequest entryData = new()
             {
                 AuthorId = auth1.Id,
@@ -162,9 +164,9 @@ namespace AspTwitter.Tests
 
         private async Task DeleteEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
+            //Add a test entry to delete it later
             SetUser(auth1);
 
-            //Add a test entry to delete it later
             EntryRequest entryData = new()
             {
                 AuthorId = auth1.Id,
@@ -196,9 +198,9 @@ namespace AspTwitter.Tests
 
         private async Task LikeEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
         {
+            //Create an entry and get its id
             SetUser(auth1);
 
-            //Create an entry for and get its id
             EntryRequest entryData = new()
             {
                 AuthorId = auth1.Id,
@@ -215,6 +217,10 @@ namespace AspTwitter.Tests
             response = await AddLike(entryId);
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
+            //Ensure that users cannot like a non-existent tweet
+            response = await AddLike(42);
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
             //Like the entry as the second user
             SetUser(auth2);
 
@@ -223,19 +229,69 @@ namespace AspTwitter.Tests
 
             //Ensure that all likes have been recorded
             Entry entry = await GetEntry(entryId);
-            Assert.True(entry.LikesCount == 2);
+            Assert.True(entry.LikeCount == 2);
+
+            //Ensure that users cannot remove likes from non-existent tweets
+            response = await RemoveLike(42);
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
             //Remove like as the second user
             response = await RemoveLike(entryId);
             response.EnsureSuccessStatusCode();
 
-            //Ensure that users cannot remove like from the same entry more than once
-            response = await RemoveLike(entryId);
-            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
-
             //Ensure that like has been removed
             entry = await GetEntry(entryId);
-            Assert.True(entry.LikesCount == 1);
+            Assert.True(entry.LikeCount == 1);
+        }
+
+        private async Task RetweetEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
+        {
+            //Create an entry and get its id
+            SetUser(auth1);
+
+            EntryRequest entryData = new()
+            {
+                AuthorId = auth1.Id,
+                Text = "text to retweet"
+            };
+            var response = await CreateEntry(entryData);
+            uint entryId = await GetEntryId(response);
+
+            //Retweet the entry as the second user
+            SetUser(auth2);
+
+            response = await client.PostAsync($"api/entries/{entryId}/retweet", null);
+            response.EnsureSuccessStatusCode();
+
+            //Ensure that users cannot retweet more than once
+            response = await client.PostAsync($"api/entries/{entryId}/retweet", null);
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
+            //Ensure that users cannot retweet non-existent tweets
+            response = await client.PostAsync($"api/entries/{42}/retweet", null);
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
+            //Ensure that the retweet has been recorded
+            var retweets = await GetRetweets(auth2.Id);
+            Assert.Contains(entryId, retweets);
+
+            Entry entry = await GetEntry(entryId);
+            Assert.True(entry.RetweetCount == 1);
+
+            //Ensure that users cannot delete non-existent retweets
+            response = await client.DeleteAsync($"api/entries/{42}/retweet");
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
+            //Ensure retweet deletion
+            response = await client.DeleteAsync($"api/entries/{entryId}/retweet");
+            response.EnsureSuccessStatusCode();
+
+            //Check that the retweet has been deleted
+            retweets = await GetRetweets(auth2.Id);
+            Assert.True(retweets.Count == 0);
+
+            entry = await GetEntry(entryId);
+            Assert.True(entry.RetweetCount == 0);
         }
 
         private void SetUser(AuthenticationResponse auth)
@@ -308,6 +364,15 @@ namespace AspTwitter.Tests
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{id}/favorite");
             return await client.SendAsync(request);
+        }
+
+        private async Task<List<uint>> GetRetweets(uint id)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"api/users/{id}/retweets");
+            var response = await client.SendAsync(request);
+
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<uint>>(result);
         }
     }
 }

@@ -46,7 +46,8 @@ namespace AspTwitter.AppData
             builder.Entity<Entry>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
             builder.Entity<Entry>().Property(x => x.AuthorId).IsRequired();
             builder.Entity<Entry>().Property(x => x.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            builder.Entity<Entry>().Property(x => x.LikesCount).HasDefaultValue(0);
+            builder.Entity<Entry>().Property(x => x.LikeCount).HasDefaultValue(0);
+            builder.Entity<Entry>().Property(x => x.RetweetCount).HasDefaultValue(0);
             builder.Entity<Entry>().Property(x => x.Text).IsRequired().IsUnicode().HasMaxLength((int)MaxLength.Entry);
             builder.Entity<Entry>().HasOne(x => x.Author).WithMany(x => x.Entries).HasForeignKey(x => x.AuthorId);
             builder.Entity<Entry>().HasMany(x => x.Relationships).WithOne();
@@ -54,6 +55,7 @@ namespace AspTwitter.AppData
             builder.Entity<Relationship>().ToTable("Relationships");
             builder.Entity<Relationship>().HasKey(x => x.Id);
             builder.Entity<Relationship>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
+            builder.Entity<Relationship>().Property(x => x.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
             builder.Entity<Relationship>().Property(x => x.Type).IsRequired();
             builder.Entity<Relationship>().Property(x => x.UserId).IsRequired();
             builder.Entity<Relationship>().Property(x => x.EntryId).IsRequired();

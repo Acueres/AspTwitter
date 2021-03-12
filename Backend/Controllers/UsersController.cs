@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -58,7 +59,23 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Entries.Where(x => x.AuthorId == id).ToListAsync();
+            var retweets = await context.Relationships.
+                Where(x => x.UserId == id && x.Type == RelationshipType.Retweet).ToListAsync();
+            var retweetIds = retweets.Select(x => x.EntryId).ToArray();
+            var timestamps = retweets.Select(x => x.Timestamp).ToArray();
+
+            var res = await context.Entries.Where(x => x.AuthorId == id || retweetIds.Contains(x.Id)).ToListAsync();
+
+            for (int i = 0; i < res.Count; i++)
+            {
+                if (res[i].AuthorId != id)
+                {
+                    int index = Array.IndexOf(retweetIds, res[i].AuthorId);
+                    res[i].Timestamp = timestamps[index];
+                }
+            }
+
+            return res;
         }
 
         // GET: api/Users/5/avatar

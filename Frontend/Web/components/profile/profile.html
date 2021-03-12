@@ -26,10 +26,11 @@
 
             <div class="bg-light">
                 <div class="container p-3 bg-light">
-                    <tweet v-for="(entry, index) in entries.userEntries" 
-                    v-bind:key="entry.id" v-bind:index="index"
+                    <tweet v-for="entry in user.entries" 
+                    v-bind:key="entry.id"
                     v-bind:entry="entry" 
                     v-bind:user="user"
+                    v-bind:show-retweets="true"
                     v-bind:avatar="getAvatar(entry.author.id)"
                     v-bind:delete-entry="deleteEntry">
                     </tweet>

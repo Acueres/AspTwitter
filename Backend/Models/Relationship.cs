@@ -1,4 +1,7 @@
-﻿namespace AspTwitter.Models
+﻿using System;
+
+
+namespace AspTwitter.Models
 {
     public enum RelationshipType
     {
@@ -9,7 +12,8 @@
 
     public class Relationship
     {
-        public uint Id { get; set; }
+        public long Id { get; set; }
+        public DateTime Timestamp { get; set; }
 
         public RelationshipType Type { get; set; }
 

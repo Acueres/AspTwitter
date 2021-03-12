@@ -86,7 +86,7 @@ var register = new Vue({
                 this.usernameMessage = this.errorMessages.usernameExists;
             }
             else if (response.status == 200) {
-                user.update(responseData);
+                user.set(responseData, {load: false});
 
                 this.clear();
 

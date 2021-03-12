@@ -21,17 +21,17 @@
           <div id="charCounter" class="form-text">
             {{ charactersLeft }}
           </div>
-          <button type="button" class="btn btn-primary" v-on:click="post">Tweet</button>
+          <button type="button" class="btn btn-primary" v-on:click="tweet">Tweet</button>
         </div>
       </div>
 
       <div class="bg-light">
         <div class="container p-3 bg-light">
-          <tweet v-for="(entry, index) in entries.all"
+          <tweet v-for="entry in entries.data"
           v-bind:key="entry.id"
-          v-bind:index="index"
           v-bind:entry="entry" 
           v-bind:user="user" 
+          v-bind:show-retweets="false"
           v-bind:avatar="getAvatar(entry.author.id)"
           v-bind:delete-entry="deleteEntry">
           </tweet>

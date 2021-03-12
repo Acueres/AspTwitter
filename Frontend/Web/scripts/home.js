@@ -15,7 +15,7 @@ var home = new Vue(
 
         methods:
         {
-            deleteEntry: async function (index, id) {
+            deleteEntry: async function (id) {
 
                 const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
                     method: 'DELETE',
@@ -29,11 +29,12 @@ var home = new Vue(
                 });
 
                 if (response.status == 200) {
-                    entries.deleteFromHome(index, id);
+                    entries.delete(id);
+                    user.deleteEntry(id);
                 }
             },
 
-            post: async function () {
+            tweet: async function () {
                 const response = await fetch('http://localhost:5000/api/entries', {
                     method: 'POST',
                     credentials: 'omit',
@@ -60,6 +61,7 @@ var home = new Vue(
                     };
 
                     entries.add(entry);
+                    user.addEntry(entry);
 
                     this.text = '';
                     document.getElementById('post').value = '';
@@ -69,7 +71,7 @@ var home = new Vue(
                 }
             },
 
-            getAvatar: function(id) {
+            getAvatar: function (id) {
                 return `http://localhost:5000/api/users/${id}/avatar`;
             }
         },

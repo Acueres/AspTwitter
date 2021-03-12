@@ -12,10 +12,6 @@ var profile = new Vue({
     },
 
     created: async function () {
-        if (user.id != null) {
-            await entries.loadUserEntries(user.id);
-        }
-
         //Update edit modal default values when changing user
         jQuery('#edit').on('show.bs.modal', function () {
             edit.name = user.name;
@@ -25,7 +21,7 @@ var profile = new Vue({
 
     methods:
     {
-        deleteEntry: async function (index, id) {
+        deleteEntry: async function (id) {
 
             const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
                 method: 'DELETE',
@@ -39,7 +35,9 @@ var profile = new Vue({
             });
 
             if (response.status == 200) {
-                entries.deleteFromProfile(index, id);
+                //entries.deleteFromProfile(index, id);
+                entries.delete(id);
+                user.deleteEntry(id);
             }
         },
 

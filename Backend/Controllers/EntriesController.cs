@@ -158,6 +158,13 @@ namespace AspTwitter.Controllers
         public async Task<IActionResult> AddFavorite(uint id)
         {
             uint userId = ((User)HttpContext.Items["User"]).Id;
+
+            Entry entry = await context.Entries.FindAsync(id);
+            if (entry is null)
+            {
+                return BadRequest();
+            }
+
             Relationship relationship = await context.Relationships.Where(x =>
             x.Type == RelationshipType.Like &&
             x.UserId == userId &&
@@ -177,8 +184,7 @@ namespace AspTwitter.Controllers
 
             context.Relationships.Add(relationship);
 
-            Entry entry = await context.Entries.FindAsync(id);
-            entry.LikesCount++;
+            entry.LikeCount++;
             context.Entry(entry).State = EntityState.Modified;
 
             await context.SaveChangesAsync();
@@ -192,6 +198,7 @@ namespace AspTwitter.Controllers
         public async Task<IActionResult> RemoveFavorite(uint id)
         {
             uint userId = ((User)HttpContext.Items["User"]).Id;
+
             Relationship relationship = await context.Relationships.Where(x =>
             x.Type == RelationshipType.Like &&
             x.UserId == userId &&
@@ -205,7 +212,75 @@ namespace AspTwitter.Controllers
             context.Relationships.Remove(relationship);
 
             Entry entry = await context.Entries.FindAsync(id);
-            entry.LikesCount--;
+            entry.LikeCount--;
+            context.Entry(entry).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        //POST api/Entries/5/retweet
+        [Authorize]
+        [HttpPost("{id}/retweet")]
+        public async Task<IActionResult> Retweet(uint id)
+        {
+            uint userId = ((User)HttpContext.Items["User"]).Id;
+
+            Entry entry = await context.Entries.FindAsync(id);
+            if (entry is null)
+            {
+                return BadRequest();
+            }
+
+            Relationship relationship = await context.Relationships.Where(x =>
+            x.Type == RelationshipType.Retweet &&
+            x.UserId == userId &&
+            x.EntryId == id).SingleOrDefaultAsync();
+
+            if (relationship != null)
+            {
+                return BadRequest();
+            }
+
+            relationship = new()
+            {
+                Type = RelationshipType.Retweet,
+                UserId = userId,
+                EntryId = id
+            };
+
+            context.Relationships.Add(relationship);
+
+            entry.RetweetCount++;
+            context.Entry(entry).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        //DELETE api/Entries/5/retweet
+        [Authorize]
+        [HttpDelete("{id}/retweet")]
+        public async Task<IActionResult> RemoveRetweet(uint id)
+        {
+            uint userId = ((User)HttpContext.Items["User"]).Id;
+
+            Relationship relationship = await context.Relationships.Where(x =>
+            x.Type == RelationshipType.Retweet &&
+            x.UserId == userId &&
+            x.EntryId == id).SingleOrDefaultAsync();
+
+            if (relationship is null)
+            {
+                return BadRequest();
+            }
+
+            context.Relationships.Remove(relationship);
+
+            Entry entry = await context.Entries.FindAsync(id);
+            entry.RetweetCount--;
             context.Entry(entry).State = EntityState.Modified;
 
             await context.SaveChangesAsync();
