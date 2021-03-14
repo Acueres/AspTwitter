@@ -50,7 +50,11 @@
   <!--Profile edit modal-->
   <div class="modal fade" id="edit" tabindex="-1"></div>
 
+  <!--Comment modal-->
+  <div class="modal fade" id="comment" tabindex="-1"></div>
+
   <script>
+
     $(function () {
       $("#nav").load("components/nav.html", function () {
         $.getScript("scripts/nav.js");
@@ -84,6 +88,12 @@
     $(function () {
       $("#register").load("components/auth/register.html", function () {
         $.getScript("scripts/auth/register.js");
+      });
+    });
+
+    $(function () {
+      $("#comment").load("components/comment.html", function () {
+        $.getScript("scripts/comment.js");
       });
     });
   </script>

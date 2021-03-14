@@ -228,7 +228,7 @@ namespace AspTwitter.Controllers
             uint userId = ((User)HttpContext.Items["User"]).Id;
 
             Entry entry = await context.Entries.FindAsync(id);
-            if (entry is null)
+            if (entry is null || entry.AuthorId == userId)
             {
                 return BadRequest();
             }
@@ -281,6 +281,99 @@ namespace AspTwitter.Controllers
 
             Entry entry = await context.Entries.FindAsync(id);
             entry.RetweetCount--;
+            context.Entry(entry).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        //GET api/Entries/5/comments
+        [HttpGet("{id}/comments")]
+        public async Task<ActionResult<IEnumerable<Comment>>> GetComments(uint id)
+        {
+            if (await context.Entries.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
+            return await context.Comments.Where(x => x.ParentId == id).ToListAsync();
+        }
+
+        //POST api/Entries/5/comments
+        [Authorize]
+        [HttpPost("{id}/comments")]
+        public async Task<IActionResult> PostComment(uint id, EntryRequest request)
+        {
+            if (!HasPermission(request.AuthorId))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            Entry entry = await context.Entries.FindAsync(id);
+
+            if (entry is null)
+            {
+                return NotFound();
+            }
+
+            if (request.Text is null)
+            {
+                return BadRequest();
+            }
+
+            request.Text = request.Text.Trim();
+
+            if (request.Text == string.Empty)
+            {
+                return BadRequest();
+            }
+
+            request.Text = Truncate(request.Text, MaxLength.Comment);
+
+            Comment comment = new()
+            {
+                AuthorId = request.AuthorId,
+                ParentId = id,
+                Text = request.Text
+            };
+
+            context.Comments.Add(comment);
+
+            entry.CommentCount++;
+            context.Entry(entry).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Ok(comment.Id);
+        }
+
+        //DELETE api/Entries/5/comments/5
+        [Authorize]
+        [HttpDelete("{entryId}/comments/{id}")]
+        public async Task<IActionResult> DeleteEntry(uint entryId, uint id)
+        {
+            Entry entry = await context.Entries.FindAsync(entryId);
+            if (entry is null)
+            {
+                return NotFound();
+            }
+
+            Comment comment = await context.Comments.FindAsync(id);
+
+            if (comment is null)
+            {
+                return NotFound();
+            }
+
+            if (!HasPermission(comment.AuthorId))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            context.Comments.Remove(comment);
+
+            entry.CommentCount--;
             context.Entry(entry).State = EntityState.Modified;
 
             await context.SaveChangesAsync();

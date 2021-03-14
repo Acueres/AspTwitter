@@ -16,7 +16,7 @@ class Entries {
     }
 
     delete(id) {
-        let index = this.data.findIndex((e) => e.id == id);
+        let index = this.data.findIndex(x => x.id == id);
         if (index != -1) {
             this.data.splice(index, 1);
         }

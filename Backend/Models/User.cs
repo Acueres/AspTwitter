@@ -8,7 +8,10 @@ namespace AspTwitter.Models
         public uint Id { get; set; }
         public string Name { get; set; }
         public string Username { get; set; }
+
+        [JsonIgnore]
         public string Email { get; set; }
+
         public string About { get; set; }
 
         [JsonIgnore]
@@ -19,5 +22,8 @@ namespace AspTwitter.Models
 
         [JsonIgnore]
         public virtual IList<Relationship> Relationships { get; set; } = new List<Relationship>();
+
+        [JsonIgnore]
+        public virtual IList<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

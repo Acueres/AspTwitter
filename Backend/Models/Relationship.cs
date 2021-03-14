@@ -6,8 +6,7 @@ namespace AspTwitter.Models
     public enum RelationshipType
     {
         Like,
-        Retweet,
-        Comment
+        Retweet
     }
 
     public class Relationship

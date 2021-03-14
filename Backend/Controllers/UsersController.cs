@@ -71,7 +71,10 @@ namespace AspTwitter.Controllers
                 if (res[i].AuthorId != id)
                 {
                     int index = Array.IndexOf(retweetIds, res[i].AuthorId);
-                    res[i].Timestamp = timestamps[index];
+                    if (index != -1)
+                    {
+                        res[i].Timestamp = timestamps[index];
+                    }
                 }
             }
 
@@ -215,8 +218,25 @@ namespace AspTwitter.Controllers
         [HttpGet("{id}/favorites")]
         public async Task<ActionResult<IEnumerable<uint>>> GetFavorites(uint id)
         {
+            if (await context.Users.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
             return await context.Relationships.
                 Where(x => x.UserId == id && x.Type == RelationshipType.Like).Select(x => x.EntryId).ToListAsync();
+        }
+
+        // GET: api/Users/5/comments
+        [HttpGet("{id}/comments")]
+        public async Task<ActionResult<IEnumerable<Comment>>> GetComments(uint id)
+        {
+            if (await context.Users.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
+            return await context.Comments.Where(x => x.AuthorId == id).ToListAsync();
         }
 
         private string Truncate(string val, MaxLength length)

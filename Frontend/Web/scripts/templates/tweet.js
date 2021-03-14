@@ -15,18 +15,30 @@ var tweet = {
         return res.toString() + 'K';
       }
 
-      return n == 0 ? null : n;
+      return n <= 1 ? null : n;
     },
 
     liked: function (user, id) {
+      if (!user.logged) {
+        return false;
+      }
+
       return user.favorites.includes(id);
     },
 
     retweeted: function (user, id) {
-      return user.retweets.includes(id);
+      if (!user.logged) {
+        return false;
+      }
+
+      return user.retweets.some(x => x.id == id);
     },
 
     addLike: function (user, entry) {
+      if (!user.logged) {
+        return;
+      }
+
       user.favorites.push(entry.id);
       entry.likeCount++;
       fetch(`http://localhost:5000/api/entries/${entry.id}/favorite`, {
@@ -42,6 +54,10 @@ var tweet = {
     },
 
     removeLike: function (user, entry) {
+      if (!user.logged) {
+        return;
+      }
+
       let index = user.favorites.indexOf(entry.id);
       user.favorites.splice(index, 1);
       entry.likeCount--;
@@ -58,7 +74,11 @@ var tweet = {
     },
 
     retweet: function (user, entry) {
-      user.retweets.push(entry.id);
+      if (!user.logged || user.id == entry.authorId) {
+        return;
+      }
+
+      user.retweets.push(entry);
       entry.retweetCount++;
       user.addEntry(entry);
 
@@ -75,7 +95,11 @@ var tweet = {
     },
 
     removeRetweet: function (user, entry) {
-      let index = user.retweets.indexOf(entry.id);
+      if (!user.logged) {
+        return;
+      }
+
+      let index = user.retweets.findIndex(x => x.id == entry.id);
       user.retweets.splice(index, 1);
       entry.retweetCount--;
       user.deleteEntry(entry.id);
@@ -90,6 +114,10 @@ var tweet = {
           'Authorization': 'Bearer ' + user.token
         }
       });
+    },
+
+    openComments: function (entry) {
+      comment.load(entry);
     }
   },
   template: `
@@ -108,25 +136,28 @@ var tweet = {
         <b style="font-size: large;">{{ entry.author.name }}</b> @{{ entry.author.username }}
 
         <button type="button" class="btn btn-default" aria-label="Left Align"
-          v-on:click='deleteEntry(entry.id)' v-if="entry.author.id == user.id">
+          v-on:click='deleteEntry(entry.id)' v-if="entry.authorId == user.id">
           <span class="la la-trash" aria-hidden="true"></span>
         </button> <br>
-        <a style="color: black;">{{ entry.text }}</a> <br>
+        <a style="color: black; word-wrap: break-word;">{{ entry.text }}</a> <br>
 
         <div class="btn-group" role="group" aria-label="Basic example">
-          <button type="button" class="btn btn-default shadow-none" aria-label="Left Align" v-if="user.logged">
+          <button type="button" class="btn btn-default shadow-none" aria-label="Left Align"
+           v-on:click="openComments(entry)" data-bs-toggle="modal" data-bs-target="#comment">
             <span class="la la-comment-dots" aria-hidden="true"></span>
+            <span>{{ displayCount(entry.commentCount) }}</span>
           </button>
 
-          <button type="button" class="btn btn-default shadow-none" aria-label="Left Align" v-if="user.logged">
+          <button type="button" class="btn btn-default shadow-none" aria-label="Left Align">
             <span class="la la-retweet" aria-hidden="true" v-bind:style="retweeted(user, entry.id) ? 'color: blue;': ''"
             v-on:click="retweeted(user, entry.id) ? removeRetweet(user, entry): retweet(user, entry)"></span>
+            <span>{{ displayCount(entry.retweetCount) }}</span>
           </button>
 
-          <button type="button" class="btn btn-default shadow-none" aria-label="Left Align" v-if="user.logged">
+          <button type="button" class="btn btn-default shadow-none" aria-label="Left Align">
             <span class="la la-heart" aria-hidden="true" v-bind:style="liked(user, entry.id) ? 'color: blue;': ''"
              v-on:click="liked(user, entry.id) ? removeLike(user, entry): addLike(user, entry)"></span>
-            <span>{{ displayCount(entry.likesCount) }}</span>
+            <span>{{ displayCount(entry.likeCount) }}</span>
           </button>
         </div>
 

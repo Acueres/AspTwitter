@@ -12,6 +12,7 @@ namespace AspTwitter.Models
 
         public uint LikeCount { get; set; }
         public uint RetweetCount { get; set; }
+        public uint CommentCount { get; set; }
 
         public virtual User Author { get; set; }
         public uint AuthorId { get; set; }
@@ -20,5 +21,8 @@ namespace AspTwitter.Models
 
         [JsonIgnore]
         public virtual IList<Relationship> Relationships { get; set; } = new List<Relationship>();
+
+        [JsonIgnore]
+        public virtual IList<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

@@ -6,6 +6,7 @@ using Xunit;
 using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using System.Net.Http;
 using System.Net;
 using System.Net.Http.Headers;
@@ -44,6 +45,7 @@ namespace AspTwitter.Tests
             await DeleteEntries(auth1, auth2);
             await LikeEntries(auth1, auth2);
             await RetweetEntries(auth1, auth2);
+            await CommentEntries(auth1, auth2);
         }
 
         private async Task<AuthenticationResponse[]> CreateUsers()
@@ -272,8 +274,8 @@ namespace AspTwitter.Tests
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
             //Ensure that the retweet has been recorded
-            var retweets = await GetRetweets(auth2.Id);
-            Assert.Contains(entryId, retweets);
+            var entries = await GetUserEntries(auth2.Id);
+            Assert.Contains(entries, x => x.Id == entryId);
 
             Entry entry = await GetEntry(entryId);
             Assert.True(entry.RetweetCount == 1);
@@ -287,11 +289,86 @@ namespace AspTwitter.Tests
             response.EnsureSuccessStatusCode();
 
             //Check that the retweet has been deleted
-            retweets = await GetRetweets(auth2.Id);
-            Assert.True(retweets.Count == 0);
+            entries = await GetUserEntries(auth2.Id);
+            Assert.DoesNotContain(entries, x => x.Id == entryId);
 
             entry = await GetEntry(entryId);
             Assert.True(entry.RetweetCount == 0);
+        }
+
+        private async Task CommentEntries(AuthenticationResponse auth1, AuthenticationResponse auth2)
+        {
+            //Create an entry and get its id
+            SetUser(auth1);
+
+            EntryRequest entryData = new()
+            {
+                AuthorId = auth1.Id,
+                Text = "text to comment"
+            };
+            var response = await CreateEntry(entryData);
+            uint entryId = await GetEntryId(response);
+
+            //Ensure comment creation and get its id
+            EntryRequest commentData = new()
+            {
+                AuthorId = auth1.Id,
+                Text = "comment1"
+            };
+
+            response = await AddComment(entryId, commentData);
+            response.EnsureSuccessStatusCode();
+            uint commentId = await GetEntryId(response);
+
+            //Ensure that users cannot add comments to non-existent entries
+            response = await AddComment(42, commentData);
+            Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+
+            //Ensure that users cannot add comments using other user's id
+            commentData = new()
+            {
+                AuthorId = auth2.Id,
+                Text = "comment1"
+            };
+            response = await AddComment(entryId, commentData);
+            Assert.True(response.StatusCode == HttpStatusCode.Forbidden);
+
+            //Add comment as the second user
+            SetUser(auth2);
+
+            commentData = new()
+            {
+                AuthorId = auth2.Id,
+                Text = "comment2"
+            };
+            response = await AddComment(entryId, commentData);
+            response.EnsureSuccessStatusCode();
+
+            //Ensure that all comments have been recorded
+            List<Comment> comments = await GetComments(entryId);
+            Assert.True(comments.Count == 2);
+
+            //Ensure that users cannot delete other users' comments
+            response = await client.DeleteAsync($"api/entries/{entryId}/comments/{commentId}");
+            Assert.True(response.StatusCode == HttpStatusCode.Forbidden);
+
+            //Ensure that users cannot delete comments of non-existent entries
+            SetUser(auth1);
+
+            response = await client.DeleteAsync($"api/entries/{42}/comments/{commentId}");
+            Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+
+            //Ensure that users cannot delete non-existent comments
+            response = await client.DeleteAsync($"api/entries/{entryId}/comments/{42}");
+            Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+
+            //Ensure comment deletion
+            response = await client.DeleteAsync($"api/entries/{entryId}/comments/{commentId}");
+            response.EnsureSuccessStatusCode();
+
+            //Ensure that comment deletion has been recorded
+            comments = await GetComments(entryId);
+            Assert.True(comments.Count == 1);
         }
 
         private void SetUser(AuthenticationResponse auth)
@@ -366,13 +443,33 @@ namespace AspTwitter.Tests
             return await client.SendAsync(request);
         }
 
-        private async Task<List<uint>> GetRetweets(uint id)
+        private async Task<List<Entry>> GetUserEntries(uint id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"api/users/{id}/retweets");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"api/users/{id}/entries");
             var response = await client.SendAsync(request);
 
             string result = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<List<uint>>(result);
+            return JsonConvert.DeserializeObject<List<Entry>>(result);
+        }
+
+        private async Task<List<Comment>> GetComments(uint id)
+        {
+            var response = await client.GetAsync($"api/entries/{id}/comments");
+
+            string result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<Comment>>(result);
+        }
+
+        private async Task<HttpResponseMessage> AddComment(uint id, EntryRequest data)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, $"api/entries/{id}/comments")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
+            };
+
+            var response = await client.SendAsync(request);
+
+            return response;
         }
     }
 }

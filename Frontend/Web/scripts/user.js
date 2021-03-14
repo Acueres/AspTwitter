@@ -33,7 +33,7 @@ class User {
     }
 
     deleteEntry(id) {
-        let index = this.entries.findIndex((e) => e.id == id);
+        let index = this.entries.findIndex(x => x.id == id);
         if (index != -1) {
             this.entries.splice(index, 1);
         }
