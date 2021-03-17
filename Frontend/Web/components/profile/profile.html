@@ -6,33 +6,13 @@
 
         <!--Entries column-->
         <div class="col-5 bg-light">
-            <div class="position-relative p-3 border-bottom bg-light">
-                <input type="image" id="editAvatar"
-                    v-bind:src='"http://localhost:5000/api/users/" + user.id + "/avatar"'
-                    class="img rounded-circle float-left" style="width: 100px; height: 100px; outline: none;"
-                    alt="avatar" onclick="document.getElementById('imageInput').click()">
-                <input id="imageInput" type="file" accept="image/*" enctype="multipart/form-data"
-                    onchange="profile.uploadImage()" style="display: none;">
-
-                <button class="btn btn-outline-success position-absolute m-3 top-20 end-0" data-bs-toggle="modal"
-                    data-bs-target="#edit" type="button">Edit profile</button>
-
-                <p>
-                    <b style="font-size: large;">{{ user.name }}</b><br>
-                    @{{ user.username }}
-                </p>
-                <p style="color: black; word-wrap: break-word;">{{ user.about }}</p>
-            </div>
+            <profile v-bind:user="user" v-bind:current-user="user" v-bind:avatar="getAvatar(user.id)"></profile>
 
             <div class="bg-light">
                 <div class="container p-3 bg-light">
-                    <tweet v-for="entry in user.entries" 
-                    v-bind:key="entry.id"
-                    v-bind:entry="entry" 
-                    v-bind:user="user"
-                    v-bind:show-retweets="true"
-                    v-bind:avatar="getAvatar(entry.author.id)"
-                    v-bind:delete-entry="deleteEntry">
+                    <tweet v-for="entry in user.entries" v-bind:key="entry.id" v-bind:entry="entry" v-bind:user="user"
+                        v-bind:show-retweets="true" v-bind:avatar="getAvatar(entry.author.id)"
+                        v-bind:delete-entry="deleteEntry">
                     </tweet>
                 </div>
             </div>

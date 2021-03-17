@@ -10,7 +10,7 @@ var home = new Vue(
         },
 
         components: {
-            'tweet': tweet
+            'tweet': tweetTemplate
         },
 
         methods:
@@ -34,7 +34,7 @@ var home = new Vue(
                 }
             },
 
-            tweet: async function () {
+            post: async function () {
                 const response = await fetch('http://localhost:5000/api/entries', {
                     method: 'POST',
                     credentials: 'omit',
@@ -65,21 +65,11 @@ var home = new Vue(
 
                     this.text = '';
                     document.getElementById('post').value = '';
-
-                    let toast = new bootstrap.Toast(document.getElementById('successToast'));
-                    toast.show();
                 }
             },
 
             getAvatar: function (id) {
                 return `http://localhost:5000/api/users/${id}/avatar`;
-            }
-        },
-
-        computed:
-        {
-            charactersLeft: function () {
-                return this.text.length + '/' + '256';
             }
         }
     });

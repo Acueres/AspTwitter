@@ -239,6 +239,24 @@ namespace AspTwitter.Controllers
             return await context.Comments.Where(x => x.AuthorId == id).ToListAsync();
         }
 
+        //POST: api/Users/search
+        [HttpPost("search")]
+        public async Task<ActionResult<IEnumerable<User>>> SearchUsers([FromBody] string query)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return BadRequest();
+            }
+
+            if (query.Contains('@'))
+            {
+                query = query.Replace("@", string.Empty);
+                return await context.Users.Where(x => x.Username.ToLower().Contains(query)).ToListAsync();
+            }
+
+            return await context.Users.Where(x => x.Name.ToLower().Contains(query)).ToListAsync();
+        }
+
         private string Truncate(string val, MaxLength length)
         {
             if (val.Length > (int)length)

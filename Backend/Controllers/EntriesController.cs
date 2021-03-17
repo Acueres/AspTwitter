@@ -381,6 +381,18 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
+        //POST: api/Entries/search
+        [HttpPost("search")]
+        public async Task<ActionResult<IEnumerable<Entry>>> SearchEntries([FromBody] string query)
+        {
+            if (string.IsNullOrEmpty(query))
+            {
+                return BadRequest();
+            }
+
+            return await context.Entries.Where(x => x.Text.ToLower().Contains(query)).ToListAsync();
+        }
+
         private string Truncate(string val, MaxLength length)
         {
             if (val.Length > (int)length)

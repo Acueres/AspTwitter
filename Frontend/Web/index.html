@@ -14,9 +14,12 @@
   <!--Scripts-->
   <script type="text/javascript" src="lib/vue.js"></script>
   <script type="text/javascript" src="lib/jquery-3.5.1.min.js"></script>
-  <script type="text/javascript" src="scripts/user.js"></script>
-  <script type="text/javascript" src="scripts/entries.js"></script>
-  <script type="text/javascript" src="scripts/templates/tweet.js"></script>
+  <script type="text/javascript" src="scripts/models/user.js"></script>
+  <script type="text/javascript" src="scripts/models/entries.js"></script>
+
+  <!--Templates-->
+  <script type="text/javascript" src="templates/tweetTemplate.js"></script>
+  <script type="text/javascript" src="templates/profileTemplate.js"></script>
 </head>
 
 <body style="background-color:lavender">
@@ -32,7 +35,7 @@
     <div class="tab-pane show active" id="home" role="tabpanel" aria-labelledby="home-tab"></div>
 
     <!--Explore tab-->
-    <div class="tab-pane" id="explore" role="tabpanel" aria-labelledby="profile-tab"></div>
+    <div class="tab-pane" id="explore" role="tabpanel" aria-labelledby="explore-tab"></div>
 
     <!--Messages tab-->
     <div class="tab-pane" id="messages" role="tabpanel" aria-labelledby="messages-tab" v-if="user.logged"></div>
@@ -50,8 +53,8 @@
   <!--Profile edit modal-->
   <div class="modal fade" id="edit" tabindex="-1"></div>
 
-  <!--Comment modal-->
-  <div class="modal fade" id="comment" tabindex="-1"></div>
+  <!--Tweet modal-->
+  <div class="modal fade" id="tweet" tabindex="-1"></div>
 
   <script>
 
@@ -64,6 +67,12 @@
     $(function () {
       $("#home").load("components/home.html", function () {
         $.getScript("scripts/home.js");
+      });
+    });
+
+    $(function () {
+      $("#explore").load("components/explore.html", function () {
+        $.getScript("scripts/explore.js");
       });
     });
 
@@ -92,8 +101,8 @@
     });
 
     $(function () {
-      $("#comment").load("components/comment.html", function () {
-        $.getScript("scripts/comment.js");
+      $("#tweet").load("components/tweet.html", function () {
+        $.getScript("scripts/tweet.js");
       });
     });
   </script>

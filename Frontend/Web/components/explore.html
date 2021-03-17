@@ -1,0 +1,82 @@
+<div class="container-fluid p-3">
+    <div class="row gx-3" style="height: 90vh;">
+
+        <!--Left padding-->
+        <div class="col-2"></div>
+
+        <!--Search column-->
+        <div class="col-5 bg-light">
+            <form class="d-flex p-3">
+                <input class="form-control me-2" id="search-bar" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="button" v-on:click="sendQuery">Search</button>
+            </form>
+
+            <ul class="nav nav-tabs justify-content-center" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" style="outline: none;" id="users-tab" data-bs-toggle="tab"
+                        data-bs-target="#users" type="button" role="tab" aria-controls="users"
+                        v-on:click="searchUsers = true; sendQuery()" aria-selected="true">Users</button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" style="outline: none;" id="profile-tab" data-bs-toggle="tab"
+                        data-bs-target="#tweets" type="button" role="tab" aria-controls="tweets"
+                        v-on:click="searchUsers = false; sendQuery()" aria-selected="false">Tweets</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="searchTabs">
+                <!--Users tab-->
+                <div class="tab-pane show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+                    <div class="bg-light" v-if="!showProfile && searchUsers">
+                        <div class="container p-3 bg-light">
+                            <div class="row border-bottom p-3" v-for="listUser in users" v-bind:key="listUser.id"
+                                v-on:click="openProfile(listUser)" style="cursor: pointer">
+                                <div class="col-auto">
+                                    <img v-bind:src='getAvatar(listUser.id)' class="img rounded-circle"
+                                        style="width: 50px; height: 50px; outline: none;" alt="avatar">
+                                </div>
+
+                                <div class="col-auto">
+                                    <b style="font-size: large;">{{ listUser.name }}</b> <br>
+                                    @{{ listUser.username }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Tweets tab-->
+                    <div class="tab-pane" id="tweets" role="tabpanel" aria-labelledby="tweets-tab">
+                        <div class="bg-light" v-if="!showProfile && !searchUsers">
+                            <div class="container p-3 bg-light">
+                                <tweet v-for="entry in entries" v-bind:key="entry.id" v-bind:entry="entry"
+                                    v-bind:user="user" v-bind:show-retweets="false"
+                                    v-bind:avatar="getAvatar(entry.author.id)" v-bind:delete-entry="deleteEntry">
+                                </tweet>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--Selected user profile-->
+                <div v-if="showProfile">
+                    <profile v-bind:user="selectedUser" v-bind:current-user="user"
+                        v-bind:avatar="getAvatar(selectedUser.id)"></profile>
+    
+                    <div class="bg-light">
+                        <div class="container p-3 bg-light">
+                            <tweet v-for="entry in selectedUserEntries" v-bind:key="entry.id" v-bind:entry="entry"
+                                v-bind:user="selectedUser" v-bind:show-retweets="true"
+                                v-bind:avatar="getAvatar(entry.author.id)" v-bind:delete-entry="deleteEntry">
+                            </tweet>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-4">
+            <div class="p-3 border-bottom bg-light">Reserved</div>
+        </div>
+    </div>
+</div>

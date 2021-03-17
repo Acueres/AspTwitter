@@ -8,7 +8,9 @@ var profile = new Vue({
     },
 
     components: {
-        'tweet': tweet
+        'tweet': tweetTemplate,
+        'profile': profileTemplate
+
     },
 
     created: async function () {
@@ -35,7 +37,6 @@ var profile = new Vue({
             });
 
             if (response.status == 200) {
-                //entries.deleteFromProfile(index, id);
                 entries.delete(id);
                 user.deleteEntry(id);
             }

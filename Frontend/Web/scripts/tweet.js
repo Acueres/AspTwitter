@@ -1,5 +1,5 @@
-var comment = new Vue({
-    el: '#comment',
+var tweet = new Vue({
+    el: '#tweet',
     data:
     {
         entry: null,
@@ -75,13 +75,6 @@ var comment = new Vue({
 
         getAvatar: function (id) {
             return `http://localhost:5000/api/users/${id}/avatar`;
-        }
-    },
-
-    computed:
-    {
-        charactersLeft: function () {
-            return this.text.length + '/' + '128';
         }
     }
 });

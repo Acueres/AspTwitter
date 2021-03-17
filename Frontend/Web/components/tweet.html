@@ -20,14 +20,11 @@
             </div>
 
             <div class="p-3 border-bottom" v-if="user.logged">
-                <textarea type="text" style="resize: none;" id="post" class="form-control overflow-auto" maxlength="128"
-                    placeholder="Write your reply" v-model="text" aria-describedby="commentCharCounter"
-                    rows="2"></textarea>
+                <textarea type="text" style="resize: none; overflow: hidden;" id="post" class="form-control" maxlength="128"
+                    placeholder="Write your reply" v-model="text"
+                    oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
 
-                <div class="d-flex p-2 justify-content-between">
-                    <div id="commentCharCounter" class="form-text">
-                        {{ charactersLeft }}
-                    </div>
+                <div class="d-flex p-2" v-if="text.length > 0">
                     <button type="button" class="btn btn-primary" v-on:click="reply">Reply</button>
                 </div>
             </div>

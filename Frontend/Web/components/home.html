@@ -1,10 +1,3 @@
-<div class="position-absolute toast bg-success text-white top-0 start-50 translate-middle-x w-auto" role="alert"
-  id="successToast" aria-live="assertive" aria-atomic="true">
-  <div class="toast-body">
-    Tweeted successfully!
-  </div>
-</div>
-
 <div class="container-fluid p-3">
   <div class="row gx-3" style="height: 90vh;">
 
@@ -14,26 +7,19 @@
     <!--Entries column-->
     <div class="col-5 bg-light">
       <div class="p-3 border-bottom bg-light" v-if="user.logged">
-        <textarea type="text" style="resize: none;" id="post" class="form-control overflow-auto" maxlength="256"
-          placeholder="What's happening?" v-model="text" aria-describedby="charCounter" rows="3"></textarea>
+        <textarea type="text" style="resize: none; overflow: hidden;" id="post" class="form-control" maxlength="256"
+          placeholder="What's happening?" v-model="text"
+          oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
 
-        <div class="d-flex p-2 justify-content-between">
-          <div id="charCounter" class="form-text">
-            {{ charactersLeft }}
-          </div>
-          <button type="button" class="btn btn-primary" v-on:click="tweet">Tweet</button>
+        <div class="d-flex p-2" v-if="text.length > 0">
+          <button type="button" class="btn btn-primary" v-on:click="post">Tweet</button>
         </div>
       </div>
 
       <div class="bg-light">
         <div class="container p-3 bg-light">
-          <tweet v-for="entry in entries.data"
-          v-bind:key="entry.id"
-          v-bind:entry="entry" 
-          v-bind:user="user" 
-          v-bind:show-retweets="false"
-          v-bind:avatar="getAvatar(entry.author.id)"
-          v-bind:delete-entry="deleteEntry">
+          <tweet v-for="entry in entries.data" v-bind:key="entry.id" v-bind:entry="entry" v-bind:user="user"
+            v-bind:show-retweets="false" v-bind:avatar="getAvatar(entry.author.id)" v-bind:delete-entry="deleteEntry">
           </tweet>
         </div>
       </div>

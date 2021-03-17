@@ -1,4 +1,4 @@
-var tweet = {
+var tweetTemplate = {
   props: ['entry', 'avatar', 'showRetweets', 'user', 'deleteEntry'],
   methods:
   {
@@ -15,10 +15,10 @@ var tweet = {
         return res.toString() + 'K';
       }
 
-      return n <= 1 ? null : n;
+      return n > 0 ? n : null;
     },
 
-    liked: function (user, id) {
+    liked: function (id) {
       if (!user.logged) {
         return false;
       }
@@ -26,7 +26,7 @@ var tweet = {
       return user.favorites.includes(id);
     },
 
-    retweeted: function (user, id) {
+    retweeted: function (id) {
       if (!user.logged) {
         return false;
       }
@@ -34,7 +34,7 @@ var tweet = {
       return user.retweets.some(x => x.id == id);
     },
 
-    addLike: function (user, entry) {
+    addLike: function (entry) {
       if (!user.logged) {
         return;
       }
@@ -53,7 +53,7 @@ var tweet = {
       });
     },
 
-    removeLike: function (user, entry) {
+    removeLike: function (entry) {
       if (!user.logged) {
         return;
       }
@@ -73,7 +73,7 @@ var tweet = {
       });
     },
 
-    retweet: function (user, entry) {
+    retweet: function (entry) {
       if (!user.logged || user.id == entry.authorId) {
         return;
       }
@@ -94,7 +94,7 @@ var tweet = {
       });
     },
 
-    removeRetweet: function (user, entry) {
+    removeRetweet: function (entry) {
       if (!user.logged) {
         return;
       }
@@ -116,8 +116,24 @@ var tweet = {
       });
     },
 
-    openComments: function (entry) {
-      comment.load(entry);
+    openTweet: function (entry) {
+      tweet.load(entry);
+    },
+
+    openProfile: function (targetUser) {
+      if (user.id == targetUser.id) {
+        let el = document.querySelector('#profile-tab');
+        let tab = new bootstrap.Tab(el);
+        tab.show();
+        return;
+      }
+      else {
+        explore.openProfile(targetUser);
+
+        let el = document.querySelector('#explore-tab');
+        let tab = new bootstrap.Tab(el);
+        tab.show();
+      }
     }
   },
   template: `
@@ -129,34 +145,38 @@ var tweet = {
 
       <div class="col-auto">
         <img v-bind:src='avatar' class="img rounded-circle"
-          style="width: 50px; height: 50px; outline: none;" alt="avatar">
+          style="width: 50px; height: 50px; outline: none; cursor: pointer"
+          v-on:click="openProfile(entry.author)" alt="avatar">
       </div>
 
       <div class="col-auto">
-        <b style="font-size: large;">{{ entry.author.name }}</b> @{{ entry.author.username }}
+        <b style="font-size: large; cursor: pointer" v-on:click="openProfile(entry.author)">
+          {{ entry.author.name }}
+        </b>
+        @{{ entry.author.username }}
 
         <button type="button" class="btn btn-default" aria-label="Left Align"
-          v-on:click='deleteEntry(entry.id)' v-if="entry.authorId == user.id">
+          v-on:click='deleteEntry(entry.id)' v-if="user.logged && entry.authorId == user.id">
           <span class="la la-trash" aria-hidden="true"></span>
         </button> <br>
         <a style="color: black; word-wrap: break-word;">{{ entry.text }}</a> <br>
 
         <div class="btn-group" role="group" aria-label="Basic example">
           <button type="button" class="btn btn-default shadow-none" aria-label="Left Align"
-           v-on:click="openComments(entry)" data-bs-toggle="modal" data-bs-target="#comment">
+           v-on:click="openTweet(entry)" data-bs-toggle="modal" data-bs-target="#tweet">
             <span class="la la-comment-dots" aria-hidden="true"></span>
             <span>{{ displayCount(entry.commentCount) }}</span>
           </button>
 
           <button type="button" class="btn btn-default shadow-none" aria-label="Left Align">
-            <span class="la la-retweet" aria-hidden="true" v-bind:style="retweeted(user, entry.id) ? 'color: blue;': ''"
-            v-on:click="retweeted(user, entry.id) ? removeRetweet(user, entry): retweet(user, entry)"></span>
+            <span class="la la-retweet" aria-hidden="true" v-bind:style="retweeted(entry.id) ? 'color: blue;': ''"
+            v-on:click="retweeted(entry.id) ? removeRetweet(entry): retweet(entry)"></span>
             <span>{{ displayCount(entry.retweetCount) }}</span>
           </button>
 
           <button type="button" class="btn btn-default shadow-none" aria-label="Left Align">
-            <span class="la la-heart" aria-hidden="true" v-bind:style="liked(user, entry.id) ? 'color: blue;': ''"
-             v-on:click="liked(user, entry.id) ? removeLike(user, entry): addLike(user, entry)"></span>
+            <span class="la la-heart" aria-hidden="true" v-bind:style="liked(entry.id) ? 'color: blue;': ''"
+             v-on:click="liked(entry.id) ? removeLike(entry): addLike(entry)"></span>
             <span>{{ displayCount(entry.likeCount) }}</span>
           </button>
         </div>
