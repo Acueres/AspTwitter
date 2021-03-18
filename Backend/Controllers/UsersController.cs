@@ -83,8 +83,13 @@ namespace AspTwitter.Controllers
 
         // GET: api/Users/5/avatar
         [HttpGet("{id}/avatar")]
-        public IActionResult GetAvatar(uint id)
+        public async Task<IActionResult> GetAvatar(uint id)
         {
+            if (await context.Users.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
             string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
             if (System.IO.File.Exists(path))
             {
@@ -104,6 +109,11 @@ namespace AspTwitter.Controllers
         [Consumes("multipart/form-data", "image/jpg", "image/png")]
         public async Task<IActionResult> PostAvatar(uint id, [FromForm(Name = "avatar")] IFormFile image)
         {
+            if (await context.Users.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
             if (!HasPermission(id))
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
@@ -237,6 +247,118 @@ namespace AspTwitter.Controllers
             }
 
             return await context.Comments.Where(x => x.AuthorId == id).ToListAsync();
+        }
+
+        //POST: api/Users/5/follow
+        [Authorize]
+        [HttpPost("{id}/follow")]
+        public async Task<IActionResult> FollowUser(uint id)
+        {
+            User user = await context.Users.FindAsync(id);
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            uint followerId = ((User)HttpContext.Items["User"]).Id;
+
+            if (followerId == id)
+            {
+                return BadRequest();
+            }
+
+            User follower = await context.Users.FindAsync(followerId);
+
+            var following = await context.Followers.
+                Where(x => x.FollowerId == followerId && x.UserId == id).FirstOrDefaultAsync();
+
+            if (following is not null)
+            {
+                return BadRequest();
+            }
+
+            following = new()
+            {
+                UserId = id,
+                FollowerId = followerId
+            };
+
+            context.Followers.Add(following);
+
+            user.FollowerCount++;
+            context.Entry(user).State = EntityState.Modified;
+
+            follower.FollowingCount++;
+            context.Entry(follower).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        //DELETE: api/Users/5/unfollow
+        [Authorize]
+        [HttpDelete("{id}/unfollow")]
+        public async Task<IActionResult> UnfollowUser(uint id)
+        {
+            User user = await context.Users.FindAsync(id);
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            uint followerId = ((User)HttpContext.Items["User"]).Id;
+
+            if (followerId == id)
+            {
+                return BadRequest();
+            }
+
+            User follower = await context.Users.FindAsync(followerId);
+
+            var following = await context.Followers.
+                Where(x => x.FollowerId == followerId && x.UserId == id).FirstOrDefaultAsync();
+
+            if (following is null)
+            {
+                return BadRequest();
+            }
+
+            context.Followers.Remove(following);
+
+            user.FollowerCount--;
+            context.Entry(user).State = EntityState.Modified;
+
+            follower.FollowingCount--;
+            context.Entry(follower).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        //GET: api/Users/5/followers
+        [HttpGet("{id}/followers")]
+        public async Task<ActionResult<IEnumerable<User>>> GetFollowers(uint id)
+        {
+            if (await context.Users.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
+            return await context.Followers.Where(x => x.UserId == id).Select(x => x.Follower).ToListAsync();
+        }
+
+        //GET: api/Users/5/following
+        [HttpGet("{id}/following")]
+        public async Task<ActionResult<IEnumerable<User>>> GetFollowings(uint id)
+        {
+            if (await context.Users.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
+            return await context.Followers.Where(x => x.FollowerId == id).Select(x => x.User).ToListAsync();
         }
 
         //POST: api/Users/search

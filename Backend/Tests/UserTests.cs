@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Xunit;
 
 using System.Text;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net;
@@ -38,6 +39,7 @@ namespace AspTwitter.Tests
             auth2 = authData[1];
 
             await EditUsers(auth1, auth2);
+            await FollowUsers(auth1, auth2);
             await DeleteUsers(auth1, auth2);
         }
 
@@ -115,6 +117,56 @@ namespace AspTwitter.Tests
             Assert.True(response.StatusCode == HttpStatusCode.NotFound);
         }
 
+        private async Task FollowUsers(AuthenticationResponse auth1, AuthenticationResponse auth2)
+        {
+            //Ensure user following
+            SetUser(auth1);
+
+            var response = await client.PostAsync($"api/users/{auth2.Id}/follow", null);
+            response.EnsureSuccessStatusCode();
+
+            //Check that the following has been registered
+            var followers = await GetFollowers(auth2.Id);
+            Assert.True(followers.Count == 1);
+            Assert.Contains(followers, x => x.Id == auth1.Id);
+
+            var followings = await GetFollowings(auth1.Id);
+            Assert.True(followings.Count == 1);
+            Assert.Contains(followings, x => x.Id == auth2.Id);
+
+            User user1 = await GetUser(auth1.Id);
+            Assert.True(user1.FollowingCount == 1);
+
+            User user2 = await GetUser(auth2.Id);
+            Assert.True(user2.FollowerCount == 1);
+
+            //Ensure users cannot follow other users more than once
+            response = await client.PostAsync($"api/users/{auth2.Id}/follow", null);
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
+            //Ensure users cannot follow themselves
+            response = await client.PostAsync($"api/users/{auth1.Id}/follow", null);
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
+            //Ensure unfollowing
+            response = await client.DeleteAsync($"api/users/{auth2.Id}/unfollow");
+            response.EnsureSuccessStatusCode();
+
+            //Ensure users cannot unfollow users they don't already follow
+            response = await client.DeleteAsync($"api/users/{auth2.Id}/unfollow");
+            Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+
+            //Ensure users cannot unfollow non-existent users
+            response = await client.DeleteAsync($"api/users/{42}/unfollow");
+            Assert.True(response.StatusCode == HttpStatusCode.NotFound);
+
+            //Check that the unfollowing has been registered
+            followers = await GetFollowers(auth2.Id);
+            followings = await GetFollowings(auth1.Id);
+            Assert.True(followers.Count == 0);
+            Assert.True(followings.Count == 0);
+        }
+
         private void SetUser(AuthenticationResponse auth)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
@@ -156,6 +208,20 @@ namespace AspTwitter.Tests
         private async Task<HttpResponseMessage> DeleteUser(uint id)
         {
             return await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/users/{id}"));
+        }
+
+        private async Task<List<User>> GetFollowers(uint id)
+        {
+            var response = await client.GetAsync($"api/users/{id}/followers");
+            var result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<User>>(result);
+        }
+
+        private async Task<List<User>> GetFollowings(uint id)
+        {
+            var response = await client.GetAsync($"api/users/{id}/following");
+            var result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<User>>(result);
         }
     }
 }

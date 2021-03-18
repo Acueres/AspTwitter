@@ -8,19 +8,29 @@ class User {
     entries = [];
     favorites = [];
     retweets = [];
+    followers = [];
+    following = [];
+    followerCount = 0;
+    followingCount = 0;
 
     constructor() {
-        let storageData = JSON.parse(localStorage.getItem('user'));
+        let storageData = JSON.parse(localStorage.getItem('auth'));
         if (storageData != undefined) {
-            this._setData(storageData);
+            this.id = storageData.id;
+            this.token = storageData.token;
+
+            this.load();
             this.logged = true;
             this.loadEntries();
         }
     }
 
     set(data, load = true) {
-        localStorage.setItem('user', JSON.stringify(data));
-        this._setData(data);
+        localStorage.setItem('auth', JSON.stringify(data));
+        this.id = data.id;
+        this.token = data.token;
+
+        this.load();
         this.logged = true;
 
         if (load) {
@@ -57,7 +67,19 @@ class User {
         this.about = null;
         this.token = null;
         this.favorites = [];
-        localStorage.removeItem('user');
+        this.retweets = [];
+        this.followers = [];
+        this.following = [];
+        this.followingCount = 0;
+        this.followerCount = 0;
+        localStorage.removeItem('auth');
+    }
+
+    async load() {
+        const response = await fetch(`http://localhost:5000/api/users/${this.id}`);
+        const data = await response.json();
+
+        this._setData(data);
     }
 
     async loadEntries() {
@@ -69,14 +91,61 @@ class User {
         this.favorites = await response.json();
 
         this.retweets = this.entries.filter(x => x.authorId != this.id);
+
+        response = await fetch(`http://localhost:5000/api/users/${this.id}/followers`);
+        this.followers = await response.json();
+
+        response = await fetch(`http://localhost:5000/api/users/${this.id}/following`);
+        this.following = await response.json();
+    }
+
+    follows(id) {
+        return this.following.some(x => x.id == id);
+    }
+
+    async follow(user) {
+        const response = await fetch(`http://localhost:5000/api/users/${user.id}/follow`, {
+            method: 'POST',
+            cache: 'no-cache',
+            credentials: 'omit',
+            redirect: 'follow',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.token
+            }
+        });
+
+        if (response.status == 200) {
+            this.following.push(user);
+            this.followingCount++;
+        }
+    }
+
+    async unfollow(user) {
+        const response = await fetch(`http://localhost:5000/api/users/${user.id}/unfollow`, {
+            method: 'DELETE',
+            cache: 'no-cache',
+            credentials: 'omit',
+            redirect: 'follow',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.token
+            }
+        });
+
+        if (response.status == 200) {
+            let index = this.following.indexOf(user.id);
+            this.following.splice(index, 1);
+            this.followingCount--;
+        }
     }
 
     _setData(data) {
-        this.id = data.id;
         this.name = data.name;
         this.username = data.username;
         this.about = data.about;
-        this.token = data.token;
+        this.followerCount = data.followerCount;
+        this.followingCount = data.followingCount;
     }
 }
 

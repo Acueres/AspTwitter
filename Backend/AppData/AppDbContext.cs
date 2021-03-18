@@ -22,6 +22,7 @@ namespace AspTwitter.AppData
         public DbSet<Entry> Entries { get; set; }
         public DbSet<Relationship> Relationships { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Following> Followers { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -40,9 +41,13 @@ namespace AspTwitter.AppData
             builder.Entity<User>().Property(x => x.Email).IsUnicode().HasMaxLength((int)MaxLength.Email);
             builder.Entity<User>().Property(x => x.About).IsUnicode().HasMaxLength((int)MaxLength.About);
             builder.Entity<User>().Property(x => x.PasswordHash).IsRequired();
+            builder.Entity<User>().Property(x => x.FollowerCount).HasDefaultValue(0);
+            builder.Entity<User>().Property(x => x.FollowingCount).HasDefaultValue(0);
             builder.Entity<User>().HasMany(x => x.Entries).WithOne();
             builder.Entity<User>().HasMany(x => x.Relationships).WithOne();
             builder.Entity<User>().HasMany(x => x.Comments).WithOne();
+            builder.Entity<User>().HasMany(x => x.Followers).WithOne(x => x.User);
+            builder.Entity<User>().HasMany(x => x.Following).WithOne(x => x.Follower);
 
             builder.Entity<Entry>().ToTable("Entries");
             builder.Entity<Entry>().HasKey(x => x.Id);
@@ -75,6 +80,14 @@ namespace AspTwitter.AppData
             builder.Entity<Comment>().Property(x => x.Text).IsRequired().IsUnicode().HasMaxLength((int)MaxLength.Comment);
             builder.Entity<Comment>().HasOne(x => x.Author).WithMany(x => x.Comments).HasForeignKey(x => x.AuthorId);
             builder.Entity<Comment>().HasOne(x => x.Parent).WithMany(x => x.Comments).HasForeignKey(x => x.ParentId);
+
+            builder.Entity<Following>().ToTable("Followers");
+            builder.Entity<Following>().HasKey(x => x.Id);
+            builder.Entity<Following>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
+            builder.Entity<Following>().Property(x => x.UserId).IsRequired();
+            builder.Entity<Following>().Property(x => x.FollowerId).IsRequired();
+            builder.Entity<Following>().HasOne(x => x.User).WithMany(x => x.Followers).HasForeignKey(x => x.UserId);
+            builder.Entity<Following>().HasOne(x => x.Follower).WithMany(x => x.Following).HasForeignKey(x => x.FollowerId);
         }
     }
 }

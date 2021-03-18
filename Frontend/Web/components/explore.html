@@ -8,7 +8,7 @@
         <div class="col-5 bg-light">
             <form class="d-flex p-3">
                 <input class="form-control me-2" id="search-bar" placeholder="Search" aria-label="Search">
-                <button class="btn btn-outline-success" type="button" v-on:click="sendQuery">Search</button>
+                <button class="btn btn-success" type="button" v-on:click="sendQuery">Search</button>
             </form>
 
             <ul class="nav nav-tabs justify-content-center" role="tablist">
@@ -30,16 +30,24 @@
                 <div class="tab-pane show active" id="users" role="tabpanel" aria-labelledby="users-tab">
                     <div class="bg-light" v-if="!showProfile && searchUsers">
                         <div class="container p-3 bg-light">
-                            <div class="row border-bottom p-3" v-for="listUser in users" v-bind:key="listUser.id"
-                                v-on:click="openProfile(listUser)" style="cursor: pointer">
+                            <div class="row border-bottom p-3" v-for="listUser in users" v-bind:key="listUser.id">
                                 <div class="col-auto">
                                     <img v-bind:src='getAvatar(listUser.id)' class="img rounded-circle"
-                                        style="width: 50px; height: 50px; outline: none;" alt="avatar">
+                                        style="width: 50px; height: 50px; outline: none; cursor: pointer"
+                                        v-on:click="openProfile(listUser)" alt="avatar">
                                 </div>
 
-                                <div class="col-auto">
-                                    <b style="font-size: large;">{{ listUser.name }}</b> <br>
+                                <div class="col-auto" v-on:click="openProfile(listUser)" style="cursor: pointer">
+                                    <b style="font-size: large;">{{ listUser.name }}</b>
+                                    <br>
                                     @{{ listUser.username }}
+                                </div>
+
+                                <div class="col-auto" v-if="user.logged && user.id != listUser.id">
+                                    <button class="btn" v-on:click="user.follows(listUser.id) ? user.unfollow(listUser): user.follow(listUser)"
+                                     v-bind:class="user.follows(listUser.id) ? 'btn-info' : 'btn-outline-info'">
+                                        {{ user.follows(listUser.id) ? 'Unfollow': 'Follow' }}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -62,7 +70,7 @@
                 <div v-if="showProfile">
                     <profile v-bind:user="selectedUser" v-bind:current-user="user"
                         v-bind:avatar="getAvatar(selectedUser.id)"></profile>
-    
+
                     <div class="bg-light">
                         <div class="container p-3 bg-light">
                             <tweet v-for="entry in selectedUserEntries" v-bind:key="entry.id" v-bind:entry="entry"

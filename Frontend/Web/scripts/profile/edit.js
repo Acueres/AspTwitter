@@ -3,8 +3,7 @@ var edit = new Vue({
 
     data:
     {
-        originalName: user.name,
-        about: user.about,
+        user: user,
         nameInvalid: false
     },
 
@@ -12,8 +11,10 @@ var edit = new Vue({
     {
         save: async function () {
             let nameField = document.getElementById('editName');
+            let aboutField = document.getElementById('about');
 
             let name = nameField.value;
+            let about = aboutField.value;
 
             this.nameInvalid = name == '';
 
@@ -28,29 +29,22 @@ var edit = new Vue({
                 },
                 body: JSON.stringify({
                     name: name,
-                    about: this.about
+                    about: about
                 })
             });
 
             if (response.status === 200) {
                 user.name = name;
-                user.about = this.about;
-                user.updateStorage();
+                user.about = about;
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('edit'));
                 modal.toggle();
             }
-        }
-    },
+        },
 
-    computed:
-    {
-        charactersLeft: function () {
-            if (this.about == null || this.about.length == 0) {
-                return null;
-            }
-
-            return this.about.length + '/' + '160';
+        reset: function () {
+            document.getElementById('editName').value = user.name;
+            document.getElementById('about').value = user.about;
         }
     }
 });

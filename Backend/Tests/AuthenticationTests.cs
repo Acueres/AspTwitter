@@ -67,13 +67,13 @@ namespace AspTwitter.Tests
             response.EnsureSuccessStatusCode();
 
             var auth = await GetAuthData(response);
+            User user = await GetUser(auth.Id);
 
-            Assert.True(auth.Name == "User 2");
-            Assert.True(auth.Username == "user2");
+            Assert.True(user.Name == "User 2");
+            Assert.True(user.Username == "user2");
             Assert.True(auth.Token != null);
 
             //Ensure that incorrect email format is ignored
-            User user = await GetUser(auth.Id);
             Assert.True(user.Email is null);
 
             //Ensure that empty data is rejected

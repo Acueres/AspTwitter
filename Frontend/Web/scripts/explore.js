@@ -30,6 +30,10 @@ var explore = new Vue({
             this.entries = [];
 
             let query = document.getElementById('search-bar').value;
+            if (query == '') {
+                return;
+            }
+
             const response = await fetch(`http://localhost:5000/api/${entity}/search`, {
                 method: 'POST',
                 cache: 'no-cache',
@@ -61,8 +65,28 @@ var explore = new Vue({
             this.selectedUserEntries.reverse();
         },
 
-        //Empty function for compatibility reasons
-        deleteEntry: function (id) {  },
+        deleteEntry: async function (id) {
+            const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
+                method: 'DELETE',
+                credentials: 'omit',
+                redirect: 'follow',
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + user.token
+                }
+            });
+
+            if (response.status == 200) {
+                entries.delete(id);
+                user.deleteEntry(id);
+
+                let index = this.entries.findIndex(x => x.id == id);
+                if (index != -1) {
+                    this.entries.splice(index, 1);
+                }
+            }
+        },
 
         getAvatar: function (id) {
             return `http://localhost:5000/api/users/${id}/avatar`;

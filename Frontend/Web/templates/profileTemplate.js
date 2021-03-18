@@ -15,7 +15,7 @@ var profileTemplate = {
         return res.toString() + 'K';
       }
 
-      return n > 0 ? n : null;
+      return n;
     }
   },
 
@@ -28,13 +28,20 @@ var profileTemplate = {
         <input id="imageInput" type="file" accept="image/*" enctype="multipart/form-data"
                     onchange="profile.uploadImage()" style="display: none;">
 
-        <button class="btn btn-outline-success position-absolute m-3 top-20 end-0" data-bs-toggle="modal"
-                    data-bs-target="#edit" type="button" v-if="currentUser.id == user.id">Edit profile</button>
+        <button v-if="currentUser.id == user.id" class="btn btn-success position-absolute m-3 top-20 end-0" data-bs-toggle="modal"
+                    data-bs-target="#edit" type="button">Edit profile</button>
+        <button v-else class="btn position-absolute m-3 top-20 end-0"
+                v-on:click="currentUser.follows(user.id) ? currentUser.unfollow(user): currentUser.follow(user)"
+                v-bind:class="currentUser.follows(user.id) ? 'btn-info' : 'btn-outline-info'"
+                type="button">{{ currentUser.follows(user.id) ? 'Unfollow': 'Follow' }}</button>
 
         <p>
-            <b style="font-size: large;">{{ user.name }}</b><br>
-              @{{ user.username }}
+            <b style="font-size: large;">{{ user.name }}</b>
+            <br>
+            @{{ user.username }}
         </p>
         <p style="color: black; word-wrap: break-word;">{{ user.about }}</p>
+        <b style="font-size: large;"> {{ displayCount(user.followingCount) }} </b> Following 
+        <b style="font-size: large;"> {{ displayCount(user.followerCount) }} </b> Followers
       </div>`
 }

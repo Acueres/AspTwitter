@@ -14,6 +14,9 @@ namespace AspTwitter.Models
 
         public string About { get; set; }
 
+        public uint FollowingCount { get; set; }
+        public uint FollowerCount { get; set; }
+
         [JsonIgnore]
         public string PasswordHash { get; set; }
 
@@ -25,5 +28,11 @@ namespace AspTwitter.Models
 
         [JsonIgnore]
         public virtual IList<Comment> Comments { get; set; } = new List<Comment>();
+
+        [JsonIgnore]
+        public virtual IList<Following> Following { get; set; } = new List<Following>();
+
+        [JsonIgnore]
+        public virtual IList<Following> Followers { get; set; } = new List<Following>();
     }
 }
