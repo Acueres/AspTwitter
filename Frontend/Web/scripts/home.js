@@ -10,30 +10,12 @@ var home = new Vue(
         },
 
         components: {
-            'tweet': tweetTemplate
+            'tweet': tweetTemplate,
+            'user-info': userInfoTemplate
         },
 
         methods:
         {
-            deleteEntry: async function (id) {
-
-                const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
-                    method: 'DELETE',
-                    credentials: 'omit',
-                    redirect: 'follow',
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.token
-                    }
-                });
-
-                if (response.status == 200) {
-                    entries.delete(id);
-                    user.deleteEntry(id);
-                }
-            },
-
             post: async function () {
                 const response = await fetch('http://localhost:5000/api/entries', {
                     method: 'POST',
@@ -57,7 +39,8 @@ var home = new Vue(
                         id: entryId,
                         author: Object.assign({}, user),
                         authorId: user.id,
-                        text: String(this.text)
+                        text: String(this.text),
+                        timestamp: new Date().toUTCString()
                     };
 
                     entries.add(entry);
@@ -66,10 +49,6 @@ var home = new Vue(
                     this.text = '';
                     document.getElementById('post').value = '';
                 }
-            },
-
-            getAvatar: function (id) {
-                return `http://localhost:5000/api/users/${id}/avatar`;
             }
         }
     });

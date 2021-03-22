@@ -1,5 +1,5 @@
 var tweetTemplate = {
-  props: ['entry', 'avatar', 'showRetweets', 'user', 'deleteEntry'],
+  props: ['entry', 'user', 'showRetweets'],
   methods:
   {
     displayCount: function (n) {
@@ -134,6 +134,36 @@ var tweetTemplate = {
         let tab = new bootstrap.Tab(el);
         tab.show();
       }
+    },
+
+    getAvatar: function (id) {
+      return `http://localhost:5000/api/users/${id}/avatar`;
+    },
+
+    getDate: function (timestamp) {
+      let date = new Date(timestamp).toDateString();
+      date = date.split(' ');
+
+      return `${date[1]} ${date[2]}`;
+    },
+
+    deleteEntry: async function (id) {
+
+      const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
+        method: 'DELETE',
+        credentials: 'omit',
+        redirect: 'follow',
+        cache: 'no-cache',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + user.token
+        }
+      });
+
+      if (response.status == 200) {
+        entries.delete(id);
+        user.deleteEntry(id);
+      }
     }
   },
   template: `
@@ -144,7 +174,7 @@ var tweetTemplate = {
       </div>
 
       <div class="col-auto">
-        <img v-bind:src='avatar' class="img rounded-circle"
+        <img v-bind:src='getAvatar(entry.authorId)' class="img rounded-circle"
           style="width: 50px; height: 50px; outline: none; cursor: pointer"
           v-on:click="openProfile(entry.author)" alt="avatar">
       </div>
@@ -154,6 +184,7 @@ var tweetTemplate = {
           {{ entry.author.name }}
         </b>
         @{{ entry.author.username }}
+        - {{ getDate(entry.timestamp) }}
 
         <button type="button" class="btn btn-default" aria-label="Left Align"
           v-on:click='deleteEntry(entry.id)' v-if="user.logged && entry.authorId == user.id">

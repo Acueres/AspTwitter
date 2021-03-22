@@ -5,11 +5,14 @@ class User {
     username = null;
     about = null;
     token = null;
+
     entries = [];
     favorites = [];
     retweets = [];
     followers = [];
     following = [];
+    recommended = [];
+
     followerCount = 0;
     followingCount = 0;
 
@@ -23,6 +26,8 @@ class User {
             this.logged = true;
             this.loadEntries();
         }
+
+        this._getRecommended();
     }
 
     set(data, load = true) {
@@ -73,6 +78,8 @@ class User {
         this.followingCount = 0;
         this.followerCount = 0;
         localStorage.removeItem('auth');
+
+        this._getRecommended();
     }
 
     async load() {
@@ -97,6 +104,8 @@ class User {
 
         response = await fetch(`http://localhost:5000/api/users/${this.id}/following`);
         this.following = await response.json();
+
+        this._getRecommended();
     }
 
     follows(id) {
@@ -138,6 +147,24 @@ class User {
             this.following.splice(index, 1);
             this.followingCount--;
         }
+    }
+
+    async _getRecommended() {
+        let id = 0;
+        if (this.logged) {
+            id = this.id;
+        }
+
+        const response = await fetch(`http://localhost:5000/api/users/recommended`, {
+            method: 'POST',
+            cache: 'no-cache',
+            credentials: 'omit',
+            redirect: 'follow',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(`${3} ${id}`) //request format: 'count userId'
+        });
+        this.recommended = await response.json();
+        this.recommended.reverse();
     }
 
     _setData(data) {

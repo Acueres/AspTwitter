@@ -379,6 +379,24 @@ namespace AspTwitter.Controllers
             return await context.Users.Where(x => x.Name.ToLower().Contains(query)).ToListAsync();
         }
 
+        //POST: api/Users/recommended
+        [HttpPost("recommended")]
+        public async Task<ActionResult<IEnumerable<User>>> RecommendedUsers([FromBody] string request)
+        {
+            var requestData = request.Split();
+            int count = int.Parse(requestData[0]);
+            uint userId = uint.Parse(requestData[1]);
+
+            int total = context.Users.Count();
+            if (total <= count)
+            {
+                return null;
+            }
+
+            return await context.Users.OrderByDescending(x => x.FollowerCount).
+                Where(x => x.Id != userId && !x.Followers.Any(x => x.FollowerId == userId)).Take(count).ToListAsync();
+        }
+
         private string Truncate(string val, MaxLength length)
         {
             if (val.Length > (int)length)

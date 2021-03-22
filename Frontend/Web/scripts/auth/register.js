@@ -79,13 +79,13 @@ var register = new Vue({
                 body: JSON.stringify({ Name: name, Username: username, Email: email, Password: password })
             });
 
-            const responseData = await response.json();
-
             if (response.status === 409) {
                 this.usernameInvalid = true;
                 this.usernameMessage = this.errorMessages.usernameExists;
             }
             else if (response.status == 200) {
+                const responseData = await response.json();
+
                 user.set(responseData, {load: false});
 
                 this.clear();

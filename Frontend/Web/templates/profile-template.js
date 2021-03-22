@@ -1,5 +1,5 @@
 var profileTemplate = {
-  props: ['user', 'currentUser', 'avatar'],
+  props: ['user', 'appUser'],
   methods:
   {
     displayCount: function (n) {
@@ -16,24 +16,28 @@ var profileTemplate = {
       }
 
       return n;
+    },
+
+    getAvatar: function (id) {
+      return `http://localhost:5000/api/users/${id}/avatar`;
     }
   },
 
   template: `
     <div class="position-relative p-3 border-bottom bg-light">
         <input type="image" id="editAvatar"
-            v-bind:src='avatar'
+            v-bind:src='getAvatar(user.id)'
                 class="img rounded-circle float-left" style="width: 100px; height: 100px; outline: none;"
                     alt="avatar" onclick="document.getElementById('imageInput').click()">
         <input id="imageInput" type="file" accept="image/*" enctype="multipart/form-data"
                     onchange="profile.uploadImage()" style="display: none;">
 
-        <button v-if="currentUser.id == user.id" class="btn btn-success position-absolute m-3 top-20 end-0" data-bs-toggle="modal"
+        <button v-if="appUser.id == user.id" class="btn btn-success position-absolute m-3 top-20 end-0" data-bs-toggle="modal"
                     data-bs-target="#edit" type="button">Edit profile</button>
         <button v-else class="btn position-absolute m-3 top-20 end-0"
-                v-on:click="currentUser.follows(user.id) ? currentUser.unfollow(user): currentUser.follow(user)"
-                v-bind:class="currentUser.follows(user.id) ? 'btn-info' : 'btn-outline-info'"
-                type="button">{{ currentUser.follows(user.id) ? 'Unfollow': 'Follow' }}</button>
+                v-on:click="appUser.follows(user.id) ? appUser.unfollow(user): appUser.follow(user)"
+                v-bind:class="appUser.follows(user.id) ? 'btn-info' : 'btn-outline-info'"
+                type="button">{{ appUser.follows(user.id) ? 'Unfollow': 'Follow' }}</button>
 
         <p>
             <b style="font-size: large;">{{ user.name }}</b>

@@ -6,20 +6,23 @@
 
         <!--Entries column-->
         <div class="col-5 bg-light">
-            <profile v-bind:user="user" v-bind:current-user="user" v-bind:avatar="getAvatar(user.id)"></profile>
+            <profile v-bind:user="user" v-bind:app-user="user"></profile>
 
             <div class="bg-light">
                 <div class="container p-3 bg-light">
                     <tweet v-for="entry in user.entries" v-bind:key="entry.id" v-bind:entry="entry" v-bind:user="user"
-                        v-bind:show-retweets="true" v-bind:avatar="getAvatar(entry.author.id)"
-                        v-bind:delete-entry="deleteEntry">
+                        v-bind:show-retweets="true" v-bind:delete-entry="deleteEntry">
                     </tweet>
                 </div>
             </div>
         </div>
 
         <div class="col-4">
-            <div class="p-3 border-bottom bg-light">Reserved</div>
+            <div class="p-3 border-bottom bg-light">
+                <h5>Recommended</h5>
+                <user-info v-for="_user in user.recommended" v-bind:key="_user.id" v-bind:user="_user"
+                    v-bind:app-user="user"></user-info>
+            </div>
         </div>
     </div>
 </div>

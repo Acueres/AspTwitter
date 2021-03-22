@@ -9,16 +9,8 @@ var profile = new Vue({
 
     components: {
         'tweet': tweetTemplate,
-        'profile': profileTemplate
-
-    },
-
-    created: async function () {
-        //Update edit modal default values when changing user
-        jQuery('#edit').on('show.bs.modal', function () {
-            edit.name = user.name;
-            edit.about = user.about;
-        });
+        'profile': profileTemplate,
+        'user-info': userInfoTemplate
     },
 
     methods:
@@ -76,10 +68,6 @@ var profile = new Vue({
 
                 jQuery.ajax(settings);
             }
-        },
-
-        getAvatar: function(id) {
-            return `http://localhost:5000/api/users/${id}/avatar`;
         }
     }
 });
