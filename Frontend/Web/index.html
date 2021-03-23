@@ -53,6 +53,9 @@
   <!--Profile edit modal-->
   <div class="modal fade" id="edit" tabindex="-1"></div>
 
+  <!--Delete profile modal-->
+  <div class="modal fade" id="delete-profile" tabindex="-1"></div>
+
   <!--Tweet modal-->
   <div class="modal fade" id="tweet" tabindex="-1"></div>
 
@@ -84,6 +87,12 @@
     $(function () {
       $("#edit").load("components/profile/edit.html", function () {
         $.getScript("scripts/profile/edit.js");
+      });
+    });
+
+    $(function () {
+      $("#delete-profile").load("components/profile/delete-profile.html", function () {
+        $.getScript("scripts/profile/delete-profile.js");
       });
     });
 

@@ -2,16 +2,28 @@
     <div class="modal-content">
         <div class="modal-header">
             <h5 class="modal-title">Edit</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" v-on:click="reset" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" v-on:click="reset"
+                aria-label="Close"></button>
         </div>
         <div class="modal-body">
             <div class="form-floating mb-3">
                 <input type="form-control" class="form-control" v-bind:class="nameInvalid ? 'is-invalid': ''"
-                    id="editName" v-bind:value="user.name" required aria-describedby="nameValidation">
-                <label for="editName">Name</label>
+                    id="edit-name" v-bind:value="user.name" required aria-describedby="nameValidation">
+                <label for="edit-name">Name</label>
 
                 <div id="nameValidation" class="invalid-feedback">
                     Name can't be empty
+                </div>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="form-control" class="form-control" v-bind:class="usernameInvalid ? 'is-invalid': ''"
+                    id="edit-username" v-bind:value="user.username" required
+                    aria-describedby="edit-username-validation">
+                <label for="edit-username">Username</label>
+
+                <div id="edit-username-validation" class="invalid-feedback">
+                    {{ usernameMessage }}
                 </div>
             </div>
 

@@ -30,13 +30,13 @@ var userInfoTemplate = {
                 v-on:click="openProfile(user)" alt="avatar">
         </div>
 
-        <div class="col-auto" v-on:click="openProfile(user)" style="cursor: pointer">
+        <div class="col-5 text-truncate" v-on:click="openProfile(user)" style="cursor: pointer">
             <b style="font-size: large;">{{ user.name }}</b>
             <br>
             @{{ user.username }}
         </div>
 
-        <div class="col-auto" v-if="appUser.logged && appUser.id != user.id">
+        <div class="col" v-if="appUser.logged && appUser.id != user.id">
             <button class="btn" v-on:click="appUser.follows(user.id) ? appUser.unfollow(user): appUser.follow(user)"
                 v-bind:class="appUser.follows(user.id) ? 'btn-info' : 'btn-outline-info'">
                 {{ appUser.follows(user.id) ? 'Unfollow': 'Follow' }}

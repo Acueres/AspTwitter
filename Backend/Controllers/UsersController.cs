@@ -60,25 +60,9 @@ namespace AspTwitter.Controllers
             }
 
             var retweets = await context.Relationships.
-                Where(x => x.UserId == id && x.Type == RelationshipType.Retweet).ToListAsync();
-            var retweetIds = retweets.Select(x => x.EntryId).ToArray();
-            var timestamps = retweets.Select(x => x.Timestamp).ToArray();
+                Where(x => x.UserId == id && x.Type == RelationshipType.Retweet).Select(x => x.EntryId).ToListAsync();
 
-            var res = await context.Entries.Where(x => x.AuthorId == id || retweetIds.Contains(x.Id)).ToListAsync();
-
-            for (int i = 0; i < res.Count; i++)
-            {
-                if (res[i].AuthorId != id)
-                {
-                    int index = Array.IndexOf(retweetIds, res[i].AuthorId);
-                    if (index != -1)
-                    {
-                        res[i].Timestamp = timestamps[index];
-                    }
-                }
-            }
-
-            return res;
+            return await context.Entries.Where(x => x.AuthorId == id || retweets.Contains(x.Id)).ToListAsync();
         }
 
         // GET: api/Users/5/avatar
@@ -146,26 +130,15 @@ namespace AspTwitter.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(uint id, EditUserRequest request)
         {
-            if (request.Name is null)
-            {
-                return BadRequest();
-            }
-
-            request.Name = request.Name.Trim();
-
-            if (request.Name == string.Empty)
-            {
-                return BadRequest();
-            }
-
-            if (request.About != null)
-            {
-                request.About = request.About.Trim();
-            }
-
             if (!HasPermission(id))
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            request = ProcessEditRequest(request);
+            if (request is null)
+            {
+                return BadRequest();
             }
 
             User user = await context.Users.FindAsync(id);
@@ -175,10 +148,13 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            request.Name = Truncate(request.Name, MaxLength.Name);
-            request.About = Truncate(request.About, MaxLength.About);
+            if (context.Users.Any(e => e.Username == request.Username))
+            {
+                return Conflict();
+            }
 
             user.Name = request.Name;
+            user.Username = request.Username;
             user.About = request.About;
 
             context.Entry(user).State = EntityState.Modified;
@@ -226,7 +202,7 @@ namespace AspTwitter.Controllers
 
         // GET: api/Users/5/favorites
         [HttpGet("{id}/favorites")]
-        public async Task<ActionResult<IEnumerable<uint>>> GetFavorites(uint id)
+        public async Task<ActionResult<IEnumerable<Entry>>> GetFavorites(uint id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -234,7 +210,7 @@ namespace AspTwitter.Controllers
             }
 
             return await context.Relationships.
-                Where(x => x.UserId == id && x.Type == RelationshipType.Like).Select(x => x.EntryId).ToListAsync();
+                Where(x => x.UserId == id && x.Type == RelationshipType.Like).Select(x => x.Entry).ToListAsync();
         }
 
         // GET: api/Users/5/comments
@@ -410,6 +386,33 @@ namespace AspTwitter.Controllers
         private bool HasPermission(uint id)
         {
             return ((User)HttpContext.Items["User"]).Id == id;
+        }
+
+        private EditUserRequest ProcessEditRequest(EditUserRequest request)
+        {
+            if (request.Name is null || request.Username is null)
+            {
+                return null;
+            }
+
+            request.Name = request.Name.Trim();
+            request.Username = request.Username.Replace(" ", string.Empty);
+
+            if (request.Name == string.Empty || request.Username == string.Empty)
+            {
+                return null;
+            }
+
+            if (request.About != null)
+            {
+                request.About = request.About.Trim();
+            }
+
+            request.Name = Truncate(request.Name, MaxLength.Name);
+            request.Username = Truncate(request.Username, MaxLength.Username);
+            request.About = Truncate(request.About, MaxLength.About);
+
+            return request;
         }
     }
 }

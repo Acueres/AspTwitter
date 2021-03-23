@@ -26,9 +26,12 @@
     </div>
 
     <div class="col-4">
-      <div class="p-3 border-bottom bg-light">
+      <div class="container-fluid p-3 border-bottom bg-light">
         <h5>Recommended</h5>
-        <user-info v-for="_user in user.recommended" v-bind:key="_user.id" v-bind:user="_user" v-bind:app-user="user"></user-info>
+        <div class="row align-items-center">
+          <user-info v-for="_user in user.recommended" v-bind:key="_user.id" v-bind:user="_user" v-bind:app-user="user">
+          </user-info>
+        </div>
       </div>
     </div>
   </div>

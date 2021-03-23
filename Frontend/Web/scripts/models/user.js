@@ -22,9 +22,7 @@ class User {
             this.id = storageData.id;
             this.token = storageData.token;
 
-            this.load();
             this.logged = true;
-            this.loadEntries();
         }
 
         this._getRecommended();
@@ -83,6 +81,10 @@ class User {
     }
 
     async load() {
+        if (this.id == null) {
+            return;
+        }
+
         const response = await fetch(`http://localhost:5000/api/users/${this.id}`);
         const data = await response.json();
 
@@ -90,6 +92,10 @@ class User {
     }
 
     async loadEntries() {
+        if (this.id == null) {
+            return;
+        }
+
         let response = await fetch(`http://localhost:5000/api/users/${this.id}/entries`);
         this.entries = await response.json();
         this.entries.reverse();
@@ -177,3 +183,5 @@ class User {
 }
 
 var user = new User();
+user.load();
+user.loadEntries();

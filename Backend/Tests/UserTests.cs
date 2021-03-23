@@ -75,7 +75,8 @@ namespace AspTwitter.Tests
             EditUserRequest editUserData = new()
             {
                 Name = " ",
-                About = ""
+                Username = " ",
+                About = null
             };
             var response = await EditUser(auth1.Id, editUserData);
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
@@ -84,6 +85,7 @@ namespace AspTwitter.Tests
             editUserData = new()
             {
                 Name = " User 3 Edited ",
+                Username = " user 3 edited ",
                 About = " Test text "
             };
             response = await EditUser(auth1.Id, editUserData);
@@ -91,6 +93,7 @@ namespace AspTwitter.Tests
 
             User editedUser = await GetUser(auth1.Id);
             Assert.True(editedUser.Name == "User 3 Edited");
+            Assert.True(editedUser.Username == "user3edited");
             Assert.True(editedUser.About == "Test text");
 
             //Ensure that authorized users cannot edit other users' data

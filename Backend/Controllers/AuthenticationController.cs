@@ -117,7 +117,7 @@ namespace AspTwitter.Controllers
 
             if (context.Users.Any(e => e.Username == request.Username))
             {
-                return StatusCode(StatusCodes.Status409Conflict);
+                return Conflict();
             }
 
             User user = new()

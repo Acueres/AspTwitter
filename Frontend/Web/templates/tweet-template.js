@@ -23,7 +23,7 @@ var tweetTemplate = {
         return false;
       }
 
-      return user.favorites.includes(id);
+      return user.favorites.some(x => x.id == id);
     },
 
     retweeted: function (id) {
@@ -39,7 +39,7 @@ var tweetTemplate = {
         return;
       }
 
-      user.favorites.push(entry.id);
+      user.favorites.push(entry);
       entry.likeCount++;
       fetch(`http://localhost:5000/api/entries/${entry.id}/favorite`, {
         method: 'POST',
@@ -58,7 +58,7 @@ var tweetTemplate = {
         return;
       }
 
-      let index = user.favorites.indexOf(entry.id);
+      let index = user.favorites.findIndex(x => x.id == entry.id);
       user.favorites.splice(index, 1);
       entry.likeCount--;
       fetch(`http://localhost:5000/api/entries/${entry.id}/favorite`, {
@@ -180,7 +180,7 @@ var tweetTemplate = {
       </div>
 
       <div class="col-auto">
-        <b style="font-size: large; cursor: pointer" v-on:click="openProfile(entry.author)">
+        <b class="text-truncate" style="font-size: large; cursor: pointer" v-on:click="openProfile(entry.author)">
           {{ entry.author.name }}
         </b>
         @{{ entry.author.username }}

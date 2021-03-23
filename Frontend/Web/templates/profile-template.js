@@ -34,12 +34,14 @@ var profileTemplate = {
 
         <button v-if="appUser.id == user.id" class="btn btn-success position-absolute m-3 top-20 end-0" data-bs-toggle="modal"
                     data-bs-target="#edit" type="button">Edit profile</button>
+        <button v-if="appUser.id == user.id" type="button" class="btn btn-secondary position-absolute m-3 bottom-0 end-0" data-bs-toggle="modal"
+                    data-bs-target="#delete-profile">Delete profile</button>
         <button v-else class="btn position-absolute m-3 top-20 end-0"
                 v-on:click="appUser.follows(user.id) ? appUser.unfollow(user): appUser.follow(user)"
                 v-bind:class="appUser.follows(user.id) ? 'btn-info' : 'btn-outline-info'"
                 type="button">{{ appUser.follows(user.id) ? 'Unfollow': 'Follow' }}</button>
 
-        <p>
+        <p class="text-truncate">
             <b style="font-size: large;">{{ user.name }}</b>
             <br>
             @{{ user.username }}
