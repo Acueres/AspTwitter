@@ -3,7 +3,7 @@ var tweet = new Vue({
     data:
     {
         entry: null,
-        user: user,
+        appUser: appUser,
         text: '',
         comments: []
     },
@@ -31,9 +31,9 @@ var tweet = new Vue({
                 redirect: 'follow',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + user.token
+                    'Authorization': 'Bearer ' + appUser.token
                 },
-                body: JSON.stringify({ authorId: user.id, text: this.text })
+                body: JSON.stringify({ authorId: appUser.id, text: this.text })
             });
 
             const responseData = await response.json();
@@ -41,8 +41,8 @@ var tweet = new Vue({
             if (response.status == 200) {
                 this.comments.push({
                     id: responseData,
-                    author: user,
-                    authorId: user.id,
+                    author: appUser,
+                    authorId: appUser.id,
                     text: String(this.text)
                 });
 
@@ -59,7 +59,7 @@ var tweet = new Vue({
                 redirect: 'follow',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + user.token
+                    'Authorization': 'Bearer ' + appUser.token
                 }
             });
 

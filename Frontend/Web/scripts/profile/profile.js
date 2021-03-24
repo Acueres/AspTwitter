@@ -3,8 +3,11 @@ var profile = new Vue({
 
     data:
     {
-        user: user,
+        appUser: appUser,
         entries: entries,
+
+        contentType: 'Tweets',
+        followerType: 'Followers'
     },
 
     components: {
@@ -24,13 +27,13 @@ var profile = new Vue({
                 cache: 'no-cache',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + user.token
+                    'Authorization': 'Bearer ' + appUser.token
                 }
             });
 
             if (response.status == 200) {
                 entries.delete(id);
-                user.deleteEntry(id);
+                appUser.deleteEntry(id);
             }
         },
 
@@ -55,19 +58,39 @@ var profile = new Vue({
                 let settings = {
                     "async": true,
                     "crossDomain": true,
-                    "url": `http://localhost:5000/api/users/${user.id}/avatar`,
+                    "url": `http://localhost:5000/api/users/${appUser.id}/avatar`,
                     "method": "POST",
                     "processData": false,
                     "contentType": false,
                     "mimeType": "multipart/form-data",
                     "data": form,
                     beforeSend: function (xhr) {
-                        xhr.setRequestHeader("Authorization", 'Bearer ' + user.token);
+                        xhr.setRequestHeader("Authorization", 'Bearer ' + appUser.token);
                     }
                 };
 
                 jQuery.ajax(settings);
             }
+        },
+
+        getContent: function () {
+            if (this.contentType == 'Tweets') {
+                return appUser.entries;
+            }
+
+            if (this.contentType == 'Likes') {
+                return appUser.favorites;
+            }
+
+            return appUser.retweets;
+        },
+
+        getFollowers: function () {
+            if (this.followerType == 'Followers') {
+                return appUser.followers;
+            }
+
+            return appUser.following;
         }
     }
 });

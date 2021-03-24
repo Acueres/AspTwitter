@@ -3,12 +3,14 @@ var explore = new Vue({
 
     data:
     {
-        user: user,
+        appUser: appUser,
 
         users: [],
         entries: [],
-        selectedUser: null,
-        selectedUserEntries: [],
+        selectedUser: new User(),
+
+        contentType: 'Tweets',
+        followerType: 'Followers',
 
         showProfile: false,
         searchUsers: true
@@ -57,13 +59,31 @@ var explore = new Vue({
             }
         },
 
-        openProfile: async function (user) {
-            this.selectedUser = user;
+        loadUser: async function (id) {
+            this.selectedUser = new User(id);
             this.showProfile = true;
 
-            let response = await fetch(`http://localhost:5000/api/users/${this.selectedUser.id}/entries`);
-            this.selectedUserEntries = await response.json();
-            this.selectedUserEntries.reverse();
+            await this.selectedUser.load();
+        },
+
+        getContent: function () {
+            if (this.contentType == 'Tweets') {
+                return this.selectedUser.entries;
+            }
+
+            if (this.contentType == 'Likes') {
+                return this.selectedUser.favorites;
+            }
+
+            return this.selectedUser.retweets;
+        },
+
+        getFollowers: function () {
+            if (this.followerType == 'Followers') {
+                return this.selectedUser.followers;
+            }
+
+            return this.selectedUser.following;
         }
     }
 });

@@ -44,7 +44,7 @@ var login = new Vue({
                 credentials: 'omit',
                 redirect: 'follow',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Username: username, Password: password })
+                body: JSON.stringify({ username: username, password: password })
             });
 
             const responseData = await response.json();
@@ -58,8 +58,7 @@ var login = new Vue({
                 this.passwordInvalid = true;
             }
             else if (response.status == 200) {
-                user.set(responseData);
-                user.loadEntries(user.id);
+                appUser.set(responseData);
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('login'));
                 modal.toggle();

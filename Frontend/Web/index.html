@@ -17,6 +17,7 @@
   <script type="text/javascript" src="lib/vue.js"></script>
   <script type="text/javascript" src="lib/jquery-3.5.1.min.js"></script>
   <script type="text/javascript" src="scripts/models/user.js"></script>
+  <script type="text/javascript" src="scripts/models/app-user.js"></script>
   <script type="text/javascript" src="scripts/models/entries.js"></script>
 
   <!--Templates-->
@@ -41,7 +42,7 @@
     <div class="tab-pane" id="explore" role="tabpanel" aria-labelledby="explore-tab"></div>
 
     <!--Profile tab-->
-    <div class="tab-pane" id="profile" role="tabpanel" aria-labelledby="profile-tab" v-if="user.logged"></div>
+    <div class="tab-pane" id="profile" role="tabpanel" aria-labelledby="profile-tab" v-if="appUser.logged"></div>
   </div>
 
   <!--Login modal-->

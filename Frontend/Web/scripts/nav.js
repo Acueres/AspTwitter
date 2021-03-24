@@ -4,7 +4,7 @@ var nav = new Vue(
 
         data:
         {
-            user: user,
+            appUser: appUser,
         },
 
         methods:
@@ -15,7 +15,7 @@ var nav = new Vue(
                 tab.show();
 
                 login.clear();
-                user.clear();
+                appUser.clear();
             }
         }
     });

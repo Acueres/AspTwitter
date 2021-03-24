@@ -30,8 +30,8 @@
                 <div class="tab-pane show active" id="users" role="tabpanel" aria-labelledby="users-tab">
                     <div class="bg-light" v-if="!showProfile && searchUsers">
                         <div class="container p-3 bg-light">
-                            <user-info v-for="_user in users" v-bind:key="_user.id" v-bind:user="_user"
-                                v-bind:app-user="user"></user-info>
+                            <user-info v-for="user in users" v-bind:key="user.id" v-bind:user="user"
+                                v-bind:app-user="appUser"></user-info>
                         </div>
                     </div>
 
@@ -40,7 +40,7 @@
                         <div class="bg-light" v-if="!showProfile && !searchUsers">
                             <div class="container p-3 bg-light">
                                 <tweet v-for="entry in entries" v-bind:key="entry.id" v-bind:entry="entry"
-                                    v-bind:user="user" v-bind:show-retweets="false">
+                                    v-bind:user="appUser" v-bind:show-retweets="false">
                                 </tweet>
                             </div>
                         </div>
@@ -49,11 +49,27 @@
 
                 <!--Selected user profile-->
                 <div v-if="showProfile">
-                    <profile v-bind:user="selectedUser" v-bind:app-user="user"></profile>
+                    <profile v-bind:user="selectedUser" v-bind:app-user="appUser"></profile>
+
+                    <div class="dropdown pt-3">
+                        <button class="btn btn-success dropdown-toggle" type="button" id="explore-dropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ contentType }}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="explore-dropdown">
+                            <li><a class="dropdown-item" v-on:click="contentType = 'Tweets'">Tweets</a></li>
+                            <li><a class="dropdown-item" v-on:click="contentType = 'Likes'">Likes</a></li>
+                            <li><a class="dropdown-item" v-on:click="contentType = 'Retweets'">Retweets</a></li>
+                        </ul>
+                    </div>
 
                     <div class="bg-light">
                         <div class="container p-3 bg-light">
-                            <tweet v-for="entry in selectedUserEntries" v-bind:key="entry.id" v-bind:entry="entry"
+                            <div class="d-flex justify-content-center" v-if="getContent().length == 0">
+                                <h5>No content</h5>
+                            </div>
+
+                            <tweet v-else v-for="entry in getContent()" v-bind:key="entry.id" v-bind:entry="entry"
                                 v-bind:user="selectedUser" v-bind:show-retweets="true"></tweet>
                             </tweet>
                         </div>
@@ -63,10 +79,33 @@
         </div>
 
         <div class="col-4">
-            <div class="p-3 border-bottom bg-light">
+            <div class="container p-3 border-bottom bg-light">
                 <h5>Recommended</h5>
-                <user-info v-for="_user in user.recommended" v-bind:key="_user.id" v-bind:user="_user"
-                    v-bind:app-user="user"></user-info>
+                <user-info v-for="user in appUser.recommended" v-bind:key="user.id" v-bind:user="user"
+                    v-bind:app-user="appUser"></user-info>
+            </div>
+
+            <div class="dropdown pt-3">
+                <button class="btn btn-success dropdown-toggle" type="button" id="explore-followers-dropdown"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    {{ followerType }}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="explore-followers-dropdown">
+                    <li><a class="dropdown-item" v-on:click="followerType = 'Followers'" href="#">Followers</a></li>
+                    <li><a class="dropdown-item" v-on:click="followerType = 'Following'" href="#">Following</a></li>
+                </ul>
+            </div>
+
+            <div class="bg-light">
+                <div class="container p-3 bg-light">
+                    <div class="d-flex justify-content-center" v-if="getFollowers().length == 0">
+                        <h5>No content</h5>
+                    </div>
+
+                    <user-info v-else v-for="user in getFollowers()" v-bind:key="user.id" v-bind:user="user"
+                        v-bind:app-user="appUser">
+                    </user-info>
+                </div>
             </div>
         </div>
     </div>

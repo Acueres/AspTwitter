@@ -28,7 +28,7 @@ var profileTemplate = {
         <input type="image" id="editAvatar"
             v-bind:src='getAvatar(user.id)'
                 class="img rounded-circle float-left" style="width: 100px; height: 100px; outline: none;"
-                    alt="avatar" onclick="document.getElementById('imageInput').click()">
+                    alt="avatar" v-on:click="appUser.logged && appUser.id != user.id ? null: document.getElementById('imageInput').click()">
         <input id="imageInput" type="file" accept="image/*" enctype="multipart/form-data"
                     onchange="profile.uploadImage()" style="display: none;">
 

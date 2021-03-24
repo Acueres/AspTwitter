@@ -86,7 +86,7 @@ var register = new Vue({
             else if (response.status == 200) {
                 const responseData = await response.json();
 
-                user.set(responseData, {load: false});
+                appUser.set(responseData, {load: false});
 
                 this.clear();
 

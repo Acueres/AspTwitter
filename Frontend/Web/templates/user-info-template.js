@@ -6,14 +6,14 @@ var userInfoTemplate = {
         },
 
         openProfile: function (targetUser) {
-            if (user.id == targetUser.id) {
+            if (appUser.id == targetUser.id) {
                 let el = document.querySelector('#profile-tab');
                 let tab = new bootstrap.Tab(el);
                 tab.show();
                 return;
             }
             else {
-                explore.openProfile(targetUser);
+                explore.loadUser(targetUser.id);
 
                 let el = document.querySelector('#explore-tab');
                 let tab = new bootstrap.Tab(el);

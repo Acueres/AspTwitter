@@ -33,8 +33,7 @@ namespace AspTwitter.Controllers
         }
 
         // POST: api/Authentication/login
-        [HttpPost]
-        [Route("login")]
+        [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] AuthenticationRequest request)
         {
             if (request.Username is null || request.Password is null)
@@ -67,8 +66,7 @@ namespace AspTwitter.Controllers
         }
 
         // POST: api/Authentication/register
-        [HttpPost]
-        [Route("register")]
+        [HttpPost("register")]
         public async Task<ActionResult> Register([FromBody] RegisterRequest request)
         {
             if (request.Name is null || request.Username is null || request.Password is null)
@@ -132,6 +130,14 @@ namespace AspTwitter.Controllers
             await context.SaveChangesAsync();
 
             return Ok(auth.Authenticate(user));
+        }
+
+        //GET: api/Authentication/test
+        [Authorize]
+        [HttpGet("test")]
+        public ActionResult Test()
+        {
+            return Ok();
         }
 
         private bool ExceedsLength(string val, MaxLength length)

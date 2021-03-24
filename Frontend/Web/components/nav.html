@@ -15,7 +15,7 @@
             aria-selected="false">Explore</button>
         </li>
 
-        <li class="nav-item" role="presentation" v-if="user.logged">
+        <li class="nav-item" role="presentation" v-if="appUser.logged">
           <button class="nav-link" style="outline: none;" id="profile-tab" data-bs-toggle="tab"
             data-bs-target="#profile" type="button" role="tab" aria-controls="profile"
             aria-selected="false">Profile</button>
@@ -23,15 +23,15 @@
       </ul>
 
       <ul class="nav">
-        <li class="nav-item" v-if="user.logged">
+        <li class="nav-item" v-if="appUser.logged">
           <button class="btn btn-secondary ms-2" type="button" v-on:click="logout">Logout</button>
         </li>
 
-        <li class="nav-item" v-if="!user.logged">
+        <li class="nav-item" v-if="!appUser.logged">
           <button class="btn btn-primary ms-2" role="button" data-bs-toggle="modal" data-bs-target="#login"
             type="button">Login</button>
         </li>
-        <li class="nav-item" v-if="!user.logged">
+        <li class="nav-item" v-if="!appUser.logged">
           <button class="btn btn-secondary ms-1" data-bs-toggle="modal" data-bs-target="#register"
             type="button">Register</button>
         </li>

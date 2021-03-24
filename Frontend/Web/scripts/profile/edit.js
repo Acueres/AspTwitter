@@ -3,7 +3,7 @@ var edit = new Vue({
 
     data:
     {
-        user: user,
+        appUser: appUser,
         nameInvalid: false,
         usernameInvalid: false,
 
@@ -31,14 +31,14 @@ var edit = new Vue({
 
             this.usernameMessage = this.errorMessages.usernameEmpty;
 
-            const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
+            const response = await fetch(`http://localhost:5000/api/users/${appUser.id}`, {
                 method: 'PUT',
                 credentials: 'omit',
                 redirect: 'follow',
                 cache: 'no-cache',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + user.token
+                    'Authorization': 'Bearer ' + appUser.token
                 },
                 body: JSON.stringify({
                     name: name,
@@ -48,9 +48,9 @@ var edit = new Vue({
             });
 
             if (response.status === 200) {
-                user.name = name;
-                user.username = username;
-                user.about = about;
+                appUser.name = name;
+                appUser.username = username;
+                appUser.about = about;
 
                 let modal = bootstrap.Modal.getInstance(document.getElementById('edit'));
                 modal.toggle();
@@ -62,9 +62,9 @@ var edit = new Vue({
         },
 
         reset: function () {
-            document.getElementById('edit-name').value = user.name;
-            document.getElementById('edit-username').value = user.username;
-            document.getElementById('about').value = user.about;
+            document.getElementById('edit-name').value = appUsername;
+            document.getElementById('edit-username').value = appUser.username;
+            document.getElementById('about').value = appUser.about;
         }
     }
 });

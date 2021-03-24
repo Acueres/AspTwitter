@@ -4,7 +4,7 @@ var home = new Vue(
 
         data:
         {
-            user: user,
+            appUser: appUser,
             entries: entries,
             text: ''
         },
@@ -24,10 +24,10 @@ var home = new Vue(
                     cache: 'no-cache',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.token
+                        'Authorization': 'Bearer ' + appUser.token
                     },
                     body: JSON.stringify({
-                        authorId: user.id,
+                        authorId: appUser.id,
                         text: this.text
                     })
                 });
@@ -37,14 +37,14 @@ var home = new Vue(
 
                     let entry = {
                         id: entryId,
-                        author: Object.assign({}, user),
-                        authorId: user.id,
+                        author: Object.assign({}, appUser),
+                        authorId: appUser.id,
                         text: String(this.text),
                         timestamp: new Date().toUTCString()
                     };
 
                     entries.add(entry);
-                    user.addEntry(entry);
+                    appUser.addEntry(entry);
 
                     this.text = '';
                     document.getElementById('post').value = '';

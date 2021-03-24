@@ -6,7 +6,7 @@
 
     <!--Entries column-->
     <div class="col-5 bg-light">
-      <div class="p-3 border-bottom bg-light" v-if="user.logged">
+      <div class="p-3 border-bottom bg-light" v-if="appUser.logged">
         <textarea type="text" style="resize: none; overflow: hidden;" id="post" class="form-control" maxlength="256"
           placeholder="What's happening?" v-model="text"
           oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
@@ -18,7 +18,7 @@
 
       <div class="bg-light">
         <div class="container p-3 bg-light">
-          <tweet v-for="entry in entries.data" v-bind:key="entry.id" v-bind:entry="entry" v-bind:user="user"
+          <tweet v-for="entry in entries.data" v-bind:key="entry.id" v-bind:entry="entry" v-bind:user="appUser"
             v-bind:show-retweets="false"></tweet>
           </tweet>
         </div>
@@ -29,7 +29,7 @@
       <div class="container-fluid p-3 border-bottom bg-light">
         <h5>Recommended</h5>
         <div class="row align-items-center">
-          <user-info v-for="_user in user.recommended" v-bind:key="_user.id" v-bind:user="_user" v-bind:app-user="user">
+          <user-info v-for="user in appUser.recommended" v-bind:key="user.id" v-bind:user="user" v-bind:app-user="appUser">
           </user-info>
         </div>
       </div>
