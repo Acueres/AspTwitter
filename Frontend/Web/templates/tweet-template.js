@@ -120,6 +120,10 @@ var tweetTemplate = {
       tweet.load(entry);
     },
 
+    editTweet: function (entry) {
+      editTweet.entry = entry;
+    },
+
     openProfile: function (targetUser) {
       if (appUser.id == targetUser.id) {
         let el = document.querySelector('#profile-tab');
@@ -208,6 +212,11 @@ var tweetTemplate = {
             <span class="la la-heart" aria-hidden="true" v-bind:style="liked(entry.id) ? 'color: blue;': ''"
              v-on:click="liked(entry.id) ? removeLike(entry): addLike(entry)"></span>
             <span>{{ displayCount(entry.likeCount) }}</span>
+          </button>
+
+          <button type="button" class="btn btn-default shadow-none" aria-label="Left Align">
+            <span class="la la-edit" aria-hidden="true" data-bs-toggle="modal" data-bs-target="#edit-tweet"
+             v-on:click="editTweet(entry)" v-if="entry.authorId == user.id"></span>
           </button>
         </div>
 

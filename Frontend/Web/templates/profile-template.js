@@ -33,7 +33,7 @@ var profileTemplate = {
                     onchange="profile.uploadImage()" style="display: none;">
 
         <button v-if="appUser.id == user.id" class="btn btn-success position-absolute m-3 top-20 end-0" data-bs-toggle="modal"
-                    data-bs-target="#edit" type="button">Edit profile</button>
+                    data-bs-target="#edit-profile" type="button">Edit profile</button>
         <button v-if="appUser.id == user.id" type="button" class="btn btn-secondary position-absolute m-3 bottom-0 end-0" data-bs-toggle="modal"
                     data-bs-target="#delete-profile">Delete profile</button>
         <button v-else class="btn position-absolute m-3 top-20 end-0"

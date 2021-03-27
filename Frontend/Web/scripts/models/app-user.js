@@ -1,15 +1,18 @@
 class AppUser extends User {
     logged = false;
     token = null;
+    recommended = [];
 
     constructor() {
         super(null);
+        this.init();
     }
 
-    async authenticate() {
+    async init() {
         let storageData = JSON.parse(localStorage.getItem('auth'));
 
         if (storageData == undefined) {
+            this._getRecommended();
             return;
         }
 
@@ -28,9 +31,9 @@ class AppUser extends User {
             this.id = storageData.id;
             this.token = storageData.token;
 
-            this.load();
-
             this.logged = true;
+
+            this.load();
         }
 
         this._getRecommended();
@@ -43,6 +46,8 @@ class AppUser extends User {
 
         this.load();
         this.logged = true;
+
+        this._getRecommended();
     }
 
     addEntry(entry) {
@@ -53,6 +58,13 @@ class AppUser extends User {
         let index = this.entries.findIndex(x => x.id == id);
         if (index != -1) {
             this.entries.splice(index, 1);
+        }
+    }
+
+    editEntry(id, text) {
+        let index = this.entries.findIndex(x => x.id == id);
+        if (index != -1) {
+            this.entries[index].text = text;
         }
     }
 
@@ -117,22 +129,15 @@ class AppUser extends User {
 
     async _getRecommended() {
         let id = 0;
+        let count = 3;
         if (this.logged) {
             id = this.id;
         }
 
-        const response = await fetch(`http://localhost:5000/api/users/recommended`, {
-            method: 'POST',
-            cache: 'no-cache',
-            credentials: 'omit',
-            redirect: 'follow',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(`${3} ${id}`) //request format: 'count userId'
-        });
+        const response = await fetch(`http://localhost:5000/api/users/${id}/recommended/${count}`);
         this.recommended = await response.json();
         this.recommended.reverse();
     }
 }
 
 var appUser = new AppUser();
-appUser.authenticate();

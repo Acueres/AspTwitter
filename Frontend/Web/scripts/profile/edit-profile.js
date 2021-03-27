@@ -1,8 +1,10 @@
-var edit = new Vue({
-    el: '#edit',
+var editProfile = new Vue({
+    el: '#edit-profile',
 
     data:
     {
+        loading: false,
+
         appUser: appUser,
         nameInvalid: false,
         usernameInvalid: false,
@@ -17,7 +19,7 @@ var edit = new Vue({
 
     methods:
     {
-        save: async function () {
+        post: async function () {
             let nameField = document.getElementById('edit-name');
             let usernameField = document.getElementById('edit-username');
             let aboutField = document.getElementById('about');
@@ -31,8 +33,9 @@ var edit = new Vue({
 
             this.usernameMessage = this.errorMessages.usernameEmpty;
 
+            this.loading = true;
             const response = await fetch(`http://localhost:5000/api/users/${appUser.id}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 credentials: 'omit',
                 redirect: 'follow',
                 cache: 'no-cache',
@@ -52,13 +55,15 @@ var edit = new Vue({
                 appUser.username = username;
                 appUser.about = about;
 
-                let modal = bootstrap.Modal.getInstance(document.getElementById('edit'));
+                let modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile'));
                 modal.toggle();
             }
             else if (response.status == 409) {
                 this.usernameInvalid = true;
                 this.usernameMessage = this.errorMessages.usernameExists;
             }
+
+            this.loading = false;
         },
 
         reset: function () {

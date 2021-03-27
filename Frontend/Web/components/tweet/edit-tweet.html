@@ -1,0 +1,31 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="p-3 border-bottom bg-light">
+                <textarea type="text" style="resize: none; overflow: hidden;" id="edit-tweet-text" class="form-control"
+                    maxlength="256" v-bind:value="entry.text" aria-describedby="edit-tweet-validation"
+                    v-bind:class="textInvalid ? 'is-invalid': ''"
+                    oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
+
+                <div id="edit-tweet-validation" class="invalid-feedback">
+                    Tweet can't be empty
+                </div>
+            </div>
+
+            <div class="modal-footer">
+
+                <div class="p-3" v-if="loading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary" v-on:click="post" v-else>Edit</button>
+            </div>
+        </div>
+    </div>
+</div>

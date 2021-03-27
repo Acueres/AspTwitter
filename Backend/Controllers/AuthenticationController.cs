@@ -113,7 +113,7 @@ namespace AspTwitter.Controllers
                 }
             }
 
-            if (context.Users.Any(e => e.Username == request.Username))
+            if (await context.Users.AnyAsync(e => e.Username == request.Username))
             {
                 return Conflict();
             }

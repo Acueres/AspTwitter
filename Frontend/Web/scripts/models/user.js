@@ -43,7 +43,9 @@ class User
         response = await fetch(`http://localhost:5000/api/users/${this.id}/favorites`);
         this.favorites = await response.json();
 
-        this.retweets = this.entries.filter(x => x.authorId != this.id);
+        response = await fetch(`http://localhost:5000/api/users/${this.id}/retweets`);
+        this.retweets = await response.json();
+        this.retweets.reverse();
 
         response = await fetch(`http://localhost:5000/api/users/${this.id}/followers`);
         this.followers = await response.json();

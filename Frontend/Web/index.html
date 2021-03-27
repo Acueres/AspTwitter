@@ -32,9 +32,9 @@
     crossorigin="anonymous"></script>
 
   <!--Navbar-->
-  <div id="nav" class="sticky-top"></div>
+  <div id="nav" class="pb-2"></div>
 
-  <div class="tab-content" id="tabs">
+  <div class="tab-content pt-5" id="tabs">
     <!--Home tab-->
     <div class="tab-pane show active" id="home" role="tabpanel" aria-labelledby="home-tab"></div>
 
@@ -52,7 +52,7 @@
   <div class="modal fade" id="register" tabindex="-1"></div>
 
   <!--Profile edit modal-->
-  <div class="modal fade" id="edit" tabindex="-1"></div>
+  <div class="modal fade" id="edit-profile" tabindex="-1"></div>
 
   <!--Delete profile modal-->
   <div class="modal fade" id="delete-profile" tabindex="-1"></div>
@@ -60,61 +60,10 @@
   <!--Tweet modal-->
   <div class="modal fade" id="tweet" tabindex="-1"></div>
 
-  <script>
-    $(function () {
-      $("#nav").load("components/nav.html", function () {
-        $.getScript("scripts/nav.js");
-      });
-    });
+  <!--Tweet edit modal-->
+  <div class="modal fade" id="edit-tweet" tabindex="-1"></div>
 
-    $(function () {
-      $("#home").load("components/home.html", function () {
-        $.getScript("scripts/home.js");
-      });
-    });
-
-    $(function () {
-      $("#explore").load("components/explore.html", function () {
-        $.getScript("scripts/explore.js");
-      });
-    });
-
-    $(function () {
-      $("#profile").load("components/profile/profile.html", function () {
-        $.getScript("scripts/profile/profile.js");
-      });
-    });
-
-    $(function () {
-      $("#edit").load("components/profile/edit.html", function () {
-        $.getScript("scripts/profile/edit.js");
-      });
-    });
-
-    $(function () {
-      $("#delete-profile").load("components/profile/delete-profile.html", function () {
-        $.getScript("scripts/profile/delete-profile.js");
-      });
-    });
-
-    $(function () {
-      $("#login").load("components/auth/login.html", function () {
-        $.getScript("scripts/auth/login.js");
-      });
-    });
-
-    $(function () {
-      $("#register").load("components/auth/register.html", function () {
-        $.getScript("scripts/auth/register.js");
-      });
-    });
-
-    $(function () {
-      $("#tweet").load("components/tweet.html", function () {
-        $.getScript("scripts/tweet.js");
-      });
-    });
-  </script>
+  <script type="text/javascript" src="scripts/main.js"></script>
 </body>
 
 </html>

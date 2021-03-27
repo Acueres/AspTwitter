@@ -2,7 +2,8 @@
     <div class="modal-content">
         <div class="modal-header">
             <h5 class="modal-title">Login</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" v-on:click="clear"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                v-on:click="clear"></button>
         </div>
         <div class="modal-body">
 
@@ -23,7 +24,8 @@
                     <div class="input-group-addon">
                         <button class="btn btn-default reveal shadow-none" type="button"
                             v-on:click="passwordVisible = !passwordVisible">
-                            <i class="la" v-bind:class="passwordVisible ? 'la-eye': 'la-eye-slash'" aria-hidden="true"></i>
+                            <i class="la" v-bind:class="passwordVisible ? 'la-eye': 'la-eye-slash'"
+                                aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
@@ -35,7 +37,13 @@
 
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-primary" v-on:click="login">Sign in</button>
+            <div class="p-3" v-if="loading">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" v-on:click="login" v-else>Sign in</button>
         </div>
     </div>
 </div>

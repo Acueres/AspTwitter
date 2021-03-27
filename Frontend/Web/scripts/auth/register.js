@@ -3,6 +3,8 @@ var register = new Vue({
 
     data:
     {
+        loading: false,
+
         passwordVisible: false,
         
         nameInvalid: false,
@@ -70,6 +72,8 @@ var register = new Vue({
         },
 
         post: async function (name, username, email, password) {
+            this.loading = true;
+
             const response = await fetch('http://localhost:5000/api/authentication/register', {
                 method: 'POST',
                 cache: 'no-cache',
@@ -93,6 +97,8 @@ var register = new Vue({
                 let modal = bootstrap.Modal.getInstance(document.getElementById('register'));
                 modal.toggle();
             }
+
+            this.loading = false;
         },
 
         clear: function() {

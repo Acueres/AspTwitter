@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,7 +26,34 @@ namespace AspTwitter.Controllers
             this.context = context;
         }
 
-        // GET: api/Entries
+        // GET: api/Entries/partial/5
+        [HttpGet("partial/{part}")]
+        public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(int part)
+        {
+            if (part < 0)
+            {
+                return BadRequest();
+            }
+
+            var res = await context.Entries.OrderByDescending(x => x.LikeCount).
+                ThenByDescending(x => x.Timestamp).Take(1000).ToListAsync();
+
+            int n = 50;
+            int count = res.Count;
+            n = n > count ? count : n;
+            int cutoff = (int)Math.Ceiling((float)count / n);
+
+            if (part + 1 > cutoff)
+            {
+                return NoContent();
+            }
+
+            int start = part * n;
+
+            return Ok(res.GetRange(start, n));
+        }
+
+        //GET: api/Entries
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Entry>>> GetEntries()
         {
@@ -46,12 +74,18 @@ namespace AspTwitter.Controllers
             return entry;
         }
 
-        // PUT: api/Entries/5
+        // PATCH: api/Entries/5
         [Authorize]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEntry(uint id, EntryRequest request)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> EditEntry(uint id, EntryRequest request)
         {
-            if (!HasPermission(request.AuthorId))
+            Entry entry = await context.Entries.FindAsync(id);
+            if (entry is null)
+            {
+                return NotFound();
+            }
+
+            if (!HasPermission(entry.AuthorId))
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -66,13 +100,6 @@ namespace AspTwitter.Controllers
             if (request.Text == string.Empty)
             {
                 return BadRequest();
-            }
-
-            Entry entry = await context.Entries.FindAsync(id);
-
-            if (entry is null)
-            {
-                return NotFound();
             }
 
             request.Text = Truncate(request.Text, MaxLength.Entry);

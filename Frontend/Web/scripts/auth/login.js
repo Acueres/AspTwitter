@@ -2,6 +2,8 @@ var login = new Vue({
     el: '#login',
     data:
     {
+        loading: false,
+
         passwordVisible: false,
 
         usernameInvalid: false,
@@ -38,6 +40,8 @@ var login = new Vue({
         },
 
         post: async function (username, password) {
+            this.loading = true;
+
             const response = await fetch('http://localhost:5000/api/authentication/login', {
                 method: 'POST',
                 cache: 'no-cache',
@@ -63,6 +67,8 @@ var login = new Vue({
                 let modal = bootstrap.Modal.getInstance(document.getElementById('login'));
                 modal.toggle();
             }
+
+            this.loading = false;
         },
 
         clear: function() {

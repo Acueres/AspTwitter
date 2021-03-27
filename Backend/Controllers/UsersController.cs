@@ -59,10 +59,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            var retweets = await context.Relationships.
-                Where(x => x.UserId == id && x.Type == RelationshipType.Retweet).Select(x => x.EntryId).ToListAsync();
-
-            return await context.Entries.Where(x => x.AuthorId == id || retweets.Contains(x.Id)).ToListAsync();
+            return await context.Entries.Where(x => x.AuthorId == id).ToListAsync();
         }
 
         // GET: api/Users/5/avatar
@@ -125,9 +122,9 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
-        // PUT: api/Users/5
+        // PATCH: api/Users/5
         [Authorize]
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> PutUser(uint id, EditUserRequest request)
         {
             if (!HasPermission(id))
@@ -148,7 +145,8 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            if (context.Users.Any(e => e.Username == request.Username))
+            if (user.Username != request.Username &&
+                await context.Users.AnyAsync(e => e.Username == request.Username))
             {
                 return Conflict();
             }
@@ -198,6 +196,19 @@ namespace AspTwitter.Controllers
             }
 
             return Ok();
+        }
+
+        //GET: api/Users/5/retweets
+        [HttpGet("{id}/retweets")]
+        public async Task<ActionResult<IEnumerable<Entry>>> GetRetweets(uint id)
+        {
+            if (await context.Users.FindAsync(id) is null)
+            {
+                return NotFound();
+            }
+
+            return await context.Relationships.
+                 Where(x => x.UserId == id && x.Type == RelationshipType.Retweet).Select(x => x.Entry).ToListAsync();
         }
 
         // GET: api/Users/5/favorites
@@ -355,15 +366,16 @@ namespace AspTwitter.Controllers
             return await context.Users.Where(x => x.Name.ToLower().Contains(query)).ToListAsync();
         }
 
-        //POST: api/Users/recommended
-        [HttpPost("recommended")]
-        public async Task<ActionResult<IEnumerable<User>>> RecommendedUsers([FromBody] string request)
+        //GET: api/Users/5/recommended/3
+        [HttpGet("{userId}/recommended/{count}")]
+        public async Task<ActionResult<IEnumerable<User>>> RecommendedUsers(uint userId, int count)
         {
-            var requestData = request.Split();
-            int count = int.Parse(requestData[0]);
-            uint userId = uint.Parse(requestData[1]);
+            if (count < 1)
+            {
+                return BadRequest();
+            }
 
-            int total = context.Users.Count();
+            int total = await context.Users.CountAsync();
             if (total <= count)
             {
                 return null;

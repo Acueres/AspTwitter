@@ -1,14 +1,21 @@
 class Entries {
     data = [];
+    part = 0;
 
     constructor() {
         this.load();
     }
 
     async load() {
-        const response = await fetch(`http://localhost:5000/api/entries`);
-        this.data = await response.json();
-        this.data.reverse();
+        const response = await fetch(`http://localhost:5000/api/entries/partial/${this.part}`);
+
+        if (response.status == 200) {
+            const data = await response.json();
+
+            this.data = this.data.concat(data);
+
+            this.part++;
+        }
     }
 
     add(entry) {
@@ -19,6 +26,13 @@ class Entries {
         let index = this.data.findIndex(x => x.id == id);
         if (index != -1) {
             this.data.splice(index, 1);
+        }
+    }
+
+    edit(id, text) {
+        let index = this.data.findIndex(x => x.id == id);
+        if (index != -1) {
+            this.data[index].text = text;
         }
     }
 }

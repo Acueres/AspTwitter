@@ -85,9 +85,11 @@ namespace AspTwitter.Tests
                 Text = "text"
             };
 
-            await CreateEntry(entryData);
+            var response = await CreateEntry(entryData);
+            response.EnsureSuccessStatusCode();
            
-            var response = await CreateEntry(new
+            //Ensure invalid data handling
+            response = await CreateEntry(new
             {
                 AuthorId = "not a number",
                 Text = "text"
@@ -274,7 +276,7 @@ namespace AspTwitter.Tests
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
             //Ensure that the retweet has been recorded
-            var entries = await GetUserEntries(auth2.Id);
+            var entries = await GetUserRetweets(auth2.Id);
             Assert.Contains(entries, x => x.Id == entryId);
 
             Entry entry = await GetEntry(entryId);
@@ -289,7 +291,7 @@ namespace AspTwitter.Tests
             response.EnsureSuccessStatusCode();
 
             //Check that the retweet has been deleted
-            entries = await GetUserEntries(auth2.Id);
+            entries = await GetUserRetweets(auth2.Id);
             Assert.DoesNotContain(entries, x => x.Id == entryId);
 
             entry = await GetEntry(entryId);
@@ -403,7 +405,7 @@ namespace AspTwitter.Tests
 
         private async Task<HttpResponseMessage> EditEntry(uint id, EntryRequest data)
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, $"api/entries/{id}")
+            var request = new HttpRequestMessage(HttpMethod.Patch, $"api/entries/{id}")
             {
                 Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
             };
@@ -443,9 +445,9 @@ namespace AspTwitter.Tests
             return await client.SendAsync(request);
         }
 
-        private async Task<List<Entry>> GetUserEntries(uint id)
+        private async Task<List<Entry>> GetUserRetweets(uint id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, $"api/users/{id}/entries");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"api/users/{id}/retweets");
             var response = await client.SendAsync(request);
 
             string result = await response.Content.ReadAsStringAsync();

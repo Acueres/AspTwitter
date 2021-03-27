@@ -191,7 +191,7 @@ namespace AspTwitter.Tests
 
         private async Task<HttpResponseMessage> EditUser(uint id, EditUserRequest data)
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, $"api/users/{id}")
+            var request = new HttpRequestMessage(HttpMethod.Patch, $"api/users/{id}")
             {
                 Content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json")
             };
