@@ -37,42 +37,6 @@ var profile = new Vue({
             }
         },
 
-        uploadImage: function () {
-            let imageInput = document.getElementById("imageInput");
-            let avatar = document.getElementById("editAvatar");
-
-            let reader = new FileReader();
-
-            let mb = 1024 * 1024;
-
-            if (imageInput.files && imageInput.files[0] && imageInput.files[0].size <= mb) {
-                reader.onload = (e) => {
-                    avatar.src = e.target.result;
-                }
-                reader.readAsDataURL(imageInput.files[0]);
-
-                let image = document.getElementById("imageInput").files[0];
-                let form = new FormData();
-                form.append("avatar", image);
-
-                let settings = {
-                    "async": true,
-                    "crossDomain": true,
-                    "url": `http://localhost:5000/api/users/${appUser.id}/avatar`,
-                    "method": "POST",
-                    "processData": false,
-                    "contentType": false,
-                    "mimeType": "multipart/form-data",
-                    "data": form,
-                    beforeSend: function (xhr) {
-                        xhr.setRequestHeader("Authorization", 'Bearer ' + appUser.token);
-                    }
-                };
-
-                jQuery.ajax(settings);
-            }
-        },
-
         getContent: function () {
             if (this.contentType == 'Tweets') {
                 return appUser.entries;

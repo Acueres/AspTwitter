@@ -27,7 +27,7 @@ var deleteProfile = new Vue({
                 let el = document.querySelector('#home-tab');
                 let tab = new bootstrap.Tab(el);
 
-                user.clear();
+                appUser.clear();
 
                 tab.show();
             }

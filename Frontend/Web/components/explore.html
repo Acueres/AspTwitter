@@ -6,8 +6,8 @@
 
         <!--Search column-->
         <div class="col-5 bg-light">
-            <form class="d-flex p-3">
-                <input class="form-control me-2" id="search-bar" placeholder="Search" aria-label="Search">
+            <form id="search-form" class="d-flex p-3">
+                <input class="form-control me-2" id="search-bar" v-on:keydown.enter="sendQuery" placeholder="Search" aria-label="Search">
                 <button class="btn btn-success" type="button" v-on:click="sendQuery">Search</button>
             </form>
 
