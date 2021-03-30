@@ -26,6 +26,11 @@ namespace AspTwitter
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSpaStaticFiles(options =>
+            {
+                options.RootPath = "Frontend/Web";
+            });
+
             services.AddEntityFrameworkSqlite();
             services.AddDbContext<AppDbContext>(opt =>
                 opt.UseLazyLoadingProxies().
@@ -34,7 +39,7 @@ namespace AspTwitter
             services.Configure<AppSettings>(Configuration.GetSection("JWT"));
             services.AddScoped<IAuthenticationManager, AuthenticationManager>();
 
-            services.AddControllers();
+            services.AddControllersWithViews();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -46,6 +51,7 @@ namespace AspTwitter
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseSpaStaticFiles();
 
             app.UseRouting();
 
@@ -60,6 +66,12 @@ namespace AspTwitter
             {
                 endpoints.MapControllers();
             });
+            /*app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Admin}/{action=AdminHome}");
+            });*/
         }
     }
 }

@@ -71,17 +71,17 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
+            System.IO.FileStream image;
+
+            string path = $"wwwroot/avatars/{id}.jpg";
             if (System.IO.File.Exists(path))
             {
-                var image = System.IO.File.OpenRead(path);
+                image = System.IO.File.OpenRead(path);
                 return File(image, "image/jpeg");
             }
-            else
-            {
-                var image = System.IO.File.OpenRead($"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/default.png");
-                return File(image, "image/jpeg");
-            }
+
+            image = System.IO.File.OpenRead($"wwwroot/avatars/default.png");
+            return File(image, "image/jpeg");
         }
 
         // POST: api/Users/5/avatar
@@ -107,17 +107,11 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            try
-            {
-                string path = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
+            string path = $"wwwroot/Avatars/{id}.jpg";
 
-                using var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate);
-                await image.CopyToAsync(stream);
-            }
-            catch
-            {
-                return BadRequest();
-            }
+            using var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate);
+            await image.CopyToAsync(stream);
+
 
             return Ok();
         }
@@ -367,8 +361,8 @@ namespace AspTwitter.Controllers
         }
 
         //GET: api/Users/5/recommended/3
-        [HttpGet("{userId}/recommended/{count}")]
-        public async Task<ActionResult<IEnumerable<User>>> RecommendedUsers(uint userId, int count)
+        [HttpGet("{userId}/recommended/{count?}")]
+        public async Task<ActionResult<IEnumerable<User>>> RecommendedUsers(uint userId, int count = 3)
         {
             if (count < 1)
             {

@@ -38,7 +38,7 @@ namespace AspTwitter.Controllers
             var res = await context.Entries.OrderByDescending(x => x.LikeCount).
                 ThenByDescending(x => x.Timestamp).Take(1000).ToListAsync();
 
-            int n = 50;
+            int n = 5;
             int count = res.Count;
             n = n > count ? count : n;
             int cutoff = (int)Math.Ceiling((float)count / n);
@@ -147,7 +147,8 @@ namespace AspTwitter.Controllers
             Entry entry = new()
             {
                 AuthorId = request.AuthorId,
-                Text = request.Text
+                Text = request.Text,
+                Timestamp = DateTime.UtcNow
             };
 
             context.Entries.Add(entry);
@@ -362,7 +363,8 @@ namespace AspTwitter.Controllers
             {
                 AuthorId = request.AuthorId,
                 ParentId = id,
-                Text = request.Text
+                Text = request.Text,
+                Timestamp = DateTime.UtcNow
             };
 
             context.Comments.Add(comment);
@@ -417,7 +419,7 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            return await context.Entries.Where(x => x.Text.ToLower().Contains(query)).ToListAsync();
+            return await context.Entries.Where(x => x.Text.ToLower().Contains(query)).Take(50).ToListAsync();
         }
 
         private string Truncate(string val, MaxLength length)

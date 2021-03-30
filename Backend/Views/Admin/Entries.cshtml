@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Entries";
+}
+
+<div class="text-center">
+    <form asp-controller="Admin" asp-action="Entries" method="post">
+        <div class="d-flex float-left pb-5">
+            <input type="text" class="form-control" name="search" placeholder="Search posts or users" />
+            <input type="submit" class="btn btn-primary" value="Search" />
+        </div>
+    </form>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Date</th>
+                <th scope="col">Likes</th>
+                <th scope="col">Retweets</th>
+                <th scope="col">Comments</th>
+                <th scope="col">Author</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Entry entry in ViewBag.Entries)
+            {
+                <tr>
+                    <th scope="row">@entry.Id</th>
+                    <td>@entry.Timestamp.Date</td>
+                    <td>@entry.LikeCount</td>
+                    <td>@entry.RetweetCount</td>
+                    <td>@entry.CommentCount</td>
+                    <td>@entry.Author.Username</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <form asp-controller="Admin" asp-action="Entries" method="post">
+        <div class="btn-toolbar float-right pb-5" role="toolbar">
+            <div class="btn-group me-2" role="group">
+                @if (ViewBag.Page == 1)
+                {
+                    <button type="button" class="btn btn-light" disabled>Previous</button>
+                }
+                else
+                {
+                    <a type="button" class="btn btn-light" asp-controller="Admin" asp-action="Entries" asp-route-page="@(ViewBag.Page - 1)">Previous</a>
+                }
+
+                @if (ViewBag.PageCount == ViewBag.Page)
+                {
+                    <button type="button" class="btn btn-light" disabled>Next</button>
+                }
+                else
+                {
+                    <a type="button" class="btn btn-light" asp-controller="Admin" asp-action="Entries" asp-route-page="@(ViewBag.Page + 1)">Next</a>
+                }
+            </div>
+            <input name="page" type="text" class="form-control w-auto" placeholder="Page number">
+            <input type="submit" class="btn btn-primary" value="Go" />
+            <span class="input-group-text pl-3">Page @ViewBag.Page of @ViewBag.PageCount</span>
+        </div>
+    </form>
+</div>

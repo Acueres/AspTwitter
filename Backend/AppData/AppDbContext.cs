@@ -55,7 +55,7 @@ namespace AspTwitter.AppData
             builder.Entity<Entry>().HasKey(x => x.Id);
             builder.Entity<Entry>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
             builder.Entity<Entry>().Property(x => x.AuthorId).IsRequired();
-            builder.Entity<Entry>().Property(x => x.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            builder.Entity<Entry>().Property(x => x.Timestamp).IsRequired();
             builder.Entity<Entry>().Property(x => x.LikeCount).HasDefaultValue(0);
             builder.Entity<Entry>().Property(x => x.RetweetCount).HasDefaultValue(0);
             builder.Entity<Entry>().Property(x => x.CommentCount).HasDefaultValue(0);
@@ -67,7 +67,7 @@ namespace AspTwitter.AppData
             builder.Entity<Relationship>().ToTable("Relationships");
             builder.Entity<Relationship>().HasKey(x => x.Id);
             builder.Entity<Relationship>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
-            builder.Entity<Relationship>().Property(x => x.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            builder.Entity<Relationship>().Property(x => x.Timestamp).IsRequired();
             builder.Entity<Relationship>().Property(x => x.Type).IsRequired();
             builder.Entity<Relationship>().Property(x => x.UserId).IsRequired();
             builder.Entity<Relationship>().Property(x => x.EntryId).IsRequired();
@@ -78,7 +78,7 @@ namespace AspTwitter.AppData
             builder.Entity<Comment>().HasKey(x => x.Id);
             builder.Entity<Comment>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
             builder.Entity<Comment>().Property(x => x.AuthorId).IsRequired();
-            builder.Entity<Comment>().Property(x => x.Timestamp).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            builder.Entity<Comment>().Property(x => x.Timestamp).IsRequired();
             builder.Entity<Comment>().Property(x => x.Text).IsRequired().IsUnicode().HasMaxLength((int)MaxLength.Comment);
             builder.Entity<Comment>().HasOne(x => x.Author).WithMany(x => x.Comments).HasForeignKey(x => x.AuthorId);
             builder.Entity<Comment>().HasOne(x => x.Parent).WithMany(x => x.Comments).HasForeignKey(x => x.ParentId);
