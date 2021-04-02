@@ -36,7 +36,8 @@
     </div>
 
     <div class="col-4">
-        <div class="container-fluid p-3 border-bottom bg-light">
+      <div class="flex-column position-fixed">
+        <div class="p-3 bg-light">
           <h5>Recommended</h5>
 
           <div class="d-flex justify-content-center p-5" v-if="appUser.recommended.length == 0">
@@ -45,10 +46,11 @@
             </div>
           </div>
 
-          <div class="row align-items-center" v-else>
+          <div v-else>
             <user-info v-for="user in appUser.recommended" v-bind:key="user.id" v-bind:user="user"
               v-bind:app-user="appUser">
             </user-info>
+          </div>
         </div>
       </div>
     </div>
