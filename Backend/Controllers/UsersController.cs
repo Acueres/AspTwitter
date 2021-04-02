@@ -102,7 +102,7 @@ namespace AspTwitter.Controllers
 
             int mb = 1024 * 1024;
 
-            if (image != null && image.Length > mb)
+            if (image is null || image.Length > mb)
             {
                 return BadRequest();
             }
@@ -183,7 +183,7 @@ namespace AspTwitter.Controllers
             context.Users.Remove(user);
             await context.SaveChangesAsync();
 
-            string avatarPath = $"{System.IO.Directory.GetCurrentDirectory()}/Backend/AppData/Avatars/{id}.jpg";
+            string avatarPath = $"wwwroot/avatars/{id}.jpg";
             if (System.IO.File.Exists(avatarPath))
             {
                 System.IO.File.Delete(avatarPath);

@@ -38,7 +38,7 @@ namespace AspTwitter.Controllers
             var res = await context.Entries.OrderByDescending(x => x.LikeCount).
                 ThenByDescending(x => x.Timestamp).Take(1000).ToListAsync();
 
-            int n = 5;
+            int n = 25;
             int count = res.Count;
             n = n > count ? count : n;
             int cutoff = (int)Math.Ceiling((float)count / n);

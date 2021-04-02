@@ -2,37 +2,73 @@
     ViewData["Title"] = "Users";
 }
 
-<div class="text-center">
+<div class="text-center p-3">
+    <h1>Users</h1>
     <form asp-controller="Admin" asp-action="Users" method="post">
-        <div class="d-flex float-left pb-5">
-            <input type="text" class="form-control" name="search" placeholder="Search users" />
-            <input type="submit" class="btn btn-primary" value="Search" />
+        <div class="mb-3 row">
+            <a class="btn btn-info" asp-controller="Admin" asp-action="CreateUser">Create</a>
+        </div>
+        <div class="mb-3 row">
+            <div class="d-flex">
+                <input type="text" class="form-control" name="search" placeholder="Search users" value="@ViewBag.Search" />
+                <select class="form-select" name="orderBy">
+                    <option value="@ViewBag.Order" selected>Ordered by @ViewBag.Order</option>
+                    <option value="Id">Id</option>
+                    <option value="Followers">Followers</option>
+                    <option value="Following">Following</option>
+                </select>
+                <select class="form-select" name="ascending">
+                    <option value="@ViewBag.Ascending" selected>@(ViewBag.Ascending ? "Ascending" : "Descending")</option>
+                    <option value="@(!ViewBag.Ascending)">@(ViewBag.Ascending ? "Descending" : "Ascending")</option>
+                </select>
+                <input type="submit" class="btn btn-primary" value="Search" />
+            </div>
         </div>
     </form>
 
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th scope="col">Id</th>
+                <th scope="col">
+                    Id
+                </th>
+                <th scope="col">Avatar</th>
                 <th scope="col">Name</th>
                 <th scope="col">Username</th>
                 <th scope="col">Email</th>
+                <th scope="col">About</th>
                 <th scope="col">Followers</th>
                 <th scope="col">Following</th>
+                <th scope="col">Actions</th>
             </tr>
         </thead>
         <tbody>
             @foreach (User user in ViewBag.Users)
             {
-                <tr>
-                    <th scope="row">@user.Id</th>
-                    <td>@user.Name</td>
-                    <td>@user.Username</td>
-                    <td>@(user.Email is null ? "None" : user.Email)</td>
-                    <td>@user.FollowerCount</td>
-                    <td>@user.FollowingCount</td>
-                    <td><a class="btn btn-info" asp-controller="Admin" asp-action="UserEdit" asp-route-id="@user.Id">View</a></td>
-                </tr>
+            <tr>
+                <td>@user.Id</td>
+                <td>
+                    @if (System.IO.File.Exists($"wwwroot/avatars/{user.Id}.jpg"))
+                    {
+                        <img src="~/avatars/@(user.Id).jpg" id="avatar" class="img rounded-circle" height="50" width="50" asp-append-version="true" />
+                    }
+                    else
+                    {
+                        <img src="~/avatars/default.png" class="img rounded-circle" height="50" width="50" asp-append-version="true" />
+                    }
+                </td>
+                <td>@user.Name</td>
+                <td>@user.Username</td>
+                <td>@(user.Email is null ? "None" : user.Email)</td>
+                <td class="text-break" style="font-size: small; max-width: 150px;">@(string.IsNullOrEmpty(user.About) ? "None" : user.About)</td>
+                <td>@user.FollowerCount</td>
+                <td>@user.FollowingCount</td>
+                <td>
+                    <a class="btn btn-link" asp-controller="Admin" asp-action="CreateEntry" asp-route-username="@user.Username">Post</a>|
+                    <a class="btn btn-link" asp-controller="Admin" asp-action="EditUser" asp-route-id="@user.Id">Edit</a>|
+                    <a class="btn btn-link" asp-controller="Admin" asp-action="DeleteUser" asp-route-id="@user.Id">Delete</a>
+                </td>
+            </tr>
             }
         </tbody>
     </table>
