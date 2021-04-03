@@ -2,15 +2,17 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
 
 using AspTwitter.AppData;
+using AspTwitter.Authentication;
 using AspTwitter.Models;
 
 
@@ -21,11 +23,21 @@ namespace AspTwitter.Controllers
     {
         private readonly AppDbContext context;
         private readonly IConfiguration configuration;
+        private readonly IAuthenticationManager auth;
+        private AppSettings appSettings;
 
-        public AdminController(AppDbContext context, IConfiguration configuration)
+        public AdminController(AppDbContext context, IConfiguration configuration, IAuthenticationManager auth, IOptions<AppSettings> appSettings)
         {
             this.context = context;
             this.configuration = configuration;
+            this.auth = auth;
+            this.appSettings = appSettings.Value;
+
+            string path = "Backend/AppData/apps.json";
+            if (!System.IO.File.Exists(path))
+            {
+                System.IO.File.WriteAllText(path, "[]");
+            }
         }
 
         [Route("home")]
@@ -92,7 +104,7 @@ namespace AspTwitter.Controllers
             ViewBag.Page = page;
             ViewBag.PageCount = pageCount;
 
-            return View("Backend/Views/Admin/Users.cshtml");
+            return View("Backend/Views/Admin/Users/Users.cshtml");
         }
 
         [Route("users/edit/{id}")]
@@ -107,7 +119,7 @@ namespace AspTwitter.Controllers
             if (string.IsNullOrEmpty(name))
             {
                 ViewBag.User = user;
-                return View("Backend/Views/Admin/EditUser.cshtml");
+                return View("Backend/Views/Admin/Users/EditUser.cshtml");
             }
 
             if (!string.IsNullOrEmpty(name))
@@ -155,7 +167,7 @@ namespace AspTwitter.Controllers
                 string.IsNullOrEmpty(name) || string.IsNullOrEmpty(username) ||
                 string.IsNullOrEmpty(password))
             {
-                return View("Backend/Views/Admin/CreateUser.cshtml");
+                return View("Backend/Views/Admin/Users/CreateUser.cshtml");
             }
 
             username = username.Replace(" ", string.Empty);
@@ -171,7 +183,7 @@ namespace AspTwitter.Controllers
                 Name = name,
                 Username = username,
                 Email = email,
-                PasswordHash = Hash(password)
+                PasswordHash = Util.Hash(password)
             };
 
             context.Users.Add(user);
@@ -208,11 +220,11 @@ namespace AspTwitter.Controllers
             ViewBag.Order = orderBy;
             ViewBag.Ascending = ascending;
 
-            IQueryable<Entry> entries = from x in context.Entries select x;
+            IQueryable<Entry> entries = from x in context.Entries.Include(x => x.Author) select x;
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
-                entries = context.Entries.Where(x => x.Text.ToLower().Contains(search) ||
+                entries = context.Entries.Include(x => x.Author).Where(x => x.Text.ToLower().Contains(search) ||
                 x.Author.Username.ToLower().Contains(search));
             }
 
@@ -259,7 +271,7 @@ namespace AspTwitter.Controllers
             ViewBag.Page = page;
             ViewBag.PageCount = pageCount;
 
-            return View("Backend/Views/Admin/Entries.cshtml");
+            return View("Backend/Views/Admin/Entries/Entries.cshtml");
         }
 
         [Route("entries/edit/{id}")]
@@ -269,12 +281,12 @@ namespace AspTwitter.Controllers
             if (entry is null || string.IsNullOrEmpty(text))
             {
                 ViewBag.Entry = entry;
-                return View("Backend/Views/Admin/EditEntry.cshtml");
+                return View("Backend/Views/Admin/Entries/EditEntry.cshtml");
             }
 
             if (text is not null)
             {
-                text = Truncate(text, MaxLength.Entry);
+                text = Util.Truncate(text, MaxLength.Entry);
                 entry.Text = text;
             }
 
@@ -293,7 +305,7 @@ namespace AspTwitter.Controllers
             User author = await context.Users.Where(x => x.Username == username).SingleOrDefaultAsync();
             if (string.IsNullOrEmpty(text) || author is null)
             {
-                return View("Backend/Views/Admin/CreateEntry.cshtml");
+                return View("Backend/Views/Admin/Entries/CreateEntry.cshtml");
             }
 
             Entry entry = new()
@@ -324,32 +336,173 @@ namespace AspTwitter.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
-        private string Truncate(string val, MaxLength length)
+        [Route("apps")]
+        public async Task<IActionResult> Apps()
         {
-            if (val.Length > (int)length)
-            {
-                return val.Substring(0, (int)length);
-            }
+            ViewBag.Apps = await GetApps();
 
-            return val;
+            return View("Backend/Views/Admin/Apps/Apps.cshtml");
         }
 
-        private string Hash(string password)
+        [Route("apps/create")]
+        public async Task<IActionResult> RegisterApp(string name, string info, string path, int days)
         {
-            byte[] salt = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
+            if (days < 1)
             {
-                rng.GetBytes(salt);
+                days = 1;
             }
 
-            string key = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: password,
-                salt: salt,
-                prf: KeyDerivationPrf.HMACSHA1,
-                iterationCount: 10000,
-                numBytesRequested: 32));
+            List<AppModel> apps = await GetApps();
 
-            return $"{10000}.{Convert.ToBase64String(salt)}.{key}";
+            if (apps.Any(x => x.Name == name) || string.IsNullOrEmpty(info) || days < 1)
+            {
+                return View("Backend/Views/Admin/Apps/RegisterApp.cshtml");
+            }
+
+            AppModel appData = new()
+            {
+                Name = name,
+                Info = info,
+                Key = auth.GetAppToken(name, days),
+                ConfigPath = path,
+                KeyExpires = DateTime.UtcNow.AddDays(days),
+            };
+
+            apps.Add(appData);
+            await SaveApps(apps);
+
+            await AddToAppsettings(name);
+
+            await UpdateKey(appData.ConfigPath, appData.Key);
+
+            return RedirectToAction("Apps");
+        }
+
+        [Route("apps/{name}/edit")]
+        public async Task<IActionResult> EditApp(string name, string info, string path)
+        {
+            List<AppModel> apps = await GetApps();
+            var app = apps.Find(x => x.Name == name);
+
+            if (app is null)
+            {
+                return RedirectToAction("Apps");
+            }
+
+            ViewBag.App = app;
+
+            if (info is null)
+            {
+                return View("Backend/Views/Admin/Apps/EditApp.cshtml");
+            }
+
+            int index = apps.FindIndex(x => x.Name == name);
+            apps[index].Info = info;
+            apps[index].ConfigPath = path;
+            await SaveApps(apps);
+
+            return RedirectToAction("Apps");
+        }
+
+        [Route("apps/{name}/delete")]
+        public async Task<IActionResult> DeleteApp(string name)
+        {
+            List<AppModel> apps = await GetApps();
+            if (!apps.Any(x => x.Name == name))
+            {
+                return RedirectToAction("Apps");
+            }
+
+            int index = apps.FindIndex(x => x.Name == name);
+            apps.RemoveAt(index);
+            await SaveApps(apps);
+
+            await RemoveFromAppsettings(name);
+
+            return RedirectToAction("Apps");
+        }
+
+        [Route("apps/{name}/issue")]
+        public async Task<IActionResult> IssueAppKey(string name, int days)
+        {
+            if (days < 1)
+            {
+                return RedirectToAction("Apps");
+            }
+
+            List<AppModel> apps = await GetApps();
+            if (!apps.Any(x => x.Name == name))
+            {
+                return RedirectToAction("Apps");
+            }
+
+            int index = apps.FindIndex(x => x.Name == name);
+            apps[index].KeyExpires = DateTime.UtcNow.AddDays(days);
+            apps[index].Key = auth.GetAppToken(name, days);
+            await SaveApps(apps);
+
+            await UpdateKey(apps[index].ConfigPath, apps[index].Key);
+
+            return RedirectToAction("Apps");
+        }
+
+        private async Task<List<AppModel>> GetApps()
+        {
+            string path = "Backend/AppData/apps.json";
+            string json = await System.IO.File.ReadAllTextAsync(path);
+            return JsonConvert.DeserializeObject<List<AppModel>>(json);
+        }
+
+        private async Task SaveApps(List<AppModel> data)
+        {
+            string path = "Backend/AppData/apps.json";
+            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+            await System.IO.File.WriteAllTextAsync(path, json);
+        }
+
+        private async Task AddToAppsettings(string name)
+        {
+            string path = "appsettings.json";
+            string json = await System.IO.File.ReadAllTextAsync(path);
+            dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
+
+            ((JArray)data.JWT.Apps).Add(name);
+            appSettings.Apps.Add(name);
+
+            json = JsonConvert.SerializeObject(data, Formatting.Indented);
+            await System.IO.File.WriteAllTextAsync(path, json);
+        }
+
+        private async Task RemoveFromAppsettings(string name)
+        {
+            string path = "appsettings.json";
+            string json = await System.IO.File.ReadAllTextAsync(path);
+            dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
+
+            var apps = ((JArray)data.JWT.Apps).ToObject<List<string>>();
+            int index = apps.FindIndex(x => x == name);
+
+            if (index != -1)
+            {
+                ((JArray)data.JWT.Apps).RemoveAt(index);
+            }
+
+            json = JsonConvert.SerializeObject(data, Formatting.Indented);
+            await System.IO.File.WriteAllTextAsync(path, json);
+        }
+
+        private async Task UpdateKey(string path, string key)
+        {
+            string fullPath = path + "/config.json";
+            if (System.IO.File.Exists(fullPath))
+            {
+                string json = await System.IO.File.ReadAllTextAsync(fullPath);
+                dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
+                data.apiKey = key;
+
+                json = JsonConvert.SerializeObject(data, Formatting.Indented);
+                await System.IO.File.WriteAllTextAsync(fullPath, json);
+            }
         }
     }
 }

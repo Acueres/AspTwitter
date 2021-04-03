@@ -16,13 +16,14 @@ class AppUser extends User {
             return;
         }
 
-        const response = await fetch('http://localhost:5000/api/authentication/test', {
+        const response = await fetch(server + 'api/authentication/test', {
             method: 'GET',
             cache: 'no-cache',
             credentials: 'omit',
             redirect: 'follow',
             headers: {
                 'Content-Type': 'application/json',
+                'ApiKey': apiKey,
                 'Authorization': 'Bearer ' + storageData.token
             }
         });
@@ -91,13 +92,14 @@ class AppUser extends User {
     }
 
     async follow(user) {
-        const response = await fetch(`http://localhost:5000/api/users/${user.id}/follow`, {
+        const response = await fetch(server + `api/users/${user.id}/follow`, {
             method: 'POST',
             cache: 'no-cache',
             credentials: 'omit',
             redirect: 'follow',
             headers: {
                 'Content-Type': 'application/json',
+                'ApiKey': apiKey,
                 'Authorization': 'Bearer ' + this.token
             }
         });
@@ -109,19 +111,20 @@ class AppUser extends User {
     }
 
     async unfollow(user) {
-        const response = await fetch(`http://localhost:5000/api/users/${user.id}/unfollow`, {
+        const response = await fetch(server + `api/users/${user.id}/unfollow`, {
             method: 'DELETE',
             cache: 'no-cache',
             credentials: 'omit',
             redirect: 'follow',
             headers: {
                 'Content-Type': 'application/json',
+                'ApiKey': apiKey,
                 'Authorization': 'Bearer ' + this.token
             }
         });
 
         if (response.status == 200) {
-            let index = this.following.indexOf(user.id);
+            let index = this.following.findIndex(x => x.id == user.id);
             this.following.splice(index, 1);
             this.followingCount--;
         }
@@ -134,7 +137,11 @@ class AppUser extends User {
             id = this.id;
         }
 
-        const response = await fetch(`http://localhost:5000/api/users/${id}/recommended/${count}`);
+        const response = await fetch(server + `api/users/${id}/recommended/${count}`, {
+            headers: {
+                'ApiKey': apiKey
+            }
+        });
         this.recommended = await response.json();
         this.recommended.reverse();
     }

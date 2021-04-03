@@ -13,24 +13,28 @@ var tweet = new Vue({
         load: async function (entry) {
             this.entry = entry;
 
-            const response = await fetch(`http://localhost:5000/api/entries/${this.entry.id}/comments`, {
+            const response = await fetch(server + `api/entries/${this.entry.id}/comments`, {
                 method: 'GET',
                 cache: 'no-cache',
                 credentials: 'omit',
-                redirect: 'follow'
+                redirect: 'follow',
+                headers: {
+                    'ApiKey': apiKey
+                }
             });
 
             this.comments = await response.json();
         },
 
         reply: async function () {
-            const response = await fetch(`http://localhost:5000/api/entries/${this.entry.id}/comments`, {
+            const response = await fetch(server + `api/entries/${this.entry.id}/comments`, {
                 method: 'POST',
                 cache: 'no-cache',
                 credentials: 'omit',
                 redirect: 'follow',
                 headers: {
                     'Content-Type': 'application/json',
+                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 },
                 body: JSON.stringify({ authorId: appUser.id, text: this.text })
@@ -52,13 +56,14 @@ var tweet = new Vue({
         },
 
         deleteComment: async function (id) {
-            const response = await fetch(`http://localhost:5000/api/entries/${this.entry.id}/comments/${id}`, {
+            const response = await fetch(server + `api/entries/${this.entry.id}/comments/${id}`, {
                 method: 'DELETE',
                 cache: 'no-cache',
                 credentials: 'omit',
                 redirect: 'follow',
                 headers: {
                     'Content-Type': 'application/json',
+                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 }
             });
@@ -74,7 +79,7 @@ var tweet = new Vue({
         },
 
         getAvatar: function (id) {
-            return `http://localhost:5000/api/users/${id}/avatar`;
+            return server + `api/users/${id}/avatar`;
         }
     }
 });

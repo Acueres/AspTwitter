@@ -19,7 +19,7 @@ var profileTemplate = {
     },
 
     getAvatar: function (id) {
-      return `http://localhost:5000/api/users/${id}/avatar`;
+      return server + `api/users/${id}/avatar`;
     },
 
     openAvatarSelector: function () {

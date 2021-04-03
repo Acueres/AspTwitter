@@ -15,6 +15,7 @@ using AspTwitter.Authentication;
 
 namespace AspTwitter.Controllers
 {
+    [ApiKey]
     [Route("api/[controller]")]
     [ApiController]
     public class EntriesController : ControllerBase
@@ -35,7 +36,7 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            var res = await context.Entries.OrderByDescending(x => x.LikeCount).
+            var res = await context.Entries.Include(x => x.Author).OrderByDescending(x => x.LikeCount).
                 ThenByDescending(x => x.Timestamp).Take(1000).ToListAsync();
 
             int n = 25;
@@ -49,8 +50,9 @@ namespace AspTwitter.Controllers
             }
 
             int start = part * n;
+            int end = start + n > count ? count - start : start + n;
 
-            return Ok(res.GetRange(start, n));
+            return Ok(res.GetRange(start, end));
         }
 
         //GET: api/Entries
@@ -102,7 +104,7 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            request.Text = Truncate(request.Text, MaxLength.Entry);
+            request.Text = Util.Truncate(request.Text, MaxLength.Entry);
             entry.Text = request.Text;
 
             context.Entry(entry).State = EntityState.Modified;
@@ -142,7 +144,7 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            request.Text = Truncate(request.Text, MaxLength.Entry);
+            request.Text = Util.Truncate(request.Text, MaxLength.Entry);
 
             Entry entry = new()
             {
@@ -325,7 +327,8 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Comments.Where(x => x.ParentId == id).ToListAsync();
+            return await context.Comments.Include(x => x.Author).Include(x => x.Parent).
+                Where(x => x.ParentId == id).ToListAsync();
         }
 
         //POST api/Entries/5/comments
@@ -357,7 +360,7 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            request.Text = Truncate(request.Text, MaxLength.Comment);
+            request.Text = Util.Truncate(request.Text, MaxLength.Comment);
 
             Comment comment = new()
             {
@@ -419,17 +422,7 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            return await context.Entries.Where(x => x.Text.ToLower().Contains(query)).Take(50).ToListAsync();
-        }
-
-        private string Truncate(string val, MaxLength length)
-        {
-            if (val.Length > (int)length)
-            {
-                return val.Substring(0, (int)length);
-            }
-
-            return val;
+            return await context.Entries.Include(x => x.Author).Where(x => x.Text.ToLower().Contains(query)).Take(50).ToListAsync();
         }
 
         private bool HasPermission(uint id)

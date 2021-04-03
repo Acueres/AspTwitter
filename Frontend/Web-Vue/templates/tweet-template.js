@@ -41,13 +41,14 @@ var tweetTemplate = {
 
       appUser.favorites.push(entry);
       entry.likeCount++;
-      fetch(`http://localhost:5000/api/entries/${entry.id}/favorite`, {
+      fetch(server + `api/entries/${entry.id}/favorite`, {
         method: 'POST',
         credentials: 'omit',
         redirect: 'follow',
         cache: 'no-cache',
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey': apiKey,
           'Authorization': 'Bearer ' + appUser.token
         }
       });
@@ -61,13 +62,14 @@ var tweetTemplate = {
       let index = appUser.favorites.findIndex(x => x.id == entry.id);
       appUser.favorites.splice(index, 1);
       entry.likeCount--;
-      fetch(`http://localhost:5000/api/entries/${entry.id}/favorite`, {
+      fetch(server + `api/entries/${entry.id}/favorite`, {
         method: 'DELETE',
         credentials: 'omit',
         redirect: 'follow',
         cache: 'no-cache',
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey': apiKey,
           'Authorization': 'Bearer ' + appUser.token
         }
       });
@@ -82,13 +84,14 @@ var tweetTemplate = {
       entry.retweetCount++;
       appUser.addEntry(entry);
 
-      fetch(`http://localhost:5000/api/entries/${entry.id}/retweet`, {
+      fetch(server + `api/entries/${entry.id}/retweet`, {
         method: 'POST',
         credentials: 'omit',
         redirect: 'follow',
         cache: 'no-cache',
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey': apiKey,
           'Authorization': 'Bearer ' + appUser.token
         }
       });
@@ -104,13 +107,14 @@ var tweetTemplate = {
       entry.retweetCount--;
       appUser.deleteEntry(entry.id);
 
-      fetch(`http://localhost:5000/api/entries/${entry.id}/retweet`, {
+      fetch(server + `api/entries/${entry.id}/retweet`, {
         method: 'DELETE',
         credentials: 'omit',
         redirect: 'follow',
         cache: 'no-cache',
         headers: {
           'Content-Type': 'application/json',
+          'ApiKey': apiKey,
           'Authorization': 'Bearer ' + appUser.token
         }
       });
@@ -141,7 +145,7 @@ var tweetTemplate = {
     },
 
     getAvatar: function (id) {
-      return `http://localhost:5000/api/users/${id}/avatar`;
+      return server + `api/users/${id}/avatar`;
     },
 
     getDate: function (timestamp) {
@@ -152,7 +156,7 @@ var tweetTemplate = {
     },
 
     deleteEntry: async function (id) {
-      const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
+      const response = await fetch(server + `api/entries/${id}`, {
         method: 'DELETE',
         credentials: 'omit',
         redirect: 'follow',

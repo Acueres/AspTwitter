@@ -1,5 +1,4 @@
-class User
-{
+class User {
     id = null;
     name = null;
     username = null;
@@ -14,7 +13,7 @@ class User
     followerCount = 0;
     followingCount = 0;
 
-    constructor (id) {
+    constructor(id) {
         this.id = id;
     }
 
@@ -23,7 +22,11 @@ class User
             return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/users/${this.id}`);
+        const response = await fetch(server + `api/users/${this.id}`, {
+            headers: {
+                'ApiKey': apiKey
+            }
+        });
         const data = await response.json();
 
         this._setData(data);
@@ -36,21 +39,41 @@ class User
             return;
         }
 
-        let response = await fetch(`http://localhost:5000/api/users/${this.id}/entries`);
+        let response = await fetch(server + `api/users/${this.id}/entries`, {
+            headers: {
+                'ApiKey': apiKey
+            }
+        });
         this.entries = await response.json();
         this.entries.reverse();
 
-        response = await fetch(`http://localhost:5000/api/users/${this.id}/favorites`);
+        response = await fetch(server + `api/users/${this.id}/favorites`, {
+            headers: {
+                'ApiKey': apiKey
+            }
+        });
         this.favorites = await response.json();
 
-        response = await fetch(`http://localhost:5000/api/users/${this.id}/retweets`);
+        response = await fetch(server + `api/users/${this.id}/retweets`, {
+            headers: {
+                'ApiKey': apiKey
+            }
+        });
         this.retweets = await response.json();
         this.retweets.reverse();
 
-        response = await fetch(`http://localhost:5000/api/users/${this.id}/followers`);
+        response = await fetch(server + `api/users/${this.id}/followers`, {
+            headers: {
+                'ApiKey': apiKey
+            }
+        });
         this.followers = await response.json();
 
-        response = await fetch(`http://localhost:5000/api/users/${this.id}/following`);
+        response = await fetch(server + `api/users/${this.id}/following`, {
+            headers: {
+                'ApiKey': apiKey
+            }
+        });
         this.following = await response.json();
     }
 

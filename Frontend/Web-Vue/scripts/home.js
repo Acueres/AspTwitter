@@ -17,13 +17,14 @@ var home = new Vue(
         methods:
         {
             post: async function () {
-                const response = await fetch('http://localhost:5000/api/entries', {
+                const response = await fetch(server + 'api/entries', {
                     method: 'POST',
                     credentials: 'omit',
                     redirect: 'follow',
                     cache: 'no-cache',
                     headers: {
                         'Content-Type': 'application/json',
+                        'ApiKey': apiKey,
                         'Authorization': 'Bearer ' + appUser.token
                     },
                     body: JSON.stringify({

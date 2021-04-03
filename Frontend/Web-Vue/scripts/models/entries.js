@@ -7,7 +7,11 @@ class Entries {
     }
 
     async load() {
-        const response = await fetch(`http://localhost:5000/api/entries/partial/${this.part}`);
+        const response = await fetch(server + `api/entries/partial/${this.part}`, {
+            headers: {
+                'ApiKey': apiKey
+            }
+        });
 
         if (response.status == 200) {
             const data = await response.json();

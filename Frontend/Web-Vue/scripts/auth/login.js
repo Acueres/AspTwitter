@@ -42,12 +42,15 @@ var login = new Vue({
         post: async function (username, password) {
             this.loading = true;
 
-            const response = await fetch('http://localhost:5000/api/authentication/login', {
+            const response = await fetch(server + 'api/authentication/login', {
                 method: 'POST',
                 cache: 'no-cache',
                 credentials: 'omit',
                 redirect: 'follow',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ApiKey': apiKey
+                },
                 body: JSON.stringify({ username: username, password: password })
             });
 

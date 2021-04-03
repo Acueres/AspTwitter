@@ -4,10 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Text;
-using System.Collections.Generic;
 
 using AspTwitter.AppData;
 using AspTwitter.Models;
@@ -20,6 +18,7 @@ namespace AspTwitter.Authentication
     {
         AuthenticationResponse Authenticate(AuthenticationRequest request);
         AuthenticationResponse Authenticate(User user);
+        string GetAppToken(string appName, int days);
         User GetUser(uint id);
     }
 
@@ -44,7 +43,7 @@ namespace AspTwitter.Authentication
                 return null;
             }
 
-            string token = GetJwtToken(user);
+            string token = UserJwtToken(user);
 
             return new AuthenticationResponse(user, token);
         }
@@ -56,9 +55,19 @@ namespace AspTwitter.Authentication
                 return null;
             }
 
-            string token = GetJwtToken(user);
+            string token = UserJwtToken(user);
 
             return new AuthenticationResponse(user, token);
+        }
+
+        public string GetAppToken(string appName, int days)
+        {
+            if (string.IsNullOrEmpty(appName))
+            {
+                return string.Empty;
+            }
+
+            return AppJwtToken(appName, days);
         }
 
         public User GetUser(uint id)
@@ -66,7 +75,7 @@ namespace AspTwitter.Authentication
             return context.Users.Find(id);
         }
 
-        private string GetJwtToken(User user)
+        private string UserJwtToken(User user)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]));
 
@@ -74,6 +83,23 @@ namespace AspTwitter.Authentication
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
                 Expires = DateTime.UtcNow.AddHours(8),
+                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
+        }
+
+        private string AppJwtToken(string appName, int days)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]));
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[] { new Claim("appName", appName) }),
+                Expires = DateTime.UtcNow.AddDays(days),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
             };
 

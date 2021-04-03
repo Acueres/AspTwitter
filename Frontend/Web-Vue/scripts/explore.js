@@ -37,12 +37,15 @@ var explore = new Vue({
                 return;
             }
 
-            const response = await fetch(`http://localhost:5000/api/${entity}/search`, {
+            const response = await fetch(server + `api/${entity}/search`, {
                 method: 'POST',
                 cache: 'no-cache',
                 credentials: 'omit',
                 redirect: 'follow',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ApiKey': apiKey
+                },
                 body: JSON.stringify(query)
             })
 

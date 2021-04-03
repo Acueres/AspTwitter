@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.FileProviders;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,13 +29,12 @@ namespace AspTwitter
         {
             services.AddSpaStaticFiles(options =>
             {
-                options.RootPath = "Frontend/Web";
+                options.RootPath = "Frontend/Web-Vue";
             });
 
             services.AddEntityFrameworkSqlite();
             services.AddDbContext<AppDbContext>(opt =>
-                opt.UseLazyLoadingProxies().
-                    UseSqlite($"Data Source={Directory.GetCurrentDirectory()}/Backend/AppData/data.db"));
+                opt.UseSqlite($"Data Source={Directory.GetCurrentDirectory()}/Backend/AppData/data.db"));
 
             services.Configure<AppSettings>(Configuration.GetSection("JWT"));
             services.AddScoped<IAuthenticationManager, AuthenticationManager>();
@@ -66,12 +66,18 @@ namespace AspTwitter
             {
                 endpoints.MapControllers();
             });
-            /*app.UseEndpoints(endpoints =>
+
+            app.Map("/vue", mappedSpa =>
             {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Admin}/{action=AdminHome}");
-            });*/
+                mappedSpa.UseSpa(spa =>
+                {
+                    spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
+                    {
+                        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Frontend/Web-Vue"))
+                    };
+                    spa.Options.SourcePath = "Frontend/Web-Vue";
+                });
+            });
         }
     }
 }

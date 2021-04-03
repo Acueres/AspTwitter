@@ -16,6 +16,7 @@ using AspTwitter.Authentication;
 
 namespace AspTwitter.Controllers
 {
+    [ApiKey]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -59,10 +60,11 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Entries.Where(x => x.AuthorId == id).ToListAsync();
+            return await context.Entries.Include(x => x.Author).Where(x => x.AuthorId == id).ToListAsync();
         }
 
         // GET: api/Users/5/avatar
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
         [HttpGet("{id}/avatar")]
         public async Task<IActionResult> GetAvatar(uint id)
         {
@@ -327,7 +329,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Followers.Where(x => x.UserId == id).Select(x => x.Follower).ToListAsync();
+            return await context.Followers.Include(x => x.User).Where(x => x.UserId == id).Select(x => x.Follower).ToListAsync();
         }
 
         //GET: api/Users/5/following
@@ -339,7 +341,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Followers.Where(x => x.FollowerId == id).Select(x => x.User).ToListAsync();
+            return await context.Followers.Include(x => x.Follower).Where(x => x.FollowerId == id).Select(x => x.User).ToListAsync();
         }
 
         //POST: api/Users/search
@@ -379,16 +381,6 @@ namespace AspTwitter.Controllers
                 Where(x => x.Id != userId && !x.Followers.Any(x => x.FollowerId == userId)).Take(count).ToListAsync();
         }
 
-        private string Truncate(string val, MaxLength length)
-        {
-            if (val.Length > (int)length)
-            {
-                return val.Substring(0, (int)length);
-            }
-
-            return val;
-        }
-
         private bool HasPermission(uint id)
         {
             return ((User)HttpContext.Items["User"]).Id == id;
@@ -414,9 +406,9 @@ namespace AspTwitter.Controllers
                 request.About = request.About.Trim();
             }
 
-            request.Name = Truncate(request.Name, MaxLength.Name);
-            request.Username = Truncate(request.Username, MaxLength.Username);
-            request.About = Truncate(request.About, MaxLength.About);
+            request.Name = Util.Truncate(request.Name, MaxLength.Name);
+            request.Username = Util.Truncate(request.Username, MaxLength.Username);
+            request.About = Util.Truncate(request.About, MaxLength.About);
 
             return request;
         }

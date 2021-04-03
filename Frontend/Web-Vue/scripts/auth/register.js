@@ -74,12 +74,15 @@ var register = new Vue({
         post: async function (name, username, email, password) {
             this.loading = true;
 
-            const response = await fetch('http://localhost:5000/api/authentication/register', {
+            const response = await fetch(server + 'api/authentication/register', {
                 method: 'POST',
                 cache: 'no-cache',
                 credentials: 'omit',
                 redirect: 'follow',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'ApiKey': apiKey
+                },
                 body: JSON.stringify({ Name: name, Username: username, Email: email, Password: password })
             });
 

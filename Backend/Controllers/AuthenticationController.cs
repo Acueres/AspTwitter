@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.EntityFrameworkCore;
 
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
 
 using AspTwitter.Models;
 using AspTwitter.Requests;
@@ -17,13 +15,14 @@ using AspTwitter.Authentication;
 
 namespace AspTwitter.Controllers
 {
+    [ApiKey]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
         private readonly AppDbContext context;
         private readonly IConfiguration configuration;
-        private IAuthenticationManager auth;
+        private readonly IAuthenticationManager auth;
 
         public AuthenticationController(AppDbContext context, IConfiguration configuration, IAuthenticationManager auth)
         {
@@ -57,7 +56,7 @@ namespace AspTwitter.Controllers
                 return StatusCode(StatusCodes.Status404NotFound);
             }
 
-            if (!CompareHash(request.Password, user.PasswordHash))
+            if (!Util.CompareHash(request.Password, user.PasswordHash))
             {
                 return StatusCode(StatusCodes.Status401Unauthorized);
             }
@@ -86,9 +85,9 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            if (ExceedsLength(request.Name, MaxLength.Name) ||
-                ExceedsLength(request.Username, MaxLength.Username) ||
-                ExceedsLength(request.Password, MaxLength.Password))
+            if (Util.ExceedsLength(request.Name, MaxLength.Name) ||
+                Util.ExceedsLength(request.Username, MaxLength.Username) ||
+                Util.ExceedsLength(request.Password, MaxLength.Password))
             {
                 return BadRequest();
             }
@@ -98,7 +97,7 @@ namespace AspTwitter.Controllers
                 request.Email = request.Email.Replace(" ", string.Empty);
 
                 //Ignore email if it exceeds max length or its format is incorrect
-                if (ExceedsLength(request.Email, MaxLength.Email))
+                if (Util.ExceedsLength(request.Email, MaxLength.Email))
                 {
                     request.Email = null;
                 }
@@ -123,7 +122,7 @@ namespace AspTwitter.Controllers
                 Name = request.Name,
                 Username = request.Username,
                 Email = request.Email,
-                PasswordHash = Hash(request.Password)
+                PasswordHash = Util.Hash(request.Password)
             };
 
             context.Users.Add(user);
@@ -138,47 +137,6 @@ namespace AspTwitter.Controllers
         public ActionResult Test()
         {
             return Ok();
-        }
-
-        private bool ExceedsLength(string val, MaxLength length)
-        {
-            return val.Length > (int)length;
-        }
-
-        private string Hash(string password)
-        {
-            byte[] salt = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(salt);
-            }
-
-            string key = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: password,
-                salt: salt,
-                prf: KeyDerivationPrf.HMACSHA1,
-                iterationCount: 10000,
-                numBytesRequested: 32));
-
-            return $"{10000}.{Convert.ToBase64String(salt)}.{key}";
-        }
-
-        private bool CompareHash(string password, string hash)
-        {
-            string[] hashParts = hash.Split('.');
-
-            int iterations = Convert.ToInt32(hashParts[0]);
-            byte[] salt = Convert.FromBase64String(hashParts[1]);
-            byte[] key = Convert.FromBase64String(hashParts[2]);
-
-            byte[] keyToCheck = KeyDerivation.Pbkdf2(
-                password: password,
-                salt: salt,
-                prf: KeyDerivationPrf.HMACSHA1,
-                iterationCount: iterations,
-                numBytesRequested: 32);
-
-            return key.SequenceEqual(keyToCheck);
         }
     }
 }

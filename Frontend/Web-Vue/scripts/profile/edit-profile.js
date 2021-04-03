@@ -34,13 +34,14 @@ var editProfile = new Vue({
             this.usernameMessage = this.errorMessages.usernameEmpty;
 
             this.loading = true;
-            const response = await fetch(`http://localhost:5000/api/users/${appUser.id}`, {
+            const response = await fetch(server + `api/users/${appUser.id}`, {
                 method: 'PATCH',
                 credentials: 'omit',
                 redirect: 'follow',
                 cache: 'no-cache',
                 headers: {
                     'Content-Type': 'application/json',
+                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 },
                 body: JSON.stringify({

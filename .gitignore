@@ -29,3 +29,9 @@
 /Backend/Tests/Tests.csproj
 /.vs/AspTwitter/v16/TestStore/0
 /Frontend/Web/logo.png
+/wwwroot
+/Backend/AppData/apps.json
+/Frontend/Web-Vue/.vscode/launch.json
+/Frontend/Web-Vue/lib
+/Frontend/Web-Vue/config.json
+/Frontend/Web-Vue/logo.png

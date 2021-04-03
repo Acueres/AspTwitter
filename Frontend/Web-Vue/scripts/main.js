@@ -18,7 +18,7 @@ function uploadAvatar() {
         let settings = {
             "async": true,
             "crossDomain": true,
-            "url": `http://localhost:5000/api/users/${appUser.id}/avatar`,
+            "url": server + `api/users/${appUser.id}/avatar`,
             "method": "POST",
             "processData": false,
             "contentType": false,
@@ -26,6 +26,7 @@ function uploadAvatar() {
             "data": form,
             beforeSend: function (xhr) {
                 xhr.setRequestHeader("Authorization", 'Bearer ' + appUser.token);
+                xhr.setRequestHeader('ApiKey', apiKey);
             }
         };
 

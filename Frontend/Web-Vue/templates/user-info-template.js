@@ -2,7 +2,7 @@ var userInfoTemplate = {
     props: ['user', 'appUser'],
     methods: {
         getAvatar: function (id) {
-            return `http://localhost:5000/api/users/${id}/avatar`;
+            return server + `api/users/${id}/avatar`;
         },
 
         openProfile: function (targetUser) {
@@ -30,15 +30,15 @@ var userInfoTemplate = {
                 v-on:click="openProfile(user)" alt="avatar">
         </div>
 
-        <div class="col-5 text-truncate" v-on:click="openProfile(user)" style="cursor: pointer">
+        <div class="col-5" v-on:click="openProfile(user)" style="cursor: pointer">
             <b style="font-size: large;">{{ user.name }}</b>
             <br>
             @{{ user.username }}
         </div>
 
-        <div class="col" v-if="appUser.logged && appUser.id != user.id">
+        <div class="col">
             <button class="btn" v-on:click="appUser.follows(user.id) ? appUser.unfollow(user): appUser.follow(user)"
-                v-bind:class="appUser.follows(user.id) ? 'btn-info' : 'btn-outline-info'">
+                v-bind:class="appUser.follows(user.id) ? 'btn-info' : 'btn-outline-info'" v-if="appUser.logged && appUser.id != user.id">
                 {{ appUser.follows(user.id) ? 'Unfollow': 'Follow' }}
             </button>
         </div>

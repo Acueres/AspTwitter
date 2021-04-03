@@ -16,6 +16,19 @@
   <!--Scripts-->
   <script type="text/javascript" src="lib/vue.js"></script>
   <script type="text/javascript" src="lib/jquery-3.5.1.min.js"></script>
+  <script>
+    var apiKey;
+    var server;
+    $.ajax({
+      url: 'config.json',
+      dataType: 'json',
+      async: false,
+      success: function (config) {
+        apiKey = config.apiKey;
+        server = config.server;
+      }
+    });
+  </script>
   <script type="text/javascript" src="scripts/models/user.js"></script>
   <script type="text/javascript" src="scripts/models/app-user.js"></script>
   <script type="text/javascript" src="scripts/models/entries.js"></script>
@@ -63,7 +76,8 @@
   <!--Tweet edit modal-->
   <div class="modal fade" id="edit-tweet" tabindex="-1"></div>
 
-  <input type="file" id="avatar-selector" accept="image/*" enctype="multipart/form-data" style="display: none;" onchange="uploadAvatar()">
+  <input type="file" id="avatar-selector" accept="image/*" enctype="multipart/form-data" style="display: none;"
+    onchange="uploadAvatar()">
 
   <script type="text/javascript" src="scripts/main.js"></script>
 </body>

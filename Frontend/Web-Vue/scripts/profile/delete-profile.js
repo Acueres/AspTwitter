@@ -9,13 +9,14 @@ var deleteProfile = new Vue({
         },
 
         deleteProfile: async function () {
-            const response = await fetch(`http://localhost:5000/api/users/${appUser.id}`, {
+            const response = await fetch(server + `api/users/${appUser.id}`, {
                 method: 'DELETE',
                 cache: 'no-cache',
                 credentials: 'omit',
                 redirect: 'follow',
                 headers: {
                     'Content-Type': 'application/json',
+                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 }
             });

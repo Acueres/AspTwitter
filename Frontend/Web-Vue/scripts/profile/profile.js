@@ -20,13 +20,14 @@ var profile = new Vue({
     {
         deleteEntry: async function (id) {
 
-            const response = await fetch(`http://localhost:5000/api/entries/${id}`, {
+            const response = await fetch(server + `api/entries/${id}`, {
                 method: 'DELETE',
                 credentials: 'omit',
                 redirect: 'follow',
                 cache: 'no-cache',
                 headers: {
                     'Content-Type': 'application/json',
+                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 }
             });

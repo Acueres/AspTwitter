@@ -25,13 +25,14 @@ var editTweet = new Vue({
             }
 
             this.loading = true;
-            const response = await fetch(`http://localhost:5000/api/entries/${this.entry.id}`, {
+            const response = await fetch(server + `api/entries/${this.entry.id}`, {
                 method: 'PATCH',
                 credentials: 'omit',
                 redirect: 'follow',
                 cache: 'no-cache',
                 headers: {
                     'Content-Type': 'application/json',
+                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 },
                 body: JSON.stringify({
