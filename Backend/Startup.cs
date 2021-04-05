@@ -50,15 +50,16 @@ namespace AspTwitter
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseSpaStaticFiles();
 
             app.UseRouting();
 
-            app.UseCors((x => x
+            app.UseCors(policy => policy
             .AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader()));
+            .AllowAnyHeader());
+
+            app.UseStaticFiles();
+            app.UseSpaStaticFiles();
 
             app.UseMiddleware<JwtMiddleware>();
 

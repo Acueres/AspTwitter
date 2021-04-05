@@ -40,6 +40,11 @@ namespace AspTwitter.Controllers
             }
         }
 
+        public IActionResult ToClient()
+        {
+            return Redirect("vue");
+        }
+
         [Route("home")]
         public async Task<IActionResult> Home()
         {
@@ -337,24 +342,19 @@ namespace AspTwitter.Controllers
         }
 
         [Route("apps")]
-        public async Task<IActionResult> Apps()
+        public IActionResult Apps()
         {
-            ViewBag.Apps = await GetApps();
+            ViewBag.Apps = appSettings.Apps;
 
             return View("Backend/Views/Admin/Apps/Apps.cshtml");
         }
 
         [Route("apps/create")]
-        public async Task<IActionResult> RegisterApp(string name, string info, string path, int days)
+        public async Task<IActionResult> RegisterApp(string name, string info, string path)
         {
-            if (days < 1)
-            {
-                days = 1;
-            }
+            List<AppModel> apps = appSettings.Apps;
 
-            List<AppModel> apps = await GetApps();
-
-            if (apps.Any(x => x.Name == name) || string.IsNullOrEmpty(info) || days < 1)
+            if (apps.Any(x => x.Name == name) || string.IsNullOrEmpty(info))
             {
                 return View("Backend/Views/Admin/Apps/RegisterApp.cshtml");
             }
@@ -363,17 +363,14 @@ namespace AspTwitter.Controllers
             {
                 Name = name,
                 Info = info,
-                Key = auth.GetAppToken(name, days),
-                ConfigPath = path,
-                KeyExpires = DateTime.UtcNow.AddDays(days),
+                Key = auth.GetAppToken(name, 0),
+                Path = path,
+                Generation = 0
             };
 
             apps.Add(appData);
             await SaveApps(apps);
-
-            await AddToAppsettings(name);
-
-            await UpdateKey(appData.ConfigPath, appData.Key);
+            await UpdateKey(appData.Path, appData.Key);
 
             return RedirectToAction("Apps");
         }
@@ -381,7 +378,7 @@ namespace AspTwitter.Controllers
         [Route("apps/{name}/edit")]
         public async Task<IActionResult> EditApp(string name, string info, string path)
         {
-            List<AppModel> apps = await GetApps();
+            List<AppModel> apps = appSettings.Apps;
             var app = apps.Find(x => x.Name == name);
 
             if (app is null)
@@ -398,7 +395,7 @@ namespace AspTwitter.Controllers
 
             int index = apps.FindIndex(x => x.Name == name);
             apps[index].Info = info;
-            apps[index].ConfigPath = path;
+            apps[index].Path = path;
             await SaveApps(apps);
 
             return RedirectToAction("Apps");
@@ -407,7 +404,7 @@ namespace AspTwitter.Controllers
         [Route("apps/{name}/delete")]
         public async Task<IActionResult> DeleteApp(string name)
         {
-            List<AppModel> apps = await GetApps();
+            List<AppModel> apps = appSettings.Apps;
             if (!apps.Any(x => x.Name == name))
             {
                 return RedirectToAction("Apps");
@@ -417,40 +414,31 @@ namespace AspTwitter.Controllers
             apps.RemoveAt(index);
             await SaveApps(apps);
 
-            await RemoveFromAppsettings(name);
-
             return RedirectToAction("Apps");
         }
 
         [Route("apps/{name}/issue")]
-        public async Task<IActionResult> IssueAppKey(string name, int days)
+        public async Task<IActionResult> IssueAppKey(string name)
         {
-            if (days < 1)
+            if (string.IsNullOrEmpty(name))
             {
                 return RedirectToAction("Apps");
             }
 
-            List<AppModel> apps = await GetApps();
+            List<AppModel> apps = appSettings.Apps;
             if (!apps.Any(x => x.Name == name))
             {
                 return RedirectToAction("Apps");
             }
 
             int index = apps.FindIndex(x => x.Name == name);
-            apps[index].KeyExpires = DateTime.UtcNow.AddDays(days);
-            apps[index].Key = auth.GetAppToken(name, days);
-            await SaveApps(apps);
+            apps[index].Generation++;
+            apps[index].Key = auth.GetAppToken(name, apps[index].Generation);
 
-            await UpdateKey(apps[index].ConfigPath, apps[index].Key);
+            await SaveApps(apps);
+            await UpdateKey(apps[index].Path, apps[index].Key);
 
             return RedirectToAction("Apps");
-        }
-
-        private async Task<List<AppModel>> GetApps()
-        {
-            string path = "Backend/AppData/apps.json";
-            string json = await System.IO.File.ReadAllTextAsync(path);
-            return JsonConvert.DeserializeObject<List<AppModel>>(json);
         }
 
         private async Task SaveApps(List<AppModel> data)
@@ -460,48 +448,13 @@ namespace AspTwitter.Controllers
             await System.IO.File.WriteAllTextAsync(path, json);
         }
 
-        private async Task AddToAppsettings(string name)
-        {
-            string path = "appsettings.json";
-            string json = await System.IO.File.ReadAllTextAsync(path);
-            dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
-
-            ((JArray)data.JWT.Apps).Add(name);
-            appSettings.Apps.Add(name);
-
-            json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            await System.IO.File.WriteAllTextAsync(path, json);
-        }
-
-        private async Task RemoveFromAppsettings(string name)
-        {
-            string path = "appsettings.json";
-            string json = await System.IO.File.ReadAllTextAsync(path);
-            dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
-
-            var apps = ((JArray)data.JWT.Apps).ToObject<List<string>>();
-            int index = apps.FindIndex(x => x == name);
-
-            if (index != -1)
-            {
-                ((JArray)data.JWT.Apps).RemoveAt(index);
-            }
-
-            json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            await System.IO.File.WriteAllTextAsync(path, json);
-        }
-
         private async Task UpdateKey(string path, string key)
         {
-            string fullPath = path + "/config.json";
+            string fullPath = path + "/api-key.js";
             if (System.IO.File.Exists(fullPath))
             {
-                string json = await System.IO.File.ReadAllTextAsync(fullPath);
-                dynamic data = JsonConvert.DeserializeObject<dynamic>(json);
-                data.apiKey = key;
-
-                json = JsonConvert.SerializeObject(data, Formatting.Indented);
-                await System.IO.File.WriteAllTextAsync(fullPath, json);
+                string text = $"var apiKey = '{key}'";
+                await System.IO.File.WriteAllTextAsync(fullPath, text);
             }
         }
     }

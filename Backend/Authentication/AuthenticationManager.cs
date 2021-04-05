@@ -18,7 +18,7 @@ namespace AspTwitter.Authentication
     {
         AuthenticationResponse Authenticate(AuthenticationRequest request);
         AuthenticationResponse Authenticate(User user);
-        string GetAppToken(string appName, int days);
+        string GetAppToken(string appName, uint generation);
         User GetUser(uint id);
     }
 
@@ -60,14 +60,14 @@ namespace AspTwitter.Authentication
             return new AuthenticationResponse(user, token);
         }
 
-        public string GetAppToken(string appName, int days)
+        public string GetAppToken(string appName, uint generation)
         {
             if (string.IsNullOrEmpty(appName))
             {
                 return string.Empty;
             }
 
-            return AppJwtToken(appName, days);
+            return AppJwtToken(appName, generation);
         }
 
         public User GetUser(uint id)
@@ -92,14 +92,13 @@ namespace AspTwitter.Authentication
             return tokenHandler.WriteToken(token);
         }
 
-        private string AppJwtToken(string appName, int days)
+        private string AppJwtToken(string appName, uint generation)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("appName", appName) }),
-                Expires = DateTime.UtcNow.AddDays(days),
+                Subject = new ClaimsIdentity(new[] { new Claim("appName", appName), new Claim("generation", generation.ToString()) }),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
             };
 

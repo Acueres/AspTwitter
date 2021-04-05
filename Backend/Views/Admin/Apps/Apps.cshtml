@@ -13,9 +13,8 @@
             <tr>
                 <th scope="col">Name</th>
                 <th scope="col">Info</th>
-                <th>Key</th>
+                <th>Current Key</th>
                 <th>Path</th>
-                <th>Days until key expires</th>
                 <th scope="col">Actions</th>
             </tr>
         </thead>
@@ -26,15 +25,9 @@
                 <td class="text-break">@app.Name</td>
                 <td class="text-break">@app.Info</td>
                 <td class="text-break" style="max-width: 500px">@app.Key</td>
-                <td>@(app.ConfigPath is null ? "None" : app.ConfigPath)</td>
-                <td>
-                    @(
-                        Math.Round(((DateTime)app.KeyExpires - DateTime.UtcNow).TotalDays, 2)
-                        )
-                </td>
+                <td>@(app.Path is null ? "None" : app.Path)</td>
                 <td>
                     <form asp-controller="Admin" asp-action="IssueAppKey" asp-route-name="@app.Name">
-                        <input type="text" style="max-width: fit-content()" placeholder="Days" name="days" />
                         <button type="submit" class="btn btn-link">Issue key</button>|
                         <a class="btn btn-link" asp-controller="Admin" asp-action="EditApp" asp-route-name="@app.Name">Edit</a>|
                         <a class="btn btn-link" asp-controller="Admin" asp-action="DeleteApp" asp-route-name="@app.Name">Delete</a>

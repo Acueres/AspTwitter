@@ -19,7 +19,12 @@ namespace AspTwitter.Authentication
 
             if (allowAnonymous) return;
 
-            bool keyValid = (bool)context.HttpContext.Items["ApiKey"];
+            bool keyValid = false;
+            try
+            {
+                keyValid = (bool)context.HttpContext.Items["ApiKeyValid"];
+            }
+            catch (NullReferenceException) { }
 
             if (!keyValid)
             {

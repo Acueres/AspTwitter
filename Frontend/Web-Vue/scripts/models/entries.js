@@ -9,6 +9,7 @@ class Entries {
     async load() {
         const response = await fetch(server + `api/entries/partial/${this.part}`, {
             headers: {
+                credentials: 'omit',
                 'ApiKey': apiKey
             }
         });

@@ -24,6 +24,7 @@ class User {
 
         const response = await fetch(server + `api/users/${this.id}`, {
             headers: {
+                credentials: 'omit',
                 'ApiKey': apiKey
             }
         });
@@ -41,6 +42,7 @@ class User {
 
         let response = await fetch(server + `api/users/${this.id}/entries`, {
             headers: {
+                credentials: 'omit',
                 'ApiKey': apiKey
             }
         });
@@ -49,6 +51,7 @@ class User {
 
         response = await fetch(server + `api/users/${this.id}/favorites`, {
             headers: {
+                credentials: 'omit',
                 'ApiKey': apiKey
             }
         });
@@ -56,6 +59,7 @@ class User {
 
         response = await fetch(server + `api/users/${this.id}/retweets`, {
             headers: {
+                credentials: 'omit',
                 'ApiKey': apiKey
             }
         });
@@ -64,6 +68,7 @@ class User {
 
         response = await fetch(server + `api/users/${this.id}/followers`, {
             headers: {
+                credentials: 'omit',
                 'ApiKey': apiKey
             }
         });
@@ -71,6 +76,7 @@ class User {
 
         response = await fetch(server + `api/users/${this.id}/following`, {
             headers: {
+                credentials: 'omit',
                 'ApiKey': apiKey
             }
         });

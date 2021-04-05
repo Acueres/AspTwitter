@@ -1,16 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 using System;
 using System.Text;
-using System.Collections.Generic;
 using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
-
-using AspTwitter.Models;
 
 
 namespace AspTwitter.Authentication
@@ -37,7 +33,7 @@ namespace AspTwitter.Authentication
             }
             if (apiKey is not null)
             {
-                await AttachKeyToContext(context, apiKey);
+                AttachKeyToContext(context, apiKey);
             }
 
             await next(context);
@@ -67,12 +63,10 @@ namespace AspTwitter.Authentication
             catch { }
         }
 
-        private async Task AttachKeyToContext(HttpContext context, string token)
+        private void AttachKeyToContext(HttpContext context, string token)
         {
             try
             {
-                var apps = await GetApps();
-
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSettings.Secret));
 
@@ -87,18 +81,13 @@ namespace AspTwitter.Authentication
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 string appName = jwtToken.Claims.First(x => x.Type == "appName").Value;
+                uint generation = uint.Parse(jwtToken.Claims.First(x => x.Type == "generation").Value);
+                bool keyValid = appSettings.Apps.Any(x => x.Name == appName) &&
+                    appSettings.Apps.Where(x => x.Name == appName).First().Generation == generation;
 
-                context.Items["ApiKey"] = appSettings.Apps.Contains(appName) &&
-                                          apps.Find(x => x.Name == appName).Key == token;
+                context.Items["ApiKeyValid"] = keyValid;
             }
             catch { }
-        }
-
-        private async Task<List<AppModel>> GetApps()
-        {
-            string path = "Backend/AppData/apps.json";
-            string json = await System.IO.File.ReadAllTextAsync(path);
-            return JsonConvert.DeserializeObject<List<AppModel>>(json);
         }
     }
 }

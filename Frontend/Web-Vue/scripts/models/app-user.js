@@ -138,12 +138,16 @@ class AppUser extends User {
         }
 
         const response = await fetch(server + `api/users/${id}/recommended/${count}`, {
+            credentials: 'omit',
             headers: {
                 'ApiKey': apiKey
             }
         });
         this.recommended = await response.json();
-        this.recommended.reverse();
+
+        if (response.status == 200) {
+            this.recommended.reverse();
+        }
     }
 }
 
