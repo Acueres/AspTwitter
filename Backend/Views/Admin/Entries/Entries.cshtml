@@ -50,7 +50,10 @@
                     <td>@entry.Timestamp.Date.ToShortDateString()</td>
                     <td>@entry.LikeCount</td>
                     <td>@entry.RetweetCount</td>
-                    <td>@entry.CommentCount</td>
+                    <td>
+                        @entry.CommentCount
+                        <a class="btn btn-link" asp-controller="Admin" asp-action="EntryComments" asp-route-id="@entry.Id">View</a>
+                    </td>
                     <td>
                         <a class="btn btn-link" asp-controller="Admin" asp-action="EditUser" asp-route-id="@entry.AuthorId">@entry.Author.Username</a>|
                         <a class="btn btn-link" asp-controller="Admin" asp-action="CreateEntry" asp-route-username="@entry.Author.Username">Post</a>

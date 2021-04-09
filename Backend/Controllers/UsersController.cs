@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using System;
 using System.Collections.Generic;
@@ -11,12 +12,13 @@ using System.Threading.Tasks;
 using AspTwitter.Models;
 using AspTwitter.Requests;
 using AspTwitter.AppData;
-using AspTwitter.Authentication;
+
+using AuthorizeAttribute = AspTwitter.Authentication.AuthorizeAttribute;
 
 
 namespace AspTwitter.Controllers
 {
-    [ApiKey]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -31,6 +33,7 @@ namespace AspTwitter.Controllers
         }
 
         // GET: api/Users
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
@@ -38,6 +41,7 @@ namespace AspTwitter.Controllers
         }
 
         // GET: api/Users/5
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(uint id)
         {
@@ -52,6 +56,7 @@ namespace AspTwitter.Controllers
         }
 
         // GET: api/Users/5/entries
+        [AllowAnonymous]
         [HttpGet("{id}/entries")]
         public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(uint id)
         {
@@ -64,7 +69,7 @@ namespace AspTwitter.Controllers
         }
 
         // GET: api/Users/5/avatar
-        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+        [AllowAnonymous]
         [HttpGet("{id}/avatar")]
         public async Task<IActionResult> GetAvatar(uint id)
         {
@@ -87,7 +92,6 @@ namespace AspTwitter.Controllers
         }
 
         // POST: api/Users/5/avatar
-        [Authorize]
         [HttpPost("{id}/avatar")]
         [Consumes("multipart/form-data", "image/jpg", "image/png")]
         public async Task<IActionResult> PostAvatar(uint id, [FromForm(Name = "avatar")] IFormFile image)
@@ -119,7 +123,6 @@ namespace AspTwitter.Controllers
         }
 
         // PATCH: api/Users/5
-        [Authorize]
         [HttpPatch("{id}")]
         public async Task<IActionResult> PutUser(uint id, EditUserRequest request)
         {
@@ -167,7 +170,6 @@ namespace AspTwitter.Controllers
         }
 
         // DELETE: api/Users/5
-        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(uint id)
         {
@@ -195,6 +197,7 @@ namespace AspTwitter.Controllers
         }
 
         //GET: api/Users/5/retweets
+        [AllowAnonymous]
         [HttpGet("{id}/retweets")]
         public async Task<ActionResult<IEnumerable<Entry>>> GetRetweets(uint id)
         {
@@ -208,6 +211,7 @@ namespace AspTwitter.Controllers
         }
 
         // GET: api/Users/5/favorites
+        [AllowAnonymous]
         [HttpGet("{id}/favorites")]
         public async Task<ActionResult<IEnumerable<Entry>>> GetFavorites(uint id)
         {
@@ -221,6 +225,7 @@ namespace AspTwitter.Controllers
         }
 
         // GET: api/Users/5/comments
+        [AllowAnonymous]
         [HttpGet("{id}/comments")]
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments(uint id)
         {
@@ -233,7 +238,6 @@ namespace AspTwitter.Controllers
         }
 
         //POST: api/Users/5/follow
-        [Authorize]
         [HttpPost("{id}/follow")]
         public async Task<IActionResult> FollowUser(uint id)
         {
@@ -280,7 +284,6 @@ namespace AspTwitter.Controllers
         }
 
         //DELETE: api/Users/5/unfollow
-        [Authorize]
         [HttpDelete("{id}/unfollow")]
         public async Task<IActionResult> UnfollowUser(uint id)
         {
@@ -321,6 +324,7 @@ namespace AspTwitter.Controllers
         }
 
         //GET: api/Users/5/followers
+        [AllowAnonymous]
         [HttpGet("{id}/followers")]
         public async Task<ActionResult<IEnumerable<User>>> GetFollowers(uint id)
         {
@@ -333,6 +337,7 @@ namespace AspTwitter.Controllers
         }
 
         //GET: api/Users/5/following
+        [AllowAnonymous]
         [HttpGet("{id}/following")]
         public async Task<ActionResult<IEnumerable<User>>> GetFollowings(uint id)
         {
@@ -345,6 +350,7 @@ namespace AspTwitter.Controllers
         }
 
         //POST: api/Users/search
+        [AllowAnonymous]
         [HttpPost("search")]
         public async Task<ActionResult<IEnumerable<User>>> SearchUsers([FromBody] string query)
         {
@@ -363,6 +369,7 @@ namespace AspTwitter.Controllers
         }
 
         //GET: api/Users/5/recommended/3
+        [AllowAnonymous]
         [HttpGet("{userId}/recommended/{count?}")]
         public async Task<ActionResult<IEnumerable<User>>> RecommendedUsers(uint userId, int count = 3)
         {
@@ -377,7 +384,7 @@ namespace AspTwitter.Controllers
                 return null;
             }
 
-            return await context.Users.OrderByDescending(x => x.FollowerCount).
+            return await context.Users.OrderByDescending(x => x.FollowerCount).Include(x => x.Followers).
                 Where(x => x.Id != userId && !x.Followers.Any(x => x.FollowerId == userId)).Take(count).ToListAsync();
         }
 

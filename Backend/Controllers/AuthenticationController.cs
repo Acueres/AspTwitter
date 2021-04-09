@@ -15,7 +15,6 @@ using AspTwitter.Authentication;
 
 namespace AspTwitter.Controllers
 {
-    [ApiKey]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticationController : ControllerBase

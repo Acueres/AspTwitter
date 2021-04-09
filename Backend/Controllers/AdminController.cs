@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 using System;
 using System.Linq;
@@ -15,9 +15,12 @@ using AspTwitter.AppData;
 using AspTwitter.Authentication;
 using AspTwitter.Models;
 
+using AuthorizeAttribute = AspTwitter.Authentication.AuthorizeAttribute;
+
 
 namespace AspTwitter.Controllers
 {
+    [Authorize]
     [Route("[controller]")]
     public class AdminController : Controller
     {
@@ -40,18 +43,86 @@ namespace AspTwitter.Controllers
             }
         }
 
+        [AllowAnonymous]
         public IActionResult ToClient()
         {
             return Redirect("vue");
         }
 
+        [AllowAnonymous]
+        [Route("login")]
+        public async Task<IActionResult> Login(string password)
+        {
+            User admin = await context.Users.Where(x => x.Username == "admin").FirstOrDefaultAsync();
+            if (!string.IsNullOrEmpty(password) && Util.CompareHash(password, admin.PasswordHash))
+            {
+                CookieBuilder authCookieBuilder = new()
+                {
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expiration = new TimeSpan(8, 0, 0)
+                };
+
+                var authCookieOptions = authCookieBuilder.Build(HttpContext);
+
+                string token = auth.Authenticate(admin).Token;
+                Response.Cookies.Append("AdminAuthorization", token, authCookieOptions);
+
+                return RedirectToAction("Home");
+            }
+
+            return View("Backend/Views/Admin/Login.cshtml");
+        }
+
+        [Route("download")]
+        public async Task<ActionResult> DownloadData(string type)
+        {
+            string data = type switch
+            {
+                "Users" => JsonConvert.SerializeObject(
+                    await context.Users.ToListAsync(),
+                    Formatting.Indented),
+                _ => JsonConvert.SerializeObject(
+                    await context.Entries.ToListAsync(),
+                    Formatting.Indented)
+            };
+
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(data);
+            var output = new FileContentResult(bytes, "application/octet-stream")
+            {
+                FileDownloadName = $"asp_twitter-{type.ToLower()}.json"
+            };
+
+            return output;
+        }
+
         [Route("home")]
         public async Task<IActionResult> Home()
         {
+            ViewBag.Admin = await context.Users.Where(x => x.Username == "admin").FirstOrDefaultAsync();
             ViewBag.UserCount = await context.Users.CountAsync();
             ViewBag.PostCount = await context.Entries.CountAsync();
 
             return View("Backend/Views/Admin/Home.cshtml");
+        }
+
+        [Route("admin/password")]
+        public async Task<IActionResult> EditAdminPassword(string oldPassword, string newPassword)
+        {
+            User admin = await context.Users.Where(x => x.Username == "admin").FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) || oldPassword == newPassword ||
+                newPassword.Length < 5 || !Util.CompareHash(oldPassword, admin.PasswordHash))
+            {
+                return View("Backend/Views/Admin/EditAdminPassword.cshtml");
+            }
+
+            admin.PasswordHash = Util.Hash(newPassword);
+
+            context.Entry(admin).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("Home");
         }
 
         [Route("users/{page?}")]
@@ -61,11 +132,11 @@ namespace AspTwitter.Controllers
             ViewBag.Order = orderBy;
             ViewBag.Ascending = ascending;
 
-            IQueryable<User> users = from x in context.Users select x;
+            IQueryable<User> users = from x in context.Users.Include(x => x.Comments) select x;
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
-                users = context.Users.Where(x => x.Name.ToLower().Contains(search) ||
+                users = users.Where(x => x.Name.ToLower().Contains(search) ||
                 x.Username.ToLower().Contains(search) || x.Email.ToLower().Contains(search));
             }
 
@@ -132,7 +203,7 @@ namespace AspTwitter.Controllers
                 user.Name = name;
             }
 
-            if (!string.IsNullOrEmpty(username))
+            if (!string.IsNullOrEmpty(username) && user.Username != "admin")
             {
                 username = username.Replace(" ", string.Empty);
                 user.Username = username;
@@ -201,7 +272,7 @@ namespace AspTwitter.Controllers
         public async Task<IActionResult> DeleteUser(uint id)
         {
             User user = await context.Users.FindAsync(id);
-            if (user is null)
+            if (user is null || user.Username == "admin")
             {
                 return Redirect(Request.Headers["Referer"].ToString());
             }
@@ -229,7 +300,7 @@ namespace AspTwitter.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
-                entries = context.Entries.Include(x => x.Author).Where(x => x.Text.ToLower().Contains(search) ||
+                entries = entries.Where(x => x.Text.ToLower().Contains(search) ||
                 x.Author.Username.ToLower().Contains(search));
             }
 
@@ -279,11 +350,17 @@ namespace AspTwitter.Controllers
             return View("Backend/Views/Admin/Entries/Entries.cshtml");
         }
 
-        [Route("entries/edit/{id}")]
+        [Route("entries/{id}/edit")]
         public async Task<IActionResult> EditEntry(uint id, string text)
         {
-            Entry entry = await context.Entries.FindAsync(id);
-            if (entry is null || string.IsNullOrEmpty(text))
+            Entry entry = await context.Entries.Include(x => x.Author).FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entry is null)
+            {
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
+
+            if (string.IsNullOrEmpty(text))
             {
                 ViewBag.Entry = entry;
                 return View("Backend/Views/Admin/Entries/EditEntry.cshtml");
@@ -341,121 +418,213 @@ namespace AspTwitter.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
-        [Route("apps")]
-        public IActionResult Apps()
+        [Route("users/{username}/comments/{page?}")]
+        public async Task<IActionResult> UserComments(string username, string search = null, string orderBy = "Id", bool ascending = false, int page = 1)
         {
-            ViewBag.Apps = appSettings.Apps;
-
-            return View("Backend/Views/Admin/Apps/Apps.cshtml");
-        }
-
-        [Route("apps/create")]
-        public async Task<IActionResult> RegisterApp(string name, string info, string path)
-        {
-            List<AppModel> apps = appSettings.Apps;
-
-            if (apps.Any(x => x.Name == name) || string.IsNullOrEmpty(info))
+            User author = await context.Users.Where(x => x.Username == username).FirstOrDefaultAsync();
+            if (author is null)
             {
-                return View("Backend/Views/Admin/Apps/RegisterApp.cshtml");
+                return Redirect(Request.Headers["Referer"].ToString());
             }
 
-            AppModel appData = new()
+            ViewBag.Author = author;
+            ViewBag.Search = search;
+            ViewBag.Order = orderBy;
+            ViewBag.Ascending = ascending;
+
+            IQueryable<Comment> comments = from x in context.Comments where x.AuthorId == author.Id select x;
+            if (!string.IsNullOrEmpty(search))
             {
-                Name = name,
-                Info = info,
-                Key = auth.GetAppToken(name, 0),
-                Path = path,
-                Generation = 0
+                search = search.ToLower();
+                comments = comments.Where(x => x.Text.ToLower().Contains(search));
+            }
+
+            Comment[] commentsArr = orderBy switch
+            {
+                "EntryId" => await comments.OrderByDescending(x => x.ParentId).ToArrayAsync(),
+                "Size" => await comments.OrderByDescending(x => x.Text.Length).ToArrayAsync(),
+                "Date" => await comments.OrderByDescending(x => x.Timestamp).ToArrayAsync(),
+                _ => await comments.OrderByDescending(x => x.Id).ToArrayAsync(),
             };
 
-            apps.Add(appData);
-            await SaveApps(apps);
-            await UpdateKey(appData.Path, appData.Key);
+            if (ascending)
+            {
+                Array.Reverse(commentsArr);
+            }
 
-            return RedirectToAction("Apps");
+            int n = 25;
+            int count = await comments.CountAsync();
+            int pageCount = (int)Math.Ceiling((float)count / n);
+
+            if (page < 1)
+            {
+                page = 1;
+            }
+            else if (page > pageCount)
+            {
+                page = pageCount;
+            }
+
+            int start = (page - 1) * n;
+            n = start + n > count ? count - start : n;
+
+            if (commentsArr.Length == 0)
+            {
+                ViewBag.Comments = new List<Comment>();
+            }
+            else
+            {
+                ViewBag.Comments = commentsArr[start..(start + n)];
+            }
+
+            ViewBag.Page = page;
+            ViewBag.PageCount = pageCount;
+
+            return View("Backend/Views/Admin/Comments/UserComments.cshtml");
         }
 
-        [Route("apps/{name}/edit")]
-        public async Task<IActionResult> EditApp(string name, string info, string path)
+        [Route("entries/{id}/comments/{page?}")]
+        public async Task<IActionResult> EntryComments(uint id, string search = null, string orderBy = "Id", bool ascending = false, int page = 1)
         {
-            List<AppModel> apps = appSettings.Apps;
-            var app = apps.Find(x => x.Name == name);
-
-            if (app is null)
+            Entry entry = await context.Entries.FindAsync(id);
+            if (entry is null)
             {
-                return RedirectToAction("Apps");
+                return Redirect(Request.Headers["Referer"].ToString());
             }
 
-            ViewBag.App = app;
+            ViewBag.Entry = entry;
+            ViewBag.Search = search;
+            ViewBag.Order = orderBy;
+            ViewBag.Ascending = ascending;
 
-            if (info is null)
+            IQueryable<Comment> comments = from x in context.Comments where x.ParentId == entry.Id select x;
+            if (!string.IsNullOrEmpty(search))
             {
-                return View("Backend/Views/Admin/Apps/EditApp.cshtml");
+                search = search.ToLower();
+                comments = comments.Where(x => x.Text.ToLower().Contains(search));
             }
 
-            int index = apps.FindIndex(x => x.Name == name);
-            apps[index].Info = info;
-            apps[index].Path = path;
-            await SaveApps(apps);
+            Comment[] commentsArr = orderBy switch
+            {
+                "AuthorId" => await comments.OrderByDescending(x => x.AuthorId).ToArrayAsync(),
+                "Size" => await comments.OrderByDescending(x => x.Text.Length).ToArrayAsync(),
+                "Date" => await comments.OrderByDescending(x => x.Timestamp).ToArrayAsync(),
+                _ => await comments.OrderByDescending(x => x.Id).ToArrayAsync(),
+            };
 
-            return RedirectToAction("Apps");
+            if (ascending)
+            {
+                Array.Reverse(commentsArr);
+            }
+
+            int n = 25;
+            int count = await comments.CountAsync();
+            int pageCount = (int)Math.Ceiling((float)count / n);
+
+            if (page < 1)
+            {
+                page = 1;
+            }
+            else if (page > pageCount)
+            {
+                page = pageCount;
+            }
+
+            int start = (page - 1) * n;
+            n = start + n > count ? count - start : n;
+
+            if (commentsArr.Length == 0)
+            {
+                ViewBag.Comments = new List<Comment>();
+            }
+            else
+            {
+                ViewBag.Comments = commentsArr[start..(start + n)];
+            }
+
+            ViewBag.Page = page;
+            ViewBag.PageCount = pageCount;
+
+            return View("Backend/Views/Admin/Comments/EntryComments.cshtml");
         }
 
-        [Route("apps/{name}/delete")]
-        public async Task<IActionResult> DeleteApp(string name)
+        [Route("comments/create")]
+        public async Task<IActionResult> AddComment(string text, string username, uint entryId)
         {
-            List<AppModel> apps = appSettings.Apps;
-            if (!apps.Any(x => x.Name == name))
+            ViewBag.Username = username;
+            ViewBag.EntryId = entryId;
+            User author = await context.Users.Where(x => x.Username == username).SingleOrDefaultAsync();
+            Entry entry = await context.Entries.FindAsync(entryId);
+            if (string.IsNullOrEmpty(text) || author is null || entry is null)
             {
-                return RedirectToAction("Apps");
+                return View("Backend/Views/Admin/Comments/AddComment.cshtml");
             }
 
-            int index = apps.FindIndex(x => x.Name == name);
-            apps.RemoveAt(index);
-            await SaveApps(apps);
+            Comment comment = new()
+            {
+                Text = text,
+                AuthorId = author.Id,
+                ParentId = entryId,
+                Timestamp = DateTime.UtcNow
+            };
 
-            return RedirectToAction("Apps");
+            context.Comments.Add(comment);
+
+            entry.CommentCount++;
+            context.Entry(entry).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("EntryComments", new { Id = entryId });
         }
 
-        [Route("apps/{name}/issue")]
-        public async Task<IActionResult> IssueAppKey(string name)
+        [Route("comments/{id}/edit")]
+        public async Task<IActionResult> EditComment(uint id, string text)
         {
-            if (string.IsNullOrEmpty(name))
+            Comment comment = await context.Comments.FindAsync(id);
+            if (comment is null || string.IsNullOrEmpty(text))
             {
-                return RedirectToAction("Apps");
+                ViewBag.Comment = comment;
+                return View("Backend/Views/Admin/Comments/EditComment.cshtml");
             }
 
-            List<AppModel> apps = appSettings.Apps;
-            if (!apps.Any(x => x.Name == name))
+            if (text is not null)
             {
-                return RedirectToAction("Apps");
+                text = Util.Truncate(text, MaxLength.Comment);
+                comment.Text = text;
             }
 
-            int index = apps.FindIndex(x => x.Name == name);
-            apps[index].Generation++;
-            apps[index].Key = auth.GetAppToken(name, apps[index].Generation);
+            context.Entry(comment).State = EntityState.Modified;
+            await context.SaveChangesAsync();
 
-            await SaveApps(apps);
-            await UpdateKey(apps[index].Path, apps[index].Key);
+            ViewBag.Comment = comment;
 
-            return RedirectToAction("Apps");
+            return RedirectToAction("EntryComments", new { Id = comment.ParentId });
         }
 
-        private async Task SaveApps(List<AppModel> data)
+        [Route("comments/delete")]
+        public async Task<IActionResult> DeleteComment(uint id)
         {
-            string path = "Backend/AppData/apps.json";
-            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            await System.IO.File.WriteAllTextAsync(path, json);
-        }
-
-        private async Task UpdateKey(string path, string key)
-        {
-            string fullPath = path + "/api-key.js";
-            if (System.IO.File.Exists(fullPath))
+            Comment comment = await context.Comments.FindAsync(id);
+            if (comment is null)
             {
-                string text = $"var apiKey = '{key}'";
-                await System.IO.File.WriteAllTextAsync(fullPath, text);
+                return Redirect(Request.Headers["Referer"].ToString());
             }
+
+            Entry entry = await context.Entries.FindAsync(comment.ParentId);
+            if (entry is null)
+            {
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
+
+            context.Comments.Remove(comment);
+
+            entry.CommentCount--;
+            context.Entry(entry).State = EntityState.Modified;
+
+            await context.SaveChangesAsync();
+
+            return Redirect(Request.Headers["Referer"].ToString());
         }
     }
 }

@@ -2,7 +2,76 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">@ViewBag.UserCount Users</h1>
-    <h1 class="display-4">@ViewBag.PostCount Entries</h1>
+<div>
+    <h1 class="text-center">Dashboard</h1>
+    <div class="border pb-3">
+        <h2 class="mb-5 ml-3">Admin</h2>
+        <div class="mb-3 ml-3 row">
+            <label class="col-1 col-form-label">Id</label>
+            <div class="col-4">
+                <input type="text" disabled class="form-control" value=@ViewBag.Admin.Id>
+            </div>
+        </div>
+
+        <div class="mb-3 ml-3 row">
+            <label class="col-1 col-form-label">Name</label>
+            <div class="col-4">
+                <input type="text" disabled class="form-control" value=@(ViewBag.Admin.Name)>
+            </div>
+        </div>
+
+        <div class="mb-3 ml-3 row">
+            <label class="col-1 col-form-label">Username</label>
+            <div class="col-4">
+                <input type="text" disabled class="form-control" value=@(ViewBag.Admin.Username)>
+            </div>
+        </div>
+
+        <a class="btn btn-info" asp-controller="Admin" asp-action="EditUser" asp-route-id="@ViewBag.Admin.Id">Edit</a>
+        <a class="btn btn-primary pl-3" asp-controller="Admin" asp-action="EditAdminPassword">Change password</a>
+    </div>
+    <div class="border">
+        <h2 class="mb-5 ml-3">Statistics</h2>
+        <div class="mb-3 ml-3 row">
+            <label class="col-1 col-form-label">Total users</label>
+            <div class="col-4">
+                <input type="text" disabled class="form-control" value=@ViewBag.UserCount>
+            </div>
+        </div>
+
+        <div class="mb-3 ml-3 row">
+            <label class="col-1 col-form-label">Total entries</label>
+            <div class="col-4">
+                <input type="text" disabled class="form-control" value=@ViewBag.PostCount Entries>
+            </div>
+        </div>
+    </div>
+
+    <div class="border">
+        <h2 class="mb-5 ml-3">Apps</h2>
+        <div class="mb-3 ml-3 row">
+            <label class="col-1 col-label">
+                <a asp-controller="Admin" asp-action="ToClient">Vue</a>
+            </label>
+            <div class="col-4">
+                <input type="text" disabled class="form-control" value="Web app made with Vue.js">
+            </div>
+        </div>
+    </div>
+
+    <form class="border" asp-controller="Admin" asp-action="DownloadData">
+        <h2 class="mb-5 ml-3">Actions</h2>
+        <div class="mb-3 ml-3 row">
+            <label class="col-1 col-form-label">Select data type</label>
+            <div class="col-4">
+                <div class="d-flex">
+                    <select class="form-select" name="type">
+                        <option value="Users" selected>Users</option>
+                        <option value="Entries">Entries</option>
+                    </select>
+                    <button type="submit" class="btn btn-info">Download</button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>

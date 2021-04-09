@@ -1,0 +1,86 @@
+﻿@{
+    ViewData["Title"] = $"Entry {ViewBag.Entry.Id} Comments";
+}
+
+<div class="text-center p-3">
+    <h1>@($"Entry {ViewBag.Entry.Id} Comments")</h1>
+    <form asp-controller="Admin" asp-action="EntryComments" asp-route-id="@ViewBag.Entry.Id" method="post">
+        <div class="mb-3 row">
+            <a class="btn btn-info" asp-controller="Admin" asp-action="AddComment" asp-route-username="admin" asp-route-entryId="@ViewBag.Entry.Id">Create</a>
+        </div>
+        <div class="mb-3 row">
+            <div class="d-flex">
+                <input type="text" class="form-control" name="search" placeholder="Search comments" value="@ViewBag.Search" />
+                <select class="form-select" name="orderBy">
+                    <option value="@ViewBag.Order" selected>Ordered by @ViewBag.Order</option>
+                    <option value="Id">Id</option>
+                    <option value="AuthorId">Author Id</option>
+                    <option value="Size">Size</option>
+                    <option value="Date">Date</option>
+                </select>
+                <select class="form-select" name="ascending">
+                    <option value="@ViewBag.Ascending" selected>@(ViewBag.Ascending ? "Ascending" : "Descending")</option>
+                    <option value="@(!ViewBag.Ascending)">@(ViewBag.Ascending ? "Descending" : "Ascending")</option>
+                </select>
+                <input type="submit" class="btn btn-primary" value="Search" />
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Author Id</th>
+                <th scope="col">Date</th>
+                <th scope="col">Text</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Comment comment in ViewBag.Comments)
+            {
+                <tr>
+                    <td>@comment.Id</td>
+                    <td>@comment.AuthorId</td>
+                    <td>@comment.Timestamp.Date.ToShortDateString()</td>
+                    <td>@comment.Text</td>
+                    <td>
+                        <a class="btn btn-link" asp-controller="Admin" asp-action="EditComment" asp-route-id="@comment.Id">Edit</a>|
+                        <a class="btn btn-link" asp-controller="Admin" asp-action="DeleteComment" asp-route-id="@comment.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <form asp-controller="Admin" asp-action="UserComments" asp-route-id="@ViewBag.Entry.Id" asp-route-search="@ViewBag.Search"
+          asp-route-orderBy="@ViewBag.Order" asp-route-ascending="@ViewBag.Ascending" method="post">
+        <div class="btn-toolbar float-right pb-5" role="toolbar">
+            <div class="btn-group me-2" role="group">
+                @if (ViewBag.Page == 1)
+                {
+                    <button type="button" class="btn btn-light" disabled>Previous</button>
+                }
+                else
+                {
+                    <a type="button" class="btn btn-light" asp-controller="Admin" asp-action="UserComments" asp-route-page="@(ViewBag.Page - 1)" asp-route-search="@ViewBag.Search"
+                       asp-route-orderBy="@ViewBag.Order" asp-route-ascending="@ViewBag.Ascending" asp-route-id="@ViewBag.Entry.Id">Previous</a>
+                }
+
+                @if (ViewBag.PageCount == ViewBag.Page)
+                {
+                    <button type="button" class="btn btn-light" disabled>Next</button>
+                }
+                else
+                {
+                    <a type="button" class="btn btn-light" asp-controller="Admin" asp-action="UserComments" asp-route-page="@(ViewBag.Page + 1)" asp-route-search="@ViewBag.Search"
+                       asp-route-orderBy="@ViewBag.Order" asp-route-ascending="@ViewBag.Ascending" asp-route-id="@ViewBag.Entry.Id">Next</a>
+                }
+            </div>
+            <input name="page" type="text" class="form-control w-auto" placeholder="Page number">
+            <input type="submit" class="btn btn-primary" value="Go" />
+            <span class="input-group-text pl-3">Page @ViewBag.Page of @ViewBag.PageCount</span>
+        </div>
+    </form>
+</div>

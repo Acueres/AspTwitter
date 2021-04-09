@@ -17,6 +17,7 @@ namespace AspTwitter
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureKestrel(options => { });
                     webBuilder.UseStartup<Startup>();
                 });
     }

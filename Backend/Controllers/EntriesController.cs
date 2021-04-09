@@ -6,16 +6,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 using AspTwitter.AppData;
 using AspTwitter.Models;
 using AspTwitter.Requests;
-using AspTwitter.Authentication;
+
+using AuthorizeAttribute = AspTwitter.Authentication.AuthorizeAttribute;
 
 
 namespace AspTwitter.Controllers
 {
-    [ApiKey]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class EntriesController : ControllerBase
@@ -28,6 +30,7 @@ namespace AspTwitter.Controllers
         }
 
         // GET: api/Entries/partial/5
+        [AllowAnonymous]
         [HttpGet("partial/{part}")]
         public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(int part)
         {
@@ -56,6 +59,7 @@ namespace AspTwitter.Controllers
         }
 
         //GET: api/Entries
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Entry>>> GetEntries()
         {
@@ -63,6 +67,7 @@ namespace AspTwitter.Controllers
         }
 
         // GET: api/Entries/5
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<Entry>> GetEntry(uint id)
         {
@@ -77,7 +82,6 @@ namespace AspTwitter.Controllers
         }
 
         // PATCH: api/Entries/5
-        [Authorize]
         [HttpPatch("{id}")]
         public async Task<IActionResult> EditEntry(uint id, EntryRequest request)
         {
@@ -123,7 +127,6 @@ namespace AspTwitter.Controllers
         }
 
         // POST: api/Entries
-        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Entry>> PostEntry(EntryRequest request)
         {
@@ -160,7 +163,6 @@ namespace AspTwitter.Controllers
         }
 
         // DELETE: api/Entries/5
-        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEntry(uint id)
         {
@@ -183,7 +185,6 @@ namespace AspTwitter.Controllers
         }
 
         //POST api/Entries/5/favorite
-        [Authorize]
         [HttpPost("{id}/favorite")]
         public async Task<IActionResult> AddFavorite(uint id)
         {
@@ -223,7 +224,6 @@ namespace AspTwitter.Controllers
         }
 
         //DELETE api/Entries/5/favorite
-        [Authorize]
         [HttpDelete("{id}/favorite")]
         public async Task<IActionResult> RemoveFavorite(uint id)
         {
@@ -251,7 +251,6 @@ namespace AspTwitter.Controllers
         }
 
         //POST api/Entries/5/retweet
-        [Authorize]
         [HttpPost("{id}/retweet")]
         public async Task<IActionResult> Retweet(uint id)
         {
@@ -291,7 +290,6 @@ namespace AspTwitter.Controllers
         }
 
         //DELETE api/Entries/5/retweet
-        [Authorize]
         [HttpDelete("{id}/retweet")]
         public async Task<IActionResult> RemoveRetweet(uint id)
         {
@@ -319,6 +317,7 @@ namespace AspTwitter.Controllers
         }
 
         //GET api/Entries/5/comments
+        [AllowAnonymous]
         [HttpGet("{id}/comments")]
         public async Task<ActionResult<IEnumerable<Comment>>> GetComments(uint id)
         {
@@ -332,7 +331,6 @@ namespace AspTwitter.Controllers
         }
 
         //POST api/Entries/5/comments
-        [Authorize]
         [HttpPost("{id}/comments")]
         public async Task<IActionResult> PostComment(uint id, EntryRequest request)
         {
@@ -381,7 +379,6 @@ namespace AspTwitter.Controllers
         }
 
         //DELETE api/Entries/5/comments/5
-        [Authorize]
         [HttpDelete("{entryId}/comments/{id}")]
         public async Task<IActionResult> DeleteEntry(uint entryId, uint id)
         {
@@ -414,6 +411,7 @@ namespace AspTwitter.Controllers
         }
 
         //POST: api/Entries/search
+        [AllowAnonymous]
         [HttpPost("search")]
         public async Task<ActionResult<IEnumerable<Entry>>> SearchEntries([FromBody] string query)
         {

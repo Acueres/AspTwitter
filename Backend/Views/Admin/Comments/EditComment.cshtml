@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = $"Edit Comment";
+}
+
+<h2 class="mb-5">Edit Comment</h2>
+<form class="border" asp-controller="Admin" asp-action="EditComment">
+    <div class="mb-3 row">
+        <label for="id" class="col-1 col-form-label">Id</label>
+        <div class="col-4">
+            <input type="text" readonly class="form-control-plaintext" name="id" value=@ViewBag.Comment.Id>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label for="date" class="col-1 col-form-label">Date</label>
+        <div class="col-4">
+            <input type="text" class="form-control-plaintext" name="date" value="@ViewBag.Comment.Timestamp" readonly>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label for="text" class="col-1 col-form-label">Text</label>
+        <div class="col-4">
+            <textarea class="form-control" name="text" rows="5" maxlength="128">@ViewBag.Comment.Text</textarea>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
