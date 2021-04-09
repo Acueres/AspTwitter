@@ -43,8 +43,7 @@ var explore = new Vue({
                 credentials: 'omit',
                 redirect: 'follow',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'ApiKey': apiKey
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(query)
             })

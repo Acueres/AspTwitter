@@ -7,12 +7,7 @@ class Entries {
     }
 
     async load() {
-        const response = await fetch(server + `api/entries/partial/${this.part}`, {
-            headers: {
-                credentials: 'omit',
-                'ApiKey': apiKey
-            }
-        });
+        const response = await fetch(server + `api/entries/partial/${this.part}`);
 
         if (response.status == 200) {
             const data = await response.json();
@@ -41,5 +36,3 @@ class Entries {
         }
     }
 }
-
-var entries = new Entries();

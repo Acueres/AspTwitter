@@ -23,7 +23,6 @@ class AppUser extends User {
             redirect: 'follow',
             headers: {
                 'Content-Type': 'application/json',
-                'ApiKey': apiKey,
                 'Authorization': 'Bearer ' + storageData.token
             }
         });
@@ -99,7 +98,6 @@ class AppUser extends User {
             redirect: 'follow',
             headers: {
                 'Content-Type': 'application/json',
-                'ApiKey': apiKey,
                 'Authorization': 'Bearer ' + this.token
             }
         });
@@ -118,7 +116,6 @@ class AppUser extends User {
             redirect: 'follow',
             headers: {
                 'Content-Type': 'application/json',
-                'ApiKey': apiKey,
                 'Authorization': 'Bearer ' + this.token
             }
         });
@@ -137,12 +134,7 @@ class AppUser extends User {
             id = this.id;
         }
 
-        const response = await fetch(server + `api/users/${id}/recommended/${count}`, {
-            credentials: 'omit',
-            headers: {
-                'ApiKey': apiKey
-            }
-        });
+        const response = await fetch(server + `api/users/${id}/recommended/${count}`);
         this.recommended = await response.json();
 
         if (response.status == 200) {
@@ -150,5 +142,3 @@ class AppUser extends User {
         }
     }
 }
-
-var appUser = new AppUser();

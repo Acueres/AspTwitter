@@ -26,7 +26,6 @@ function uploadAvatar() {
             "data": form,
             beforeSend: function (xhr) {
                 xhr.setRequestHeader("Authorization", 'Bearer ' + appUser.token);
-                xhr.setRequestHeader('ApiKey', apiKey);
             }
         };
 

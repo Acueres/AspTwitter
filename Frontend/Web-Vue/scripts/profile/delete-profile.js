@@ -16,7 +16,6 @@ var deleteProfile = new Vue({
                 redirect: 'follow',
                 headers: {
                     'Content-Type': 'application/json',
-                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 }
             });

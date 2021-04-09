@@ -48,7 +48,6 @@ var tweetTemplate = {
         cache: 'no-cache',
         headers: {
           'Content-Type': 'application/json',
-          'ApiKey': apiKey,
           'Authorization': 'Bearer ' + appUser.token
         }
       });
@@ -69,7 +68,6 @@ var tweetTemplate = {
         cache: 'no-cache',
         headers: {
           'Content-Type': 'application/json',
-          'ApiKey': apiKey,
           'Authorization': 'Bearer ' + appUser.token
         }
       });
@@ -91,7 +89,6 @@ var tweetTemplate = {
         cache: 'no-cache',
         headers: {
           'Content-Type': 'application/json',
-          'ApiKey': apiKey,
           'Authorization': 'Bearer ' + appUser.token
         }
       });
@@ -114,7 +111,6 @@ var tweetTemplate = {
         cache: 'no-cache',
         headers: {
           'Content-Type': 'application/json',
-          'ApiKey': apiKey,
           'Authorization': 'Bearer ' + appUser.token
         }
       });

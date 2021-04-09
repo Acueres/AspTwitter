@@ -80,8 +80,7 @@ var register = new Vue({
                 credentials: 'omit',
                 redirect: 'follow',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'ApiKey': apiKey
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ Name: name, Username: username, Email: email, Password: password })
             });

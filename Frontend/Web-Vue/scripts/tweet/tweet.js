@@ -13,15 +13,7 @@ var tweet = new Vue({
         load: async function (entry) {
             this.entry = entry;
 
-            const response = await fetch(server + `api/entries/${this.entry.id}/comments`, {
-                method: 'GET',
-                cache: 'no-cache',
-                credentials: 'omit',
-                redirect: 'follow',
-                headers: {
-                    'ApiKey': apiKey
-                }
-            });
+            const response = await fetch(server + `api/entries/${this.entry.id}/comments`);
 
             this.comments = await response.json();
         },
@@ -34,7 +26,6 @@ var tweet = new Vue({
                 redirect: 'follow',
                 headers: {
                     'Content-Type': 'application/json',
-                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 },
                 body: JSON.stringify({ authorId: appUser.id, text: this.text })
@@ -63,7 +54,6 @@ var tweet = new Vue({
                 redirect: 'follow',
                 headers: {
                     'Content-Type': 'application/json',
-                    'ApiKey': apiKey,
                     'Authorization': 'Bearer ' + appUser.token
                 }
             });

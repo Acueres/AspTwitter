@@ -22,12 +22,7 @@ class User {
             return;
         }
 
-        const response = await fetch(server + `api/users/${this.id}`, {
-            headers: {
-                credentials: 'omit',
-                'ApiKey': apiKey
-            }
-        });
+        const response = await fetch(server + `api/users/${this.id}`);
         const data = await response.json();
 
         this._setData(data);
@@ -40,46 +35,21 @@ class User {
             return;
         }
 
-        let response = await fetch(server + `api/users/${this.id}/entries`, {
-            headers: {
-                credentials: 'omit',
-                'ApiKey': apiKey
-            }
-        });
+        let response = await fetch(server + `api/users/${this.id}/entries`);
         this.entries = await response.json();
         this.entries.reverse();
 
-        response = await fetch(server + `api/users/${this.id}/favorites`, {
-            headers: {
-                credentials: 'omit',
-                'ApiKey': apiKey
-            }
-        });
+        response = await fetch(server + `api/users/${this.id}/favorites`);
         this.favorites = await response.json();
 
-        response = await fetch(server + `api/users/${this.id}/retweets`, {
-            headers: {
-                credentials: 'omit',
-                'ApiKey': apiKey
-            }
-        });
+        response = await fetch(server + `api/users/${this.id}/retweets`);
         this.retweets = await response.json();
         this.retweets.reverse();
 
-        response = await fetch(server + `api/users/${this.id}/followers`, {
-            headers: {
-                credentials: 'omit',
-                'ApiKey': apiKey
-            }
-        });
+        response = await fetch(server + `api/users/${this.id}/followers`);
         this.followers = await response.json();
 
-        response = await fetch(server + `api/users/${this.id}/following`, {
-            headers: {
-                credentials: 'omit',
-                'ApiKey': apiKey
-            }
-        });
+        response = await fetch(server + `api/users/${this.id}/following`);
         this.following = await response.json();
     }
 

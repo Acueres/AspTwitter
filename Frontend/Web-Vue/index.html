@@ -16,13 +16,16 @@
   <!--Scripts-->
   <script type="text/javascript" src="lib/vue.js"></script>
   <script type="text/javascript" src="lib/jquery-3.5.1.min.js"></script>
-  <script type="text/javascript" src="api-key.js"></script>
   <script>
     var server = 'http://localhost:5000/';
   </script>
   <script type="text/javascript" src="scripts/models/user.js"></script>
   <script type="text/javascript" src="scripts/models/app-user.js"></script>
   <script type="text/javascript" src="scripts/models/entries.js"></script>
+  <script>
+    var appUser = new AppUser();
+    var entries = new Entries();
+  </script>
 
   <!--Templates-->
   <script type="text/javascript" src="templates/tweet-template.js"></script>
