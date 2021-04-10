@@ -33,8 +33,9 @@ namespace AspTwitter
             });
 
             services.AddEntityFrameworkSqlite();
-            services.AddDbContext<AppDbContext>(opt =>
-                opt.UseSqlite($"Data Source={Directory.GetCurrentDirectory()}/Backend/AppData/data.db"));
+
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(@"host=localhost;database=AspTwitter;username=postgres;password=postgres"));
 
             services.Configure<AppSettings>(Configuration.GetSection("JWT"));
             services.AddScoped<IAuthenticationManager, AuthenticationManager>();

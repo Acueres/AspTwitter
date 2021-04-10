@@ -28,7 +28,7 @@ namespace AspTwitter.AppData
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-            Database.EnsureCreated();
+            Database.Migrate();
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -43,6 +43,7 @@ namespace AspTwitter.AppData
             builder.Entity<User>().Property(x => x.Email).IsUnicode().HasMaxLength((int)MaxLength.Email);
             builder.Entity<User>().Property(x => x.About).IsUnicode().HasMaxLength((int)MaxLength.About);
             builder.Entity<User>().Property(x => x.PasswordHash).IsRequired();
+            builder.Entity<User>().Property(x => x.DateJoined).IsRequired();
             builder.Entity<User>().Property(x => x.FollowerCount).HasDefaultValue(0);
             builder.Entity<User>().Property(x => x.FollowingCount).HasDefaultValue(0);
             builder.Entity<User>().HasMany(x => x.Entries).WithOne();
@@ -90,6 +91,15 @@ namespace AspTwitter.AppData
             builder.Entity<Following>().Property(x => x.FollowerId).IsRequired();
             builder.Entity<Following>().HasOne(x => x.User).WithMany(x => x.Followers).HasForeignKey(x => x.UserId);
             builder.Entity<Following>().HasOne(x => x.Follower).WithMany(x => x.Following).HasForeignKey(x => x.FollowerId);
+
+            builder.Entity<User>().HasData(new User
+            {
+                Id = 1,
+                Name = "Admin",
+                Username = "admin",
+                PasswordHash = "null",
+                DateJoined = DateTime.UtcNow
+            });
         }
     }
 }

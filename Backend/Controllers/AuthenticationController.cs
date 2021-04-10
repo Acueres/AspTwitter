@@ -121,7 +121,8 @@ namespace AspTwitter.Controllers
                 Name = request.Name,
                 Username = request.Username,
                 Email = request.Email,
-                PasswordHash = Util.Hash(request.Password)
+                PasswordHash = Util.Hash(request.Password),
+                DateJoined = DateTime.UtcNow
             };
 
             context.Users.Add(user);

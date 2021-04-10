@@ -17,12 +17,24 @@
             <h4>AspTwitter Admin</h4>
         </div>
 
-        <div class="row mb-3 mt-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" name="password">
-        </div>
+        @if (ViewBag.SetPassword)
+        {
+            <div class="row mb-3 mt-3">
+                <label for="password" class="form-label">Set password</label>
+                <input type="password" class="form-control" name="password">
+            </div>
 
-        <button type="submit" class="btn btn-primary">Log in</button>
+            <button type="submit" class="btn btn-primary">Set</button>
+        }
+        else
+        {
+            <div class="row mb-3 mt-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" name="password">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Log in</button>
+        }
     </form>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

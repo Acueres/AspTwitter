@@ -54,7 +54,23 @@ namespace AspTwitter.Controllers
         public async Task<IActionResult> Login(string password)
         {
             User admin = await context.Users.Where(x => x.Username == "admin").FirstOrDefaultAsync();
-            if (!string.IsNullOrEmpty(password) && Util.CompareHash(password, admin.PasswordHash))
+            bool setPassword = admin.PasswordHash == "null";
+            ViewBag.SetPassword = setPassword;
+
+            if (string.IsNullOrEmpty(password))
+            {
+                return View("Backend/Views/Admin/Login.cshtml");
+            }
+
+            if (setPassword && password.Length >= 5)
+            {
+                admin.PasswordHash = Util.Hash(password);
+
+                context.Entry(admin).State = EntityState.Modified;
+                await context.SaveChangesAsync();
+            }
+
+            if (Util.CompareHash(password, admin.PasswordHash))
             {
                 CookieBuilder authCookieBuilder = new()
                 {
@@ -259,7 +275,8 @@ namespace AspTwitter.Controllers
                 Name = name,
                 Username = username,
                 Email = email,
-                PasswordHash = Util.Hash(password)
+                PasswordHash = Util.Hash(password),
+                DateJoined = DateTime.UtcNow
             };
 
             context.Users.Add(user);

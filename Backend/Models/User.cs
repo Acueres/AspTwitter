@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 
@@ -15,6 +16,8 @@ namespace AspTwitter.Models
         public string Email { get; set; }
 
         public string About { get; set; }
+
+        public DateTime DateJoined { get; set; }
 
         public uint FollowingCount { get; set; }
         public uint FollowerCount { get; set; }

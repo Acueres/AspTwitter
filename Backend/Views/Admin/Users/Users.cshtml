@@ -37,6 +37,7 @@
                 <th scope="col">Username</th>
                 <th scope="col">Email</th>
                 <th scope="col">About</th>
+                <th scope="col">Joined</th>
                 <th scope="col">Followers</th>
                 <th scope="col">Following</th>
                 <th scope="col">Comments</th>
@@ -62,6 +63,7 @@
                 <td>@user.Username</td>
                 <td>@(user.Email is null ? "None" : user.Email)</td>
                 <td class="text-break" style="font-size: small; max-width: 150px;">@(string.IsNullOrEmpty(user.About) ? "None" : user.About)</td>
+                <td>@user.DateJoined.ToShortDateString()</td>
                 <td>@user.FollowerCount</td>
                 <td>@user.FollowingCount</td>
                 <td>

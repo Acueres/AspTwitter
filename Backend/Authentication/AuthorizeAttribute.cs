@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Authorization;
 
@@ -19,6 +20,8 @@ namespace AspTwitter.Authentication
             bool allowAnonymous = context.ActionDescriptor.EndpointMetadata.
                                      Any(x => x.GetType() == typeof(AllowAnonymousAttribute));
 
+            var descriptor = context.ActionDescriptor as ControllerActionDescriptor;
+
             if (allowAnonymous)
             {
                 return;
@@ -28,6 +31,12 @@ namespace AspTwitter.Authentication
 
             if (user is null)
             {
+                if (descriptor.ControllerName == "Admin")
+                {
+                    context.Result = new RedirectResult("login");
+                    return;
+                }
+
                 context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
             }
         }
