@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using AspTwitter.AppData;
 using AspTwitter.Authentication;
 
+using System;
 using System.IO;
 
 
@@ -34,8 +35,27 @@ namespace AspTwitter
 
             services.AddEntityFrameworkSqlite();
 
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string connectionStr = @"host=localhost;database=AspTwitter;username=postgres;password=postgres";
+
+            if (env == "Production")
+            {
+                var connectionUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+                connectionUrl = connectionUrl.Replace("postgres://", string.Empty);
+                var userPass = connectionUrl.Split("@")[0];
+                var hostPortDb = connectionUrl.Split("@")[1];
+                var hostPort = hostPortDb.Split("/")[0];
+                var db = hostPortDb.Split("/")[1];
+                var user = userPass.Split(":")[0];
+                var pass = userPass.Split(":")[1];
+                var host = hostPort.Split(":")[0];
+                var port = hostPort.Split(":")[1];
+                connectionStr = $"Server={host};Port={port};User Id={user};Password={pass};Database={db}";
+            }
+
             services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(@"host=localhost;database=AspTwitter;username=postgres;password=postgres"));
+                options.UseNpgsql(connectionStr));
 
             services.Configure<AppSettings>(Configuration.GetSection("JWT"));
             services.AddScoped<IAuthenticationManager, AuthenticationManager>();
