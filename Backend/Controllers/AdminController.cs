@@ -44,9 +44,9 @@ namespace AspTwitter.Controllers
         }
 
         [AllowAnonymous]
-        public IActionResult ToClient()
+        public IActionResult ToApp()
         {
-            return Redirect("vue");
+            return Redirect("app");
         }
 
         [AllowAnonymous]
@@ -566,7 +566,7 @@ namespace AspTwitter.Controllers
         }
 
         [Route("comments/create")]
-        public async Task<IActionResult> AddComment(string text, string username, uint entryId)
+        public async Task<IActionResult> AddComment(string text, string username, int entryId)
         {
             ViewBag.Username = username;
             ViewBag.EntryId = entryId;

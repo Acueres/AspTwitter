@@ -5,7 +5,7 @@ namespace AspTwitter.Authentication
 {
     public class AuthenticationResponse
     {
-        public uint Id { get; set; }
+        public int Id { get; set; }
         public string Token { get; set; }
 
 

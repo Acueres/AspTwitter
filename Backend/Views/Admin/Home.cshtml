@@ -4,6 +4,7 @@
 
 <div>
     <h1 class="text-center">Dashboard</h1>
+    <a class="btn btn-info mb-3" asp-controller="Admin" asp-action="ToApp">Go to app</a>
     <div class="border pb-3">
         <h2 class="mb-5 ml-3">Admin</h2>
         <div class="mb-3 ml-3 row">
@@ -43,18 +44,6 @@
             <label class="col-1 col-form-label">Total entries</label>
             <div class="col-4">
                 <input type="text" disabled class="form-control" value=@ViewBag.PostCount Entries>
-            </div>
-        </div>
-    </div>
-
-    <div class="border">
-        <h2 class="mb-5 ml-3">Apps</h2>
-        <div class="mb-3 ml-3 row">
-            <label class="col-1 col-label">
-                <a asp-controller="Admin" asp-action="ToClient">Vue</a>
-            </label>
-            <div class="col-4">
-                <input type="text" disabled class="form-control" value="Web app made with Vue.js">
             </div>
         </div>
     </div>

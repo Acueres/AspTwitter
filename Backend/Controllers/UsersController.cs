@@ -71,7 +71,7 @@ namespace AspTwitter.Controllers
         // GET: api/Users/5/avatar
         [AllowAnonymous]
         [HttpGet("{id}/avatar")]
-        public async Task<IActionResult> GetAvatar(uint id)
+        public async Task<IActionResult> GetAvatar(int id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -94,7 +94,7 @@ namespace AspTwitter.Controllers
         // POST: api/Users/5/avatar
         [HttpPost("{id}/avatar")]
         [Consumes("multipart/form-data", "image/jpg", "image/png")]
-        public async Task<IActionResult> PostAvatar(uint id, [FromForm(Name = "avatar")] IFormFile image)
+        public async Task<IActionResult> PostAvatar(int id, [FromForm(Name = "avatar")] IFormFile image)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -124,7 +124,7 @@ namespace AspTwitter.Controllers
 
         // PATCH: api/Users/5
         [HttpPatch("{id}")]
-        public async Task<IActionResult> PutUser(uint id, EditUserRequest request)
+        public async Task<IActionResult> PutUser(int id, EditUserRequest request)
         {
             if (!HasPermission(id))
             {
@@ -171,7 +171,7 @@ namespace AspTwitter.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(uint id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
             if (!HasPermission(id))
             {
@@ -239,7 +239,7 @@ namespace AspTwitter.Controllers
 
         //POST: api/Users/5/follow
         [HttpPost("{id}/follow")]
-        public async Task<IActionResult> FollowUser(uint id)
+        public async Task<IActionResult> FollowUser(int id)
         {
             User user = await context.Users.FindAsync(id);
             if (user is null)
@@ -247,7 +247,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            uint followerId = ((User)HttpContext.Items["User"]).Id;
+            int followerId = ((User)HttpContext.Items["User"]).Id;
 
             if (followerId == id)
             {
@@ -285,7 +285,7 @@ namespace AspTwitter.Controllers
 
         //DELETE: api/Users/5/unfollow
         [HttpDelete("{id}/unfollow")]
-        public async Task<IActionResult> UnfollowUser(uint id)
+        public async Task<IActionResult> UnfollowUser(int id)
         {
             User user = await context.Users.FindAsync(id);
             if (user is null)
@@ -293,7 +293,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            uint followerId = ((User)HttpContext.Items["User"]).Id;
+            int followerId = ((User)HttpContext.Items["User"]).Id;
 
             if (followerId == id)
             {
@@ -388,7 +388,7 @@ namespace AspTwitter.Controllers
                 Where(x => x.Id != userId && !x.Followers.Any(x => x.FollowerId == userId)).Take(count).ToListAsync();
         }
 
-        private bool HasPermission(uint id)
+        private bool HasPermission(int id)
         {
             return ((User)HttpContext.Items["User"]).Id == id;
         }

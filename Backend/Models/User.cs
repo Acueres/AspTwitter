@@ -7,7 +7,7 @@ namespace AspTwitter.Models
 {
     public class User
     {
-        public uint Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Username { get; set; }
 
@@ -19,8 +19,8 @@ namespace AspTwitter.Models
 
         public DateTime DateJoined { get; set; }
 
-        public uint FollowingCount { get; set; }
-        public uint FollowerCount { get; set; }
+        public int FollowingCount { get; set; }
+        public int FollowerCount { get; set; }
 
         [Newtonsoft.Json.JsonIgnore]
         [JsonIgnore]

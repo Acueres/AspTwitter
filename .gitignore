@@ -39,3 +39,10 @@
 /Migrations
 /Backend/Tests/bin/Release/net5.0/linux-x64
 /bin/Release/net5.0
+/Properties/PublishProfiles
+/cmd.txt
+/Dockerfile
+/Frontend/logo.png
+/app/Frontend/logo.png
+/app/Frontend
+/Backend/Tests/bin/Release/net5.0

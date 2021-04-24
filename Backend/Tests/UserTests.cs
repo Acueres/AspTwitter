@@ -189,7 +189,7 @@ namespace AspTwitter.Tests
             return JsonConvert.DeserializeObject<AuthenticationResponse>(result);
         }
 
-        private async Task<HttpResponseMessage> EditUser(uint id, EditUserRequest data)
+        private async Task<HttpResponseMessage> EditUser(int id, EditUserRequest data)
         {
             var request = new HttpRequestMessage(HttpMethod.Patch, $"api/users/{id}")
             {
@@ -201,26 +201,26 @@ namespace AspTwitter.Tests
             return response;
         }
 
-        private async Task<User> GetUser(uint id)
+        private async Task<User> GetUser(int id)
         {
             var response = await client.GetAsync($"api/users/{id}");
             var result = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<User>(result);
         }
 
-        private async Task<HttpResponseMessage> DeleteUser(uint id)
+        private async Task<HttpResponseMessage> DeleteUser(int id)
         {
             return await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/users/{id}"));
         }
 
-        private async Task<List<User>> GetFollowers(uint id)
+        private async Task<List<User>> GetFollowers(int id)
         {
             var response = await client.GetAsync($"api/users/{id}/followers");
             var result = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<List<User>>(result);
         }
 
-        private async Task<List<User>> GetFollowings(uint id)
+        private async Task<List<User>> GetFollowings(int id)
         {
             var response = await client.GetAsync($"api/users/{id}/following");
             var result = await response.Content.ReadAsStringAsync();

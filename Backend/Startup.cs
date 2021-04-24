@@ -30,15 +30,15 @@ namespace AspTwitter
         {
             services.AddSpaStaticFiles(options =>
             {
-                options.RootPath = "Frontend/Web-Vue";
+                options.RootPath = "Frontend";
             });
 
             services.AddEntityFrameworkSqlite();
 
-            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             string connectionStr = @"host=localhost;database=AspTwitter;username=postgres;password=postgres";
 
-            if (env == "Production")
+            if (env != "Development")
             {
                 var connectionUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
@@ -51,7 +51,7 @@ namespace AspTwitter
                 var pass = userPass.Split(":")[1];
                 var host = hostPort.Split(":")[0];
                 var port = hostPort.Split(":")[1];
-                connectionStr = $"Server={host};Port={port};User Id={user};Password={pass};Database={db}";
+                connectionStr = $"Server={host};Port={port};User Id={user};Password={pass};Database={db};Sslmode=Require;Trust Server Certificate=true;";
             }
 
             services.AddDbContext<AppDbContext>(options =>
@@ -89,15 +89,15 @@ namespace AspTwitter
                 endpoints.MapControllers();
             });
 
-            app.Map("/vue", mappedSpa =>
+            app.Map("/app", mappedSpa =>
             {
                 mappedSpa.UseSpa(spa =>
                 {
                     spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
                     {
-                        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Frontend/Web-Vue"))
+                        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Frontend"))
                     };
-                    spa.Options.SourcePath = "Frontend/Web-Vue";
+                    spa.Options.SourcePath = "Frontend";
                 });
             });
         }

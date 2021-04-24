@@ -35,6 +35,8 @@ namespace AspTwitter.AppData
         {
             base.OnModelCreating(builder);
 
+            builder.UseIdentityAlwaysColumns();
+
             builder.Entity<User>().ToTable("Users");
             builder.Entity<User>().HasKey(x => x.Id);
             builder.Entity<User>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
@@ -54,7 +56,7 @@ namespace AspTwitter.AppData
 
             builder.Entity<Entry>().ToTable("Entries");
             builder.Entity<Entry>().HasKey(x => x.Id);
-            builder.Entity<Entry>().Property(x => x.Id).IsRequired().ValueGeneratedOnAdd();
+            builder.Entity<Entry>().Property(x => x.Id).ValueGeneratedOnAdd();
             builder.Entity<Entry>().Property(x => x.AuthorId).IsRequired();
             builder.Entity<Entry>().Property(x => x.Timestamp).IsRequired();
             builder.Entity<Entry>().Property(x => x.LikeCount).HasDefaultValue(0);

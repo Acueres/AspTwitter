@@ -123,7 +123,7 @@ namespace AspTwitter.Tests
             response = await CreateEntry(entryData);
 
             //Get entry and check text length
-            uint entryId = await GetEntryId(response);
+            int entryId = await GetEntryId(response);
             Entry entry = await GetEntry(entryId);
             Assert.True(entry.Text.Length <= (int)MaxLength.Entry);
         }
@@ -139,7 +139,7 @@ namespace AspTwitter.Tests
                 Text = "text"
             };
             var response = await CreateEntry(entryData);
-            uint entryId = await GetEntryId(response);
+            int entryId = await GetEntryId(response);
 
             //Ensure entry editing and data handling
             EntryRequest editEntryData = new()
@@ -177,7 +177,7 @@ namespace AspTwitter.Tests
                 Text = "delete"
             };
             var response = await CreateEntry(entryData);
-            uint entryId = await GetEntryId(response);
+            int entryId = await GetEntryId(response);
 
             //Ensure that authorized users cannot delete other users' entries
             SetUser(auth2);
@@ -211,7 +211,7 @@ namespace AspTwitter.Tests
                 Text = "text"
             };
             var response = await CreateEntry(entryData);
-            uint entryId = await GetEntryId(response);
+            int entryId = await GetEntryId(response);
 
             //Like the entry as the first user
             response = await AddLike(entryId);
@@ -259,7 +259,7 @@ namespace AspTwitter.Tests
                 Text = "text to retweet"
             };
             var response = await CreateEntry(entryData);
-            uint entryId = await GetEntryId(response);
+            int entryId = await GetEntryId(response);
 
             //Retweet the entry as the second user
             SetUser(auth2);
@@ -309,7 +309,7 @@ namespace AspTwitter.Tests
                 Text = "text to comment"
             };
             var response = await CreateEntry(entryData);
-            uint entryId = await GetEntryId(response);
+            int entryId = await GetEntryId(response);
 
             //Ensure comment creation and get its id
             EntryRequest commentData = new()
@@ -320,7 +320,7 @@ namespace AspTwitter.Tests
 
             response = await AddComment(entryId, commentData);
             response.EnsureSuccessStatusCode();
-            uint commentId = await GetEntryId(response);
+            int commentId = await GetEntryId(response);
 
             //Ensure that users cannot add comments to non-existent entries
             response = await AddComment(42, commentData);
@@ -403,7 +403,7 @@ namespace AspTwitter.Tests
             return response;
         }
 
-        private async Task<HttpResponseMessage> EditEntry(uint id, EntryRequest data)
+        private async Task<HttpResponseMessage> EditEntry(int id, EntryRequest data)
         {
             var request = new HttpRequestMessage(HttpMethod.Patch, $"api/entries/{id}")
             {
@@ -415,12 +415,12 @@ namespace AspTwitter.Tests
             return response;
         }
 
-        private async Task<HttpResponseMessage> DeleteEntry(uint id)
+        private async Task<HttpResponseMessage> DeleteEntry(int id)
         {
             return await client.SendAsync(new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{id}"));
         }
 
-        private async Task<Entry> GetEntry(uint id)
+        private async Task<Entry> GetEntry(int id)
         {
             var response = await client.GetAsync($"api/entries/{id}");
 
@@ -428,24 +428,24 @@ namespace AspTwitter.Tests
             return JsonConvert.DeserializeObject<Entry>(result);
         }
 
-        private async Task<uint> GetEntryId(HttpResponseMessage response)
+        private async Task<int> GetEntryId(HttpResponseMessage response)
         {
-            return uint.Parse(await response.Content.ReadAsStringAsync());
+            return int.Parse(await response.Content.ReadAsStringAsync());
         }
 
-        private async Task<HttpResponseMessage> AddLike(uint id)
+        private async Task<HttpResponseMessage> AddLike(int id)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"api/entries/{id}/favorite");
             return await client.SendAsync(request);
         }
 
-        private async Task<HttpResponseMessage> RemoveLike(uint id)
+        private async Task<HttpResponseMessage> RemoveLike(int id)
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{id}/favorite");
             return await client.SendAsync(request);
         }
 
-        private async Task<List<Entry>> GetUserRetweets(uint id)
+        private async Task<List<Entry>> GetUserRetweets(int id)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"api/users/{id}/retweets");
             var response = await client.SendAsync(request);
@@ -454,7 +454,7 @@ namespace AspTwitter.Tests
             return JsonConvert.DeserializeObject<List<Entry>>(result);
         }
 
-        private async Task<List<Comment>> GetComments(uint id)
+        private async Task<List<Comment>> GetComments(int id)
         {
             var response = await client.GetAsync($"api/entries/{id}/comments");
 
@@ -462,7 +462,7 @@ namespace AspTwitter.Tests
             return JsonConvert.DeserializeObject<List<Comment>>(result);
         }
 
-        private async Task<HttpResponseMessage> AddComment(uint id, EntryRequest data)
+        private async Task<HttpResponseMessage> AddComment(int id, EntryRequest data)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"api/entries/{id}/comments")
             {

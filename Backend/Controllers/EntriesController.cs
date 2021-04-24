@@ -83,7 +83,7 @@ namespace AspTwitter.Controllers
 
         // PATCH: api/Entries/5
         [HttpPatch("{id}")]
-        public async Task<IActionResult> EditEntry(uint id, EntryRequest request)
+        public async Task<IActionResult> EditEntry(int id, EntryRequest request)
         {
             Entry entry = await context.Entries.FindAsync(id);
             if (entry is null)
@@ -186,9 +186,9 @@ namespace AspTwitter.Controllers
 
         //POST api/Entries/5/favorite
         [HttpPost("{id}/favorite")]
-        public async Task<IActionResult> AddFavorite(uint id)
+        public async Task<IActionResult> AddFavorite(int id)
         {
-            uint userId = ((User)HttpContext.Items["User"]).Id;
+            int userId = ((User)HttpContext.Items["User"]).Id;
 
             Entry entry = await context.Entries.FindAsync(id);
             if (entry is null)
@@ -225,9 +225,9 @@ namespace AspTwitter.Controllers
 
         //DELETE api/Entries/5/favorite
         [HttpDelete("{id}/favorite")]
-        public async Task<IActionResult> RemoveFavorite(uint id)
+        public async Task<IActionResult> RemoveFavorite(int id)
         {
-            uint userId = ((User)HttpContext.Items["User"]).Id;
+            int userId = ((User)HttpContext.Items["User"]).Id;
 
             Relationship relationship = await context.Relationships.Where(x =>
             x.Type == RelationshipType.Like &&
@@ -252,9 +252,9 @@ namespace AspTwitter.Controllers
 
         //POST api/Entries/5/retweet
         [HttpPost("{id}/retweet")]
-        public async Task<IActionResult> Retweet(uint id)
+        public async Task<IActionResult> Retweet(int id)
         {
-            uint userId = ((User)HttpContext.Items["User"]).Id;
+            int userId = ((User)HttpContext.Items["User"]).Id;
 
             Entry entry = await context.Entries.FindAsync(id);
             if (entry is null || entry.AuthorId == userId)
@@ -291,9 +291,9 @@ namespace AspTwitter.Controllers
 
         //DELETE api/Entries/5/retweet
         [HttpDelete("{id}/retweet")]
-        public async Task<IActionResult> RemoveRetweet(uint id)
+        public async Task<IActionResult> RemoveRetweet(int id)
         {
-            uint userId = ((User)HttpContext.Items["User"]).Id;
+            int userId = ((User)HttpContext.Items["User"]).Id;
 
             Relationship relationship = await context.Relationships.Where(x =>
             x.Type == RelationshipType.Retweet &&
@@ -332,7 +332,7 @@ namespace AspTwitter.Controllers
 
         //POST api/Entries/5/comments
         [HttpPost("{id}/comments")]
-        public async Task<IActionResult> PostComment(uint id, EntryRequest request)
+        public async Task<IActionResult> PostComment(int id, EntryRequest request)
         {
             if (!HasPermission(request.AuthorId))
             {
@@ -423,7 +423,7 @@ namespace AspTwitter.Controllers
             return await context.Entries.Include(x => x.Author).Where(x => x.Text.ToLower().Contains(query)).Take(50).ToListAsync();
         }
 
-        private bool HasPermission(uint id)
+        private bool HasPermission(int id)
         {
             return ((User)HttpContext.Items["User"]).Id == id;
         }

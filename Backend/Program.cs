@@ -1,4 +1,4 @@
-using System.IO;
+using System;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -17,8 +17,15 @@ namespace AspTwitter
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureKestrel(options => { });
                     webBuilder.UseStartup<Startup>();
+
+                    string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+                    if (env != "Development")
+                    {
+                        string port = Environment.GetEnvironmentVariable("PORT");
+                        webBuilder.UseUrls("http://*:" + port);
+                    }
                 });
     }
 }

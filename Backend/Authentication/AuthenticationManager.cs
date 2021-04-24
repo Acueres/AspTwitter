@@ -18,8 +18,7 @@ namespace AspTwitter.Authentication
     {
         AuthenticationResponse Authenticate(AuthenticationRequest request);
         AuthenticationResponse Authenticate(User user);
-        string GetAppToken(string appName, uint generation);
-        User GetUser(uint id);
+        User GetUser(int id);
     }
 
     public class AuthenticationManager : IAuthenticationManager
@@ -60,17 +59,7 @@ namespace AspTwitter.Authentication
             return new AuthenticationResponse(user, token);
         }
 
-        public string GetAppToken(string appName, uint generation)
-        {
-            if (string.IsNullOrEmpty(appName))
-            {
-                return string.Empty;
-            }
-
-            return AppJwtToken(appName, generation);
-        }
-
-        public User GetUser(uint id)
+        public User GetUser(int id)
         {
             return context.Users.Find(id);
         }
@@ -83,22 +72,6 @@ namespace AspTwitter.Authentication
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
                 Expires = DateTime.UtcNow.AddHours(8),
-                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            return tokenHandler.WriteToken(token);
-        }
-
-        private string AppJwtToken(string appName, uint generation)
-        {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]));
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[] { new Claim("appName", appName), new Claim("generation", generation.ToString()) }),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
             };
 

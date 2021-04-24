@@ -152,7 +152,7 @@ namespace AspTwitter.Tests
             return JsonConvert.DeserializeObject<AuthenticationResponse>(result);
         }
 
-        private async Task<User> GetUser(uint id)
+        private async Task<User> GetUser(int id)
         {
             var response = await client.GetAsync($"api/users/{id}");
             var result = await response.Content.ReadAsStringAsync();
