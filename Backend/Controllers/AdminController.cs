@@ -27,14 +27,12 @@ namespace AspTwitter.Controllers
         private readonly AppDbContext context;
         private readonly IConfiguration configuration;
         private readonly IAuthenticationManager auth;
-        private AppSettings appSettings;
 
-        public AdminController(AppDbContext context, IConfiguration configuration, IAuthenticationManager auth, IOptions<AppSettings> appSettings)
+        public AdminController(AppDbContext context, IConfiguration configuration, IAuthenticationManager auth)
         {
             this.context = context;
             this.configuration = configuration;
             this.auth = auth;
-            this.appSettings = appSettings.Value;
 
             string path = "Backend/AppData/apps.json";
             if (!System.IO.File.Exists(path))
@@ -43,16 +41,30 @@ namespace AspTwitter.Controllers
             }
         }
 
-        [AllowAnonymous]
+        public IActionResult Default()
+        {
+            return RedirectToAction("Home");
+        }
+
+        [Route("toapp")]
         public IActionResult ToApp()
         {
-            return Redirect("app");
+            return Redirect($"{Request.Scheme}://{Request.Host}/app");
         }
 
         [AllowAnonymous]
         [Route("login")]
         public async Task<IActionResult> Login(string password)
         {
+            try
+            {
+                if ((User)HttpContext.Items["User"] is not null)
+                {
+                    return RedirectToAction("Home");
+                }
+            }
+            catch (NullReferenceException) { }
+
             User admin = await context.Users.Where(x => x.Username == "admin").FirstOrDefaultAsync();
             bool setPassword = admin.PasswordHash == "null";
             ViewBag.SetPassword = setPassword;
