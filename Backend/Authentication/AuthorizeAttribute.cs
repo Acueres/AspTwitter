@@ -33,7 +33,7 @@ namespace AspTwitter.Authentication
             {
                 if (descriptor.ControllerName == "Admin")
                 {
-                    context.Result = new RedirectResult("login");
+                    context.Result = new RedirectResult("admin/login");
                     return;
                 }
 

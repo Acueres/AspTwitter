@@ -47,3 +47,9 @@
 /app/Frontend
 /Backend/Tests/bin/Release/net5.0
 /Frontend/libs
+/Frontend/lib
+/Frontend/bin/Debug/net5.0
+/Frontend/obj
+/Frontend/wwwroot
+/Frontend/Frontend.csproj
+/Frontend/Properties/launchSettings.json

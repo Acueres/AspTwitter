@@ -49,7 +49,7 @@ namespace AspTwitter.Controllers
         [Route("toapp")]
         public IActionResult ToApp()
         {
-            return Redirect($"{Request.Scheme}://{Request.Host}/app");
+            return Redirect($"{Request.Scheme}://{Request.Host}");
         }
 
         [AllowAnonymous]
@@ -124,7 +124,7 @@ namespace AspTwitter.Controllers
             return output;
         }
 
-        [Route("home")]
+        [Route("/")]
         public async Task<IActionResult> Home()
         {
             ViewBag.Admin = await context.Users.Where(x => x.Username == "admin").FirstOrDefaultAsync();

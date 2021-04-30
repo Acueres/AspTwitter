@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.FileProviders;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +11,6 @@ using AspTwitter.AppData;
 using AspTwitter.Authentication;
 
 using System;
-using System.IO;
 
 
 namespace AspTwitter
@@ -28,12 +26,7 @@ namespace AspTwitter
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSpaStaticFiles(options =>
-            {
-                options.RootPath = "Frontend";
-            });
-
-            services.AddEntityFrameworkSqlite();
+            services.AddEntityFrameworkNpgsql();
 
             string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             string connectionStr = @"host=localhost;database=AspTwitter;username=postgres;password=postgres";
@@ -79,26 +72,16 @@ namespace AspTwitter
             .AllowAnyMethod()
             .AllowAnyHeader());
 
+            app.UseBlazorFrameworkFiles();
+
             app.UseStaticFiles();
-            app.UseSpaStaticFiles();
 
             app.UseMiddleware<JwtMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-            });
-
-            app.Map("/app", mappedSpa =>
-            {
-                mappedSpa.UseSpa(spa =>
-                {
-                    spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
-                    {
-                        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Frontend"))
-                    };
-                    spa.Options.SourcePath = "Frontend";
-                });
+                endpoints.MapFallbackToFile("index.html");
             });
         }
     }
