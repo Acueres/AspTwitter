@@ -43,7 +43,7 @@ namespace AspTwitter.Controllers
         // GET: api/Users/5
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(uint id)
+        public async Task<ActionResult<User>> GetUser(int id)
         {
             User user = await context.Users.FindAsync(id);
 
@@ -58,7 +58,7 @@ namespace AspTwitter.Controllers
         // GET: api/Users/5/entries
         [AllowAnonymous]
         [HttpGet("{id}/entries")]
-        public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(uint id)
+        public async Task<ActionResult<IEnumerable<Entry>>> GetEntries(int id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -199,7 +199,7 @@ namespace AspTwitter.Controllers
         //GET: api/Users/5/retweets
         [AllowAnonymous]
         [HttpGet("{id}/retweets")]
-        public async Task<ActionResult<IEnumerable<Entry>>> GetRetweets(uint id)
+        public async Task<ActionResult<IEnumerable<Entry>>> GetRetweets(int id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -213,7 +213,7 @@ namespace AspTwitter.Controllers
         // GET: api/Users/5/favorites
         [AllowAnonymous]
         [HttpGet("{id}/favorites")]
-        public async Task<ActionResult<IEnumerable<Entry>>> GetFavorites(uint id)
+        public async Task<ActionResult<IEnumerable<Entry>>> GetFavorites(int id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -227,7 +227,7 @@ namespace AspTwitter.Controllers
         // GET: api/Users/5/comments
         [AllowAnonymous]
         [HttpGet("{id}/comments")]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetComments(uint id)
+        public async Task<ActionResult<IEnumerable<Comment>>> GetComments(int id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -326,7 +326,7 @@ namespace AspTwitter.Controllers
         //GET: api/Users/5/followers
         [AllowAnonymous]
         [HttpGet("{id}/followers")]
-        public async Task<ActionResult<IEnumerable<User>>> GetFollowers(uint id)
+        public async Task<ActionResult<IEnumerable<User>>> GetFollowers(int id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -339,7 +339,7 @@ namespace AspTwitter.Controllers
         //GET: api/Users/5/following
         [AllowAnonymous]
         [HttpGet("{id}/following")]
-        public async Task<ActionResult<IEnumerable<User>>> GetFollowings(uint id)
+        public async Task<ActionResult<IEnumerable<User>>> GetFollowings(int id)
         {
             if (await context.Users.FindAsync(id) is null)
             {
@@ -371,7 +371,7 @@ namespace AspTwitter.Controllers
         //GET: api/Users/5/recommended/3
         [AllowAnonymous]
         [HttpGet("{userId}/recommended/{count?}")]
-        public async Task<ActionResult<IEnumerable<User>>> RecommendedUsers(uint userId, int count = 3)
+        public async Task<ActionResult<IEnumerable<User>>> RecommendedUsers(int userId, int count = 3)
         {
             if (count < 1)
             {

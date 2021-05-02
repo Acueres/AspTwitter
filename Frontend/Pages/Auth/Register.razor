@@ -1,0 +1,135 @@
+﻿@page "/register"
+@layout EmptyLayout
+
+@using Frontend.Requests
+@using Frontend.Models
+@using Newtonsoft.Json
+@using Blazored.LocalStorage
+@using System.Net
+@using System.Text
+@using System.Net.Http
+
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject AppUser AppUser
+@inject ILocalStorageService localStorage
+
+<div class="container pt-5 w-25">
+    <EditForm Model="@registerData" OnValidSubmit="@SendData" class="text-light">
+        <h1>Sign up</h1>
+        <div class="mb-3 mt-3">
+            <label class="form-label">Name</label>
+            <InputText class="form-control bg-dark text-light" @bind-Value="registerData.Name" id="name"></InputText>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label">Username</label>
+            <InputText class="form-control bg-dark text-light" @bind-Value="registerData.Username" id="username"></InputText>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label">Email</label>
+            <InputText class="form-control bg-dark text-light" @bind-Value="registerData.Email" id="email"></InputText>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <InputText type="password" class="form-control bg-dark text-light" @bind-Value="registerData.Password" id="password"></InputText>
+        </div>
+        @foreach (string error in errors)
+        {
+            <b class="text-danger">Error: @(error)</b> <br />
+        }
+        <button type="submit" class="btn btn-primary mt-3">Sign up</button>
+    </EditForm>
+</div>
+
+@code {
+    private RegisterRequest registerData = new();
+    private List<string> errors = new();
+
+    private string nameRequired = "Name is required";
+
+    private string emailInvalid = "Invalid email format";
+
+    private string usernameRequired = "Username is required";
+    private string usernameExists = "Username already exists";
+    private string usernameWhitespace = "Username cannot contain whitespace";
+
+    private string passwordRequired = "Password is required";
+    private string passwordLength = "Password must be at least 5 characters long";
+    private string passwordWhitespace = "Password cannot contain whitespace";
+
+    private async Task SendData()
+    {
+        errors.Clear();
+
+        if (registerData.Name is null)
+        {
+            errors.Add(nameRequired);
+        }
+
+        if (registerData.Username is null)
+        {
+            errors.Add(usernameRequired);
+        }
+
+        if (registerData.Username is not null && registerData.Username.Contains(' '))
+        {
+            errors.Add(usernameWhitespace);
+        }
+
+        if (registerData.Password is null)
+        {
+            errors.Add(passwordRequired);
+        }
+        else if (registerData.Password.Length < 5)
+        {
+            errors.Add(passwordLength);
+        }
+
+        if (registerData.Password is not null && registerData.Password.Contains(' '))
+        {
+            errors.Add(passwordWhitespace);
+        }
+
+        if (!string.IsNullOrEmpty(registerData.Email))
+        {
+            try
+            {
+                var email = new System.Net.Mail.MailAddress(registerData.Email);
+            }
+            catch (FormatException)
+            {
+                errors.Add(emailInvalid);
+            }
+        }
+
+        if (errors.Count > 0)
+        {
+            return;
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "api/authentication/register")
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(registerData), Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            string value = await response.Content.ReadAsStringAsync();
+
+            AuthenticationResponse auth = JsonConvert.DeserializeObject<AuthenticationResponse>(value);
+            await AppUser.SetLogin(auth, client);
+
+            await localStorage.SetItemAsync("auth", auth);
+
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            errors.Add(usernameExists);
+        }
+    }
+}

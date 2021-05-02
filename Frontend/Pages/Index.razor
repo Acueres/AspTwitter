@@ -5,21 +5,9 @@
 @inject HttpClient Http
 
 <div class="container-fluid">
-    @foreach (var entry in entries)
+    @foreach (Entry entry in entries)
     {
-    <div class="row border border-light p-3" style="background: black">
-        <div class="col-auto">
-            <img src="api/users/@entry.AuthorId/avatar" class="img rounded-circle mr-3"
-                 style="width: 50px; height: 50px; outline: none;" />
-        </div>
-        <div class="col-auto">
-            <b class="mr-1" style="color: white;">@(entry.Author.Name)</b>
-            <span class="mr-1" style="color: gray">@("@" + entry.Author.Username)</span>
-            <span class="mr-1" style="color: gray">@(" - " + GetDate(entry.Timestamp))</span>
-            <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span><br />
-            <a style="color: white; word-wrap: break-word;">@(entry.Text)</a> <br>
-        </div>
-    </div>
+        <Tweet entry="@entry"></Tweet>
     }
 </div>
 

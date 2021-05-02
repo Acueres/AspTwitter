@@ -1,4 +1,11 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@using Frontend.Models
+@using Blazored.LocalStorage
+
+@inject AppUser AppUser
+@inject ILocalStorageService localStorage
+@inject HttpClient client
+
+<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">AspTwitter</a>
 </div>
 
@@ -18,19 +25,60 @@
                 <span class="oi oi-magnifying-glass" aria-hidden="true"></span> Explore
             </NavLink>
         </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="profile">
-                <span class="oi oi-person" aria-hidden="true"></span> Profile
-            </NavLink>
-        </li>
+
+        @if (AppUser.Logged)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="profile">
+                    <span class="oi oi-person" aria-hidden="true"></span> Profile
+                </NavLink>
+            </li>
+        }
+
+        @if (checkingLogin)
+        {
+            <li class="nav-item pt-5 m-3">
+                <div class="spinner-border ml-5" style="color: whitesmoke;" role="status"></div>
+            </li>
+        }
+        else if (AppUser.Logged)
+        {
+            <li class="pt-5 m-3">
+                <button type="button" class="btn btn-secondary" @onclick="Logout">
+                    <span class="oi oi-account-logout" aria-hidden="true"></span> Sign out
+                </button>
+            </li>
+        }
+        else
+        {
+            <li class="pt-5 m-3">
+                <a type="button" class="btn btn-outline-primary" href="login">
+                    <span class="oi oi-account-login" aria-hidden="true"></span> Log in
+                </a>
+                <a type="button" class="btn btn-primary" href="register">Sign up</a>
+            </li>
+        }
     </ul>
 </div>
 
 @code {
+    private bool checkingLogin = true;
+
     private bool collapseNavMenu = true;
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
     private void ToggleNavMenu()
     {
         collapseNavMenu ^= collapseNavMenu;
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AppUser.Initialize(localStorage, client);
+
+        checkingLogin = false;
+
+        StateHasChanged();
+    }
+
+    private async Task Logout() => await AppUser.Logout(localStorage);
 }

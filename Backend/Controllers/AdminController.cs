@@ -41,11 +41,6 @@ namespace AspTwitter.Controllers
             }
         }
 
-        public IActionResult Default()
-        {
-            return RedirectToAction("Home");
-        }
-
         [Route("toapp")]
         public IActionResult ToApp()
         {
@@ -124,7 +119,7 @@ namespace AspTwitter.Controllers
             return output;
         }
 
-        [Route("/")]
+        [Route("/admin")]
         public async Task<IActionResult> Home()
         {
             ViewBag.Admin = await context.Users.Where(x => x.Username == "admin").FirstOrDefaultAsync();
