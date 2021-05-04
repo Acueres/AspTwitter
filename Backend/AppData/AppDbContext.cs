@@ -28,7 +28,11 @@ namespace AspTwitter.AppData
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-            Database.Migrate();
+            try
+            {
+                Database.Migrate();
+            }
+            catch (InvalidOperationException) { }
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

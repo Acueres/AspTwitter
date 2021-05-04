@@ -69,7 +69,7 @@ namespace AspTwitter.Controllers
         // GET: api/Entries/5
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Entry>> GetEntry(uint id)
+        public async Task<ActionResult<Entry>> GetEntry(int id)
         {
             Entry entry = await context.Entries.FindAsync(id);
 
@@ -164,7 +164,7 @@ namespace AspTwitter.Controllers
 
         // DELETE: api/Entries/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEntry(uint id)
+        public async Task<IActionResult> DeleteEntry(int id)
         {
             Entry entry = await context.Entries.FindAsync(id);
 
@@ -319,7 +319,7 @@ namespace AspTwitter.Controllers
         //GET api/Entries/5/comments
         [AllowAnonymous]
         [HttpGet("{id}/comments")]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetComments(uint id)
+        public async Task<ActionResult<IEnumerable<Comment>>> GetComments(int id)
         {
             if (await context.Entries.FindAsync(id) is null)
             {
@@ -380,7 +380,7 @@ namespace AspTwitter.Controllers
 
         //DELETE api/Entries/5/comments/5
         [HttpDelete("{entryId}/comments/{id}")]
-        public async Task<IActionResult> DeleteEntry(uint entryId, uint id)
+        public async Task<IActionResult> DeleteEntry(int entryId, int id)
         {
             Entry entry = await context.Entries.FindAsync(entryId);
             if (entry is null)

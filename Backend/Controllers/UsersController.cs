@@ -55,6 +55,21 @@ namespace AspTwitter.Controllers
             return user;
         }
 
+        // GET: api/Users/username/example
+        [AllowAnonymous]
+        [HttpGet("username/{username}")]
+        public async Task<ActionResult<User>> GetUserByUsername(string username)
+        {
+            User user = await context.Users.Where(u => u.Username == username).FirstOrDefaultAsync();
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            return user;
+        }
+
         // GET: api/Users/5/entries
         [AllowAnonymous]
         [HttpGet("{id}/entries")]
@@ -333,7 +348,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Followers.Include(x => x.User).Where(x => x.UserId == id).Select(x => x.Follower).ToListAsync();
+            return await context.Followers.Include(x => x.Follower).Where(x => x.UserId == id).Select(x => x.Follower).ToListAsync();
         }
 
         //GET: api/Users/5/following
@@ -346,7 +361,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Followers.Include(x => x.Follower).Where(x => x.FollowerId == id).Select(x => x.User).ToListAsync();
+            return await context.Followers.Include(x => x.User).Where(x => x.FollowerId == id).Select(x => x.User).ToListAsync();
         }
 
         //POST: api/Users/search

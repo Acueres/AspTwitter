@@ -33,18 +33,22 @@ namespace AspTwitter
 
             if (env != "Development")
             {
-                var connectionUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+                try
+                {
+                    var connectionUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-                connectionUrl = connectionUrl.Replace("postgres://", string.Empty);
-                var userPass = connectionUrl.Split("@")[0];
-                var hostPortDb = connectionUrl.Split("@")[1];
-                var hostPort = hostPortDb.Split("/")[0];
-                var db = hostPortDb.Split("/")[1];
-                var user = userPass.Split(":")[0];
-                var pass = userPass.Split(":")[1];
-                var host = hostPort.Split(":")[0];
-                var port = hostPort.Split(":")[1];
-                connectionStr = $"Server={host};Port={port};User Id={user};Password={pass};Database={db};Sslmode=Require;Trust Server Certificate=true;";
+                    connectionUrl = connectionUrl.Replace("postgres://", string.Empty);
+                    var userPass = connectionUrl.Split("@")[0];
+                    var hostPortDb = connectionUrl.Split("@")[1];
+                    var hostPort = hostPortDb.Split("/")[0];
+                    var db = hostPortDb.Split("/")[1];
+                    var user = userPass.Split(":")[0];
+                    var pass = userPass.Split(":")[1];
+                    var host = hostPort.Split(":")[0];
+                    var port = hostPort.Split(":")[1];
+                    connectionStr = $"Server={host};Port={port};User Id={user};Password={pass};Database={db};Sslmode=Require;Trust Server Certificate=true;";
+                }
+                catch (NullReferenceException) { }
             }
 
             services.AddDbContext<AppDbContext>(options =>
