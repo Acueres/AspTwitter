@@ -1,8 +1,16 @@
 ﻿@inherits LayoutComponentBase
 
+@using Frontend.Models
+@using Blazored.LocalStorage
+
+@inject AppUser AppUser
+@inject ILocalStorageService localStorage
+@inject HttpClient client
+
+
 <div class="page">
-    <div class="sidebar bg-dark border-right border-secondary">
-        <NavMenu />
+    <div class="sidebar">
+        <NavMenu @ref="navMenu" />
     </div>
 
     <div class="main bg-dark">
@@ -10,4 +18,23 @@
             @Body
         </div>
     </div>
+
+    <div class="col-3 bg-dark d-none d-sm-none d-md-block">
+        <Recommendations @ref="recommendations"></Recommendations>
+    </div>
 </div>
+
+@code {
+    private NavMenu navMenu;
+    private Recommendations recommendations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AppUser.Initialize(localStorage, client);
+
+        navMenu.Update();
+        await recommendations.Load();
+
+        StateHasChanged();
+    }
+} 

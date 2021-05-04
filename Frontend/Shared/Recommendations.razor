@@ -1,0 +1,32 @@
+﻿@using Frontend.Models 
+
+@inject HttpClient client
+@inject AppUser AppUser 
+
+<div class="container">
+    <div class="row border-bottom border-secondary p-3">
+        <h5 class="text-light">Recommended</h5>
+    </div>
+
+    @if (recommended.Count == 0)
+    {
+        <div class="d-flex justify-content-center mt-5">
+            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
+        </div>
+    }
+
+    @foreach (var user in recommended)
+    {
+        <ProfileInfo user="@user"></ProfileInfo>
+    }
+</div>
+
+@code {
+    private List<User> recommended = new();
+
+    public async Task Load()
+    {
+        recommended = await client.GetFromJsonAsync<List<User>>($"api/users/{AppUser.Id}/recommended/3");
+        StateHasChanged();
+    }
+}

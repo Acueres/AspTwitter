@@ -1,12 +1,13 @@
-﻿@page "/profile"
+﻿@page "/{username}"
 
 @using Frontend.Models
 
 @inject HttpClient client
-@inject AppUser AppUser
 
+@if (User is not null)
+{
 <div class="container-fluid border-left border-right border-secondary">
-    <ProfileHeader user="@AppUser" tweetCount="@entries.Count"></ProfileHeader>
+    <ProfileHeader @ref="profileHeader" user="@User" tweetCount="@entries.Count"></ProfileHeader>
 
     @if (entries.Count == 0 && !noContent)
     {
@@ -27,16 +28,26 @@
         <Tweet entry="@entry"></Tweet>
     }
 </div>
+}
 
 @code {
-    private bool noContent = false;
+    [Parameter]
+    public string Username { get; set; }
+
+    private User User { get; set; }
 
     private List<Entry> entries = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{AppUser.Id}/entries");
+    private bool noContent = false;
 
+    private ProfileHeader profileHeader;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        User = await client.GetFromJsonAsync<User>($"api/users/username/{Username}");
+        entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{User.Id}/entries");
+
+        noContent = false;
         if (entries.Count == 0)
         {
             noContent = true;

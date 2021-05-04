@@ -2,23 +2,31 @@
 
 @using Frontend.Models;
 @using System.Net.Http
-@inject HttpClient Http
+
+@inject HttpClient client
 
 <div class="container-fluid">
+    @if (entries.Count == 0)
+    {
+        <div class="d-flex justify-content-center mt-5">
+            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
+        </div>
+    }
+
     @foreach (Entry entry in entries)
     {
         <Tweet entry="@entry"></Tweet>
     }
 </div>
 
-@code{
+        @code{
     private List<Entry> entries = new();
 
-    protected override async Task OnInitializedAsync() =>
-        entries = await Http.GetFromJsonAsync<List<Entry>>("api/entries/partial/0");
+        protected override async Task OnInitializedAsync() =>
+            entries = await client.GetFromJsonAsync<List<Entry>>("api/entries/partial/0");
 
-    private string GetDate(DateTime timestamp)
-    {
-        return timestamp.Date.ToString("dd/M/yyyy");
-    }
-}
+        private string GetDate(DateTime timestamp)
+        {
+            return timestamp.Date.ToString("dd/M/yyyy");
+        }
+        }

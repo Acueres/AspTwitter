@@ -22,6 +22,8 @@ namespace Frontend.Models
 
         public virtual IList<Entry> Entries { get; set; } = new List<Entry>();
 
+        public virtual IList<Entry> Favorites { get; set; } = new List<Entry>();
+
         public virtual IList<Comment> Comments { get; set; } = new List<Comment>();
 
         public virtual IList<User> Following { get; set; } = new List<User>();

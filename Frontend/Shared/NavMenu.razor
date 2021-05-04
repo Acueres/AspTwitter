@@ -4,6 +4,7 @@
 @inject AppUser AppUser
 @inject ILocalStorageService localStorage
 @inject HttpClient client
+@inject NavigationManager NavigationManager
 
 <div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">AspTwitter</a>
@@ -44,9 +45,9 @@
         else if (AppUser.Logged)
         {
             <li class="pt-5 m-3">
-                <button type="button" class="btn btn-secondary" @onclick="Logout">
+                <a type="button" class="btn btn-secondary" href="logout">
                     <span class="oi oi-account-logout" aria-hidden="true"></span> Sign out
-                </button>
+                </a>
             </li>
         }
         else
@@ -71,14 +72,9 @@
         collapseNavMenu ^= collapseNavMenu;
     }
 
-    protected override async Task OnInitializedAsync()
+    public void Update()
     {
-        await AppUser.Initialize(localStorage, client);
-
         checkingLogin = false;
-
         StateHasChanged();
     }
-
-    private async Task Logout() => await AppUser.Logout(localStorage);
 }

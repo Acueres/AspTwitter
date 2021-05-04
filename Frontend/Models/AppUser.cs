@@ -3,10 +3,13 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using Blazored.LocalStorage;
+using System.Collections.Generic;
 using System.Net.Http.Headers;
+using System.Linq;
+using System.Net.Http.Json;
 
 using Newtonsoft.Json;
+using Blazored.LocalStorage;
 
 
 namespace Frontend.Models
@@ -31,8 +34,18 @@ namespace Frontend.Models
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                User user = JsonConvert.DeserializeObject<User>(await response.Content.ReadAsStringAsync());
+                string result = await response.Content.ReadAsStringAsync();
+                User user = JsonConvert.DeserializeObject<User>(result);
+
                 SetData(user);
+
+                Entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{Id}/entries");
+
+                Favorites = await client.GetFromJsonAsync<List<Entry>>($"api/users/{Id}/favorites");
+                Comments = await client.GetFromJsonAsync<List<Comment>>($"api/users/{Id}/comments");
+
+                Following = await client.GetFromJsonAsync<List<User>>($"api/users/{Id}/following");
+                Followers = await client.GetFromJsonAsync<List<User>>($"api/users/{Id}/followers");
 
                 Logged = true;
                 Token = auth.Token;
@@ -60,6 +73,40 @@ namespace Frontend.Models
             }
 
             await localStorage.RemoveItemAsync("auth");
+        }
+
+        public async Task FollowUser(User user, HttpClient client)
+        {
+            if (!Logged) return;
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+            var response = await client.PostAsync($"api/users/{user.Id}/follow", null);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                Following.Add(user);
+                FollowingCount++;
+            }
+        }
+
+        public async Task UnfollowUser(User user, HttpClient client)
+        {
+            if (!Logged) return;
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+            if (Following.Any(e => e.Id == user.Id))
+            {
+                var response = await client.DeleteAsync($"api/users/{user.Id}/unfollow");
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    Following.Remove(user);
+                    FollowingCount--;
+                }
+
+            }
         }
 
         private void SetData(User user)

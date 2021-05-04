@@ -1,0 +1,46 @@
+﻿@using Frontend.Models
+
+@inject AppUser AppUser
+@inject NavigationManager NavigationManager
+@inject HttpClient client
+
+<div class="row border-bottom border-secondary p-3">
+    <div class="col-sm-2">
+        <img src="api/users/@user.Id/avatar" class="img rounded-circle"
+             style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(user)" />
+    </div>
+    <div class="col-4">
+        <a style="color: white;" href="@(user.Username)">@(user.Name)</a>
+        <br />
+        <span style="color: gray">@("@" + user.Username)</span>
+    </div>
+    <div class="col ml-5">
+        @if (IsFollowing(user))
+        {
+            <button class="btn btn-primary" @onclick="async () => await AppUser.UnfollowUser(user, client)">
+                Following
+            </button>
+        }
+        else
+        {
+            <button class="btn btn-outline-primary" @onclick="async () => await AppUser.FollowUser(user, client)">
+                Follow
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public User user { get; set; }
+
+    private void GoToProfile(User user)
+    {
+        NavigationManager.NavigateTo(user.Username);
+    }
+
+    private bool IsFollowing(User user)
+    {
+        return AppUser.Logged && AppUser.Following.Any(e => e.Id == user.Id);
+    }
+}
