@@ -283,11 +283,11 @@ namespace AspTwitter.Tests
             Assert.True(entry.RetweetCount == 1);
 
             //Ensure that users cannot delete non-existent retweets
-            response = await client.DeleteAsync($"api/entries/{42}/retweet");
+            response = await client.DeleteAsync($"api/entries/{42}/remove-retweet");
             Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
 
             //Ensure retweet deletion
-            response = await client.DeleteAsync($"api/entries/{entryId}/retweet");
+            response = await client.DeleteAsync($"api/entries/{entryId}/remove-retweet");
             response.EnsureSuccessStatusCode();
 
             //Check that the retweet has been deleted
@@ -441,7 +441,7 @@ namespace AspTwitter.Tests
 
         private async Task<HttpResponseMessage> RemoveLike(int id)
         {
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{id}/favorite");
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"api/entries/{id}/unfavorite");
             return await client.SendAsync(request);
         }
 

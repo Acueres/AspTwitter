@@ -1,25 +1,46 @@
-﻿@using Frontend.Models
+﻿@page "/tweet/{Id:int}"
+
+@using Blazored.LocalStorage
 
 @inject HttpClient client
 @inject NavigationManager NavigationManager
-@inject AppUser appUser 
+@inject AppUser appUser
+@inject ILocalStorageService localStorage
 
-<div class="row border-bottom border-secondary p-3">
-        <div class="col-sm-1">
-            <img src="api/users/@entry.AuthorId/avatar" class="img rounded-circle"
-                 style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(entry.Author)" />
+<div class="container-fluid border-left border-right border-top border-secondary">
+
+    @if (entry is null)
+    {
+        <div class="d-flex justify-content-center m-5">
+            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
         </div>
-        <div class="col-auto">
-            <a class="mr-1" style="color: white;" href="@(entry.Author.Username)">@(entry.Author.Name)</a>
-            <span class="mr-1" style="color: gray">@("@" + entry.Author.Username)</span>
-            <span class="mr-1" style="color: gray">@(" - " + GetDate(entry.Timestamp))</span>
-            <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
+    } 
+    else
+    {
+        <div class="row mt-3">
+            <div class="col-sm-1">
+                <img src="api/users/@entry.AuthorId/avatar" class="img rounded-circle"
+                     style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(entry.Author)" />
+            </div>
+            <div class="col-auto">
+                <a class="mr-1" style="color: white;" href="@(entry.Author.Username)">@(entry.Author.Name)</a>
+                <br />
+                <span class="mr-1" style="color: gray">@("@" + entry.Author.Username)</span>
+            </div>
+        </div>
 
-            <p class="mt-2">
-                <a class="mt-2" style="color: white; word-wrap: break-word; text-decoration: none;" href="tweet/@entry.Id">@(entry.Text)</a>
-            </p>
+        <div class="row m-2 mt-3">
+            <span style="color: white; word-wrap: break-word; font-size: x-large">@(entry.Text)</span>
+        </div>
+
+        <div class="row m-2 mt-3 border-bottom border-top border-secondary">
+            <span class="mt-3 mb-3" style="color:gray;">@(entry.Timestamp)</span>
+        </div>
+
+        <div class="row">
+            <!--
             <div class="btn-group">
-                <button class="btn shadow-none" style="color: gray" @onclick="GoToComments">
+                <button class="btn shadow-none" style="color: gray">
                     <span class="oi oi-comment-square mr-2"></span> @DisplayCount(entry.CommentCount)
                 </button>
                 <button class="btn shadow-none ml-3" style="color: gray" @onclick="async () => await SetRetweet()">
@@ -28,26 +49,26 @@
                 <button class="btn shadow-none ml-3" style="color: gray" @onclick="async () => await SetFavorite()">
                     <span class="oi oi-heart mr-2" style="@(isFavorite ? "color: blue": "color: gray")"></span> @DisplayCount(entry.LikeCount)
                 </button>
-            </div>
+            </div>-->
         </div>
+    }
 </div>
 
 @code {
     [Parameter]
-    public Entry entry { get; set; }
+    public int Id { get; set; }
 
-    private bool isFavorite;
-    private bool isRetweeted;
+    private Entry entry;
 
-    protected override void OnParametersSet()
+    /*private bool isFavorite;
+    private bool isRetweeted;*/
+
+    protected override async Task OnParametersSetAsync()
     {
-        isFavorite = appUser.Logged && appUser.Favorites.Any(e => e.Id == entry.Id);
-        isRetweeted = appUser.Logged && appUser.Retweets.Any(e => e.Id == entry.Id);
-    }
-
-    private string GetDate(DateTime timestamp)
-    {
-        return timestamp.Date.ToString("dd/M/yyyy");
+        entry = await client.GetFromJsonAsync<Entry>($"api/entries/{Id}");
+        Console.WriteLine(entry.Id);
+        //isFavorite = appUser.Favorites.Any(e => e.Id == entry.Id);
+        //isRetweeted = appUser.Retweets.Any(e => e.Id == entry.Id);
     }
 
     private void GoToProfile(User user)
@@ -55,18 +76,7 @@
         NavigationManager.NavigateTo(user.Username);
     }
 
-    private void GoToComments()
-    {
-        if (!appUser.Logged)
-        {
-            NavigationManager.NavigateTo("login");
-            return;
-        }
-
-        NavigationManager.NavigateTo($"tweet/{entry.Id}/{true}");
-    }
-
-    private async Task SetFavorite()
+    /*private async Task SetFavorite()
     {
         if (!appUser.Logged) return;
 
@@ -119,5 +129,5 @@
         }
 
         return n.ToString();
-    }
+    }*/
 }

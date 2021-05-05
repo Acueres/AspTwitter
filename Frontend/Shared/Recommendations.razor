@@ -1,7 +1,7 @@
 ﻿@using Frontend.Models 
 
 @inject HttpClient client
-@inject AppUser AppUser 
+@inject AppUser appUser 
 
 <div class="container">
     <div class="row border-bottom border-secondary p-3">
@@ -24,9 +24,8 @@
 @code {
     private List<User> recommended = new();
 
-    public async Task Load()
-    {
-        recommended = await client.GetFromJsonAsync<List<User>>($"api/users/{AppUser.Id}/recommended/3");
-        StateHasChanged();
-    }
+        protected override async Task OnInitializedAsync()
+        {
+            recommended = await client.GetFromJsonAsync<List<User>>($"api/users/{appUser.Id}/recommended/3");
+        }
 }

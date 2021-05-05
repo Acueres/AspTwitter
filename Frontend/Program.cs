@@ -23,10 +23,20 @@ namespace Frontend
             builder.RootComponents.Add<App>("#app");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-            builder.Services.AddScoped<AppUser>();
+            builder.Services.AddSingleton<AppUser>();
+
             builder.Services.AddBlazoredLocalStorage();
 
-            await builder.Build().RunAsync();
+            var host = builder.Build();
+
+            var appUserService = host.Services.GetRequiredService<AppUser>();
+
+            await appUserService.InitializeAsync(
+                host.Services.GetRequiredService<ILocalStorageService>(),
+                host.Services.GetRequiredService<HttpClient>()
+                );
+
+            await host.RunAsync();
         }
     }
 }

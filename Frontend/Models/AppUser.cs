@@ -39,26 +39,21 @@ namespace Frontend.Models
 
                 SetData(user);
 
-                Entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{Id}/entries");
-
-                Favorites = await client.GetFromJsonAsync<List<Entry>>($"api/users/{Id}/favorites");
-                Comments = await client.GetFromJsonAsync<List<Comment>>($"api/users/{Id}/comments");
-
-                Following = await client.GetFromJsonAsync<List<User>>($"api/users/{Id}/following");
-                Followers = await client.GetFromJsonAsync<List<User>>($"api/users/{Id}/followers");
-
                 Logged = true;
                 Token = auth.Token;
             }
         }
 
-        public async Task Initialize(ILocalStorageService localStorage, HttpClient client)
+        public async Task InitializeAsync(ILocalStorageService localStorage, HttpClient client)
         {
             var auth = await localStorage.GetItemAsync<AuthenticationResponse>("auth");
 
             if (auth is not null)
             {
                 await SetLogin(auth, client);
+
+                Favorites = await client.GetFromJsonAsync<List<Entry>>($"api/users/{Id}/favorites");
+                Retweets = await client.GetFromJsonAsync<List<Entry>>($"api/users/{Id}/retweets");
             }
         }
 
@@ -106,6 +101,64 @@ namespace Frontend.Models
                     FollowingCount--;
                 }
 
+            }
+        }
+
+        public async Task FavoriteEntry(Entry entry, HttpClient client)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+            var response = await client.PostAsync($"api/entries/{entry.Id}/favorite", null);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                Favorites.Add(entry);
+                entry.LikeCount++;
+            }
+        }
+
+        public async Task UnfavoriteEntry(Entry entry, HttpClient client)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+            var response = await client.DeleteAsync($"api/entries/{entry.Id}/unfavorite");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                if (Favorites.Any(e => e.Id == entry.Id))
+                {
+                    Favorites.Remove(entry);
+                }
+                entry.LikeCount--;
+            }
+        }
+
+        public async Task AddRetweet(Entry entry, HttpClient client)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+            var response = await client.PostAsync($"api/entries/{entry.Id}/retweet", null);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                Retweets.Add(entry);
+                entry.RetweetCount++;
+            }
+        }
+
+        public async Task RemoveRetweet(Entry entry, HttpClient client)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+            var response = await client.DeleteAsync($"api/entries/{entry.Id}/remove-retweet");
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                if (Retweets.Any(e => e.Id == entry.Id))
+                {
+                    Retweets.Remove(entry);
+                }
+                entry.RetweetCount--;
             }
         }
 

@@ -71,7 +71,7 @@ namespace AspTwitter.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Entry>> GetEntry(int id)
         {
-            Entry entry = await context.Entries.FindAsync(id);
+            Entry entry = await context.Entries.Include(x => x.Author).FirstOrDefaultAsync(x => x.Id == id);
 
             if (entry is null)
             {
@@ -223,8 +223,8 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
-        //DELETE api/Entries/5/favorite
-        [HttpDelete("{id}/favorite")]
+        //DELETE api/Entries/5/unfavorite
+        [HttpDelete("{id}/unfavorite")]
         public async Task<IActionResult> RemoveFavorite(int id)
         {
             int userId = ((User)HttpContext.Items["User"]).Id;
@@ -289,8 +289,8 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
-        //DELETE api/Entries/5/retweet
-        [HttpDelete("{id}/retweet")]
+        //DELETE api/Entries/5/remove-retweet
+        [HttpDelete("{id}/remove-retweet")]
         public async Task<IActionResult> RemoveRetweet(int id)
         {
             int userId = ((User)HttpContext.Items["User"]).Id;
@@ -330,15 +330,24 @@ namespace AspTwitter.Controllers
                 Where(x => x.ParentId == id).ToListAsync();
         }
 
+        //GET api/Entries/comments/5
+        [AllowAnonymous]
+        [HttpGet("comments/{id}")]
+        public async Task<ActionResult<IEnumerable<Comment>>> GetComment(int id)
+        {
+            var comment = await context.Comments.Include(x => x.Author).FirstOrDefaultAsync(x => x.Id == id);
+            if (comment is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(comment);
+        }
+
         //POST api/Entries/5/comments
         [HttpPost("{id}/comments")]
         public async Task<IActionResult> PostComment(int id, EntryRequest request)
         {
-            if (!HasPermission(request.AuthorId))
-            {
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-
             Entry entry = await context.Entries.FindAsync(id);
 
             if (entry is null)

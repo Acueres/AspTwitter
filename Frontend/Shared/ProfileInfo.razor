@@ -1,6 +1,6 @@
 ﻿@using Frontend.Models
 
-@inject AppUser AppUser
+@inject AppUser appUser
 @inject NavigationManager NavigationManager
 @inject HttpClient client
 
@@ -17,13 +17,13 @@
     <div class="col ml-5">
         @if (IsFollowing(user))
         {
-            <button class="btn btn-primary" @onclick="async () => await AppUser.UnfollowUser(user, client)">
+            <button class="btn btn-primary" @onclick="async () => await appUser.UnfollowUser(user, client)">
                 Following
             </button>
         }
         else
         {
-            <button class="btn btn-outline-primary" @onclick="async () => await AppUser.FollowUser(user, client)">
+            <button class="btn btn-outline-primary" @onclick="async () => await appUser.FollowUser(user, client)">
                 Follow
             </button>
         }
@@ -41,6 +41,6 @@
 
     private bool IsFollowing(User user)
     {
-        return AppUser.Logged && AppUser.Following.Any(e => e.Id == user.Id);
+        return appUser.Logged && appUser.Following.Any(e => e.Id == user.Id);
     }
 }

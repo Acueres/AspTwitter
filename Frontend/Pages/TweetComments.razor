@@ -1,0 +1,234 @@
+﻿@page "/tweet/{Id:int}/{InputOpen:bool}"
+@page "/tweet/{Id:int}"
+
+@using Frontend.Requests
+@using Newtonsoft.Json
+@using System.Net
+@using System.Text
+@using System.Net.Http.Headers;
+
+@inject NavigationManager NavigationManager
+@inject HttpClient client
+@inject AppUser appUser
+
+<div class="container-fluid border border-secondary">
+    @if (entry is null)
+    {
+        <div class="d-flex justify-content-center m-5">
+            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="row mt-3">
+            <div class="col-sm-1">
+                <img src="api/users/@entry.AuthorId/avatar" class="img rounded-circle"
+                     style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(entry.Author)" />
+            </div>
+            <div class="col-auto">
+                <a class="mr-1" style="color: white;" href="@(entry.Author.Username)">@(entry.Author.Name)</a>
+                <br />
+                <span class="mr-1" style="color: gray">@("@" + entry.Author.Username)</span>
+            </div>
+        </div>
+
+        <div class="row m-2 mt-3">
+            <span style="color: white; word-wrap: break-word; font-size: x-large">@(entry.Text)</span>
+        </div>
+
+        <div class="row m-2 mt-3 border-bottom border-top border-secondary">
+            <span class="mt-3 mb-3" style="color:gray;">@(entry.Timestamp)</span>
+        </div>
+
+        <div class="row">
+            <div class="btn-group">
+                <button class="btn shadow-none" style="color: gray" @onclick="ToggleInput">
+                    <span class="oi oi-comment-square mr-2" style="@(InputOpen ? "color: blue": "color: gray")"></span> @DisplayCount(entry.CommentCount)
+                </button>
+                <button class="btn shadow-none ml-3" style="color: gray" @onclick="async () => await SetRetweet()">
+                    <span class="oi oi-loop-square mr-2" style="@(isRetweeted ? "color: blue": "color: gray")"></span> @DisplayCount(entry.RetweetCount)
+                </button>
+                <button class="btn shadow-none ml-3" style="color: gray" @onclick="async () => await SetFavorite()">
+                    <span class="oi oi-heart mr-2" style="@(isFavorite ? "color: blue": "color: gray")"></span> @DisplayCount(entry.LikeCount)
+                </button>
+            </div>
+        </div>
+
+        @if (InputOpen)
+        {
+            <div class="row">
+                <div class="container m-3">
+                    <EditForm Model="@commentData" OnValidSubmit="@SendData" class="text-light">
+                        <textarea class="form-control bg-dark text-light"
+                                  style="resize: none; overflow: hidden;"
+                                  oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'
+                                  @bind="@(commentData.Text)" maxlength="128"></textarea>
+                        <button type="submit" class="btn btn-primary mt-2 float-right">Reply</button>
+                    </EditForm>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<div class="container-fluid border border-secondary">
+    @if (entry is null || comments.Count == 0)
+    {
+        <div class="d-flex justify-content-center m-5">
+            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
+        </div>
+    }
+
+    @foreach (var comment in comments)
+    {
+        <div class="row m-3 border-bottom border-secondary">
+            <div class="col-sm-1">
+                <img src="api/users/@comment.AuthorId/avatar" class="img rounded-circle"
+                     style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(comment.Author)" />
+            </div>
+
+            <div class="col-auto">
+                <a class="mr-1" style="color: white;" href="@(comment.Author.Username)">@(comment.Author.Name)</a>
+                <span class="mr-1" style="color: gray">@("@" + comment.Author.Username)</span>
+                <span class="mr-1" style="color: gray">@(" - " + GetDate(comment.Timestamp))</span>
+                <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
+
+                <p class="mt-2">
+                    <span class="mt-2" style="color: white; word-wrap: break-word;">@(comment.Text)</span>
+                </p>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public bool InputOpen { get; set; }
+
+    private EntryRequest commentData = new();
+
+    private Entry entry;
+    private List<Comment> comments = new();
+
+    private bool isFavorite;
+    private bool isRetweeted;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        entry = await client.GetFromJsonAsync<Entry>($"api/entries/{Id}");
+        comments = await client.GetFromJsonAsync<List<Comment>>($"api/entries/{Id}/comments");
+
+        if (appUser.Logged)
+        {
+            isFavorite = appUser.Favorites.Any(e => e.Id == entry.Id);
+            isRetweeted = appUser.Retweets.Any(e => e.Id == entry.Id);
+        }
+    }
+
+    private void ToggleInput()
+    {
+        if (!appUser.Logged)
+        {
+            NavigationManager.NavigateTo("login");
+            return;
+        }
+
+        InputOpen ^= true;
+    }
+
+    private void GoToProfile(User user)
+    {
+        NavigationManager.NavigateTo(user.Username);
+    }
+
+    private async Task SetFavorite()
+    {
+        if (!appUser.Logged) return;
+
+        if (isFavorite)
+        {
+            await appUser.UnfavoriteEntry(entry, client);
+            isFavorite = false;
+        }
+        else
+        {
+            await appUser.FavoriteEntry(entry, client);
+            isFavorite = true;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task SetRetweet()
+    {
+        if (!appUser.Logged || appUser.Id == entry.AuthorId) return;
+
+        if (isRetweeted)
+        {
+            await appUser.RemoveRetweet(entry, client);
+            isRetweeted = false;
+        }
+        else
+        {
+            await appUser.AddRetweet(entry, client);
+            isRetweeted = true;
+        }
+
+        StateHasChanged();
+    }
+
+    private string DisplayCount(int n)
+    {
+        if (n >= 1e6)
+        {
+            double res = Math.Round(n / 1e5) / 10;
+
+            return res + "M";
+        }
+
+        else if (n >= 1e3)
+        {
+            double res = Math.Round(n / 1e2) / 10;
+
+            return res.ToString() + "K";
+        }
+
+        return n.ToString();
+    }
+
+    private string GetDate(DateTime timestamp)
+    {
+        return timestamp.Date.ToString("dd/M/yyyy");
+    }
+
+    private async Task SendData()
+    {
+        if (string.IsNullOrEmpty(commentData.Text) || string.IsNullOrWhiteSpace(commentData.Text)) return;
+
+        commentData.AuthorId = appUser.Id;
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"api/entries/{entry.Id}/comments")
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(commentData), Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            string result = await response.Content.ReadAsStringAsync();
+            int commentId = JsonConvert.DeserializeObject<int>(result);
+
+            comments.Add(await client.GetFromJsonAsync<Comment>($"api/entries/comments/{commentId}"));
+
+            commentData.Text = "";
+
+            entry.CommentCount++;
+        }
+    }
+} 
