@@ -1,0 +1,142 @@
+﻿@page "/profile/edit"
+
+@using Frontend.Requests
+@using System.Net
+@using Newtonsoft.Json
+@using System.Text
+@using System.Net.Http.Headers;
+@using System.IO
+
+@inject AppUser appUser
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject IJSRuntime js
+
+<div class="container-fluid p-3 border border-secondary">
+    <h3 class="text-light">Edit Profile</h3>
+</div>
+
+<div class="container-fluid p-3 border border-secondary">
+    <div class="row m-3">
+        <input type="file" id="avatar-selector" accept="image/*"
+               enctype="multipart/form-data" style="display: none;"
+               @onchange="@LoadImage">
+
+        <input type="image" id="avatar" src="api/users/@appUser.Id/avatar" class="img rounded-circle float-left"
+               style="width: 100px; height: 100px; outline: none;" @onclick="OpenSelector">
+    </div>
+
+    <EditForm Model="@editData" OnValidSubmit="@SendData" class="text-light">
+        <div class="mb-3 mt-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control bg-dark text-light" @bind="editData.Name" />
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control bg-dark text-light" @bind="editData.Username" />
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">About</label>
+            <textarea class="form-control bg-dark text-light" rows="3"
+                      style="resize: none; overflow: hidden;"
+                      oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'
+                      @bind="editData.About" maxlength="160" />
+        </div>
+
+        @foreach (string error in errors)
+        {
+            <b class="text-danger">Error: @(error)</b> <br />
+        }
+
+        <button type="submit" class="btn btn-primary mt-3">Save</button>
+    </EditForm>
+</div>
+
+@code {
+    private EditUserRequest editData = new();
+    private List<string> errors = new();
+    private IBrowserFile image;
+
+    private string nameRequired = "Name is required";
+
+    private string usernameRequired = "Username is required";
+    private string usernameExists = "Username already exists";
+    private string usernameWhitespace = "Username cannot contain whitespace";
+
+    protected override void OnInitialized()
+    {
+        editData.Name = appUser.Name;
+        editData.Username = appUser.Username;
+        editData.About = appUser.About;
+    }
+
+    private async Task OpenSelector()
+    {
+        await js.InvokeVoidAsync("functions.openSelector");
+    }
+
+    private async Task LoadImage()
+    {
+        var result = await js.InvokeAsync<string>("functions.loadAvatar");
+    }
+
+    private async Task SendData()
+    {
+        errors.Clear();
+
+        await js.InvokeVoidAsync("functions.uploadAvatar", appUser.Id, appUser.Token, client.BaseAddress);
+
+        if (editData.Name == appUser.Name &&
+        editData.Username == appUser.Username &&
+        editData.About == appUser.About)
+        {
+            NavigationManager.NavigateTo("profile");
+        }
+
+        if (string.IsNullOrEmpty(editData.Name))
+        {
+            errors.Add(nameRequired);
+        }
+
+        if (string.IsNullOrEmpty(editData.Username))
+        {
+            errors.Add(usernameRequired);
+        }
+
+        if (editData.Username is not null && editData.Username.Contains(' '))
+        {
+            errors.Add(usernameWhitespace);
+        }
+
+        if (errors.Count > 0)
+        {
+            return;
+        }
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+
+        var request = new HttpRequestMessage(HttpMethod.Patch, $"api/users/{appUser.Id}")
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(editData), Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            appUser.Name = editData.Name;
+            appUser.Username = editData.Username;
+            appUser.About = editData.About;
+
+            NavigationManager.NavigateTo("profile");
+            return;
+        }
+
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            errors.Add(usernameExists);
+        }
+    }
+}

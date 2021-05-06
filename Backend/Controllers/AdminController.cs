@@ -53,7 +53,7 @@ namespace AspTwitter.Controllers
         {
             try
             {
-                if ((User)HttpContext.Items["User"] is not null)
+                if ((User)HttpContext.Items["Admin"] is not null)
                 {
                     return RedirectToAction("Home");
                 }
@@ -207,7 +207,7 @@ namespace AspTwitter.Controllers
         }
 
         [Route("users/edit/{id}")]
-        public async Task<IActionResult> EditUser(uint id, string name, string username, string email, string about, IFormFile avatar)
+        public async Task<IActionResult> EditUser(int id, string name, string username, string email, string about, IFormFile avatar)
         {
             User user = await context.Users.FindAsync(id);
             if (user is null)
@@ -293,7 +293,7 @@ namespace AspTwitter.Controllers
         }
 
         [Route("users/delete")]
-        public async Task<IActionResult> DeleteUser(uint id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
             User user = await context.Users.FindAsync(id);
             if (user is null || user.Username == "admin")
@@ -428,7 +428,7 @@ namespace AspTwitter.Controllers
         }
 
         [Route("entries/delete")]
-        public async Task<IActionResult> DeleteEntry(uint id)
+        public async Task<IActionResult> DeleteEntry(int id)
         {
             Entry entry = await context.Entries.FindAsync(id);
             if (entry is null)
@@ -508,7 +508,7 @@ namespace AspTwitter.Controllers
         }
 
         [Route("entries/{id}/comments/{page?}")]
-        public async Task<IActionResult> EntryComments(uint id, string search = null, string orderBy = "Id", bool ascending = false, int page = 1)
+        public async Task<IActionResult> EntryComments(int id, string search = null, string orderBy = "Id", bool ascending = false, int page = 1)
         {
             Entry entry = await context.Entries.FindAsync(id);
             if (entry is null)
@@ -603,7 +603,7 @@ namespace AspTwitter.Controllers
         }
 
         [Route("comments/{id}/edit")]
-        public async Task<IActionResult> EditComment(uint id, string text)
+        public async Task<IActionResult> EditComment(int id, string text)
         {
             Comment comment = await context.Comments.FindAsync(id);
             if (comment is null || string.IsNullOrEmpty(text))
@@ -627,7 +627,7 @@ namespace AspTwitter.Controllers
         }
 
         [Route("comments/delete")]
-        public async Task<IActionResult> DeleteComment(uint id)
+        public async Task<IActionResult> DeleteComment(int id)
         {
             Comment comment = await context.Comments.FindAsync(id);
             if (comment is null)

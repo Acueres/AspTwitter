@@ -1,40 +1,59 @@
 ﻿@using Frontend.Models
+@using System.Net.Http.Headers;
+@using System.Net;
 
 @inject HttpClient client
 @inject NavigationManager NavigationManager
 @inject AppUser appUser 
 
-<div class="row border-bottom border-secondary p-3">
-        <div class="col-sm-1">
-            <img src="api/users/@entry.AuthorId/avatar" class="img rounded-circle"
-                 style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(entry.Author)" />
-        </div>
-        <div class="col-auto">
-            <a class="mr-1" style="color: white;" href="@(entry.Author.Username)">@(entry.Author.Name)</a>
-            <span class="mr-1" style="color: gray">@("@" + entry.Author.Username)</span>
-            <span class="mr-1" style="color: gray">@(" - " + GetDate(entry.Timestamp))</span>
-            <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
+@if (entry is not null)
+{
+<div class="row pt-3">
+    <div class="col-sm-auto">
+        <img src="api/users/@entry.AuthorId/avatar" class="img rounded-circle"
+             style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(entry.Author)" />
+    </div>
+    <div class="col-auto">
+        <a class="mr-1" style="color: white;" href="@(entry.Author.Username)">@(entry.Author.Name)</a>
+        <span class="mr-1" style="color: gray">@("@" + entry.Author.Username)</span>
+        <span class="mr-1" style="color: gray">@(" - " + GetDate(entry.Timestamp))</span>
 
-            <p class="mt-2">
-                <a class="mt-2" style="color: white; word-wrap: break-word; text-decoration: none;" href="tweet/@entry.Id">@(entry.Text)</a>
-            </p>
-            <div class="btn-group">
-                <button class="btn shadow-none" style="color: gray" @onclick="GoToComments">
-                    <span class="oi oi-comment-square mr-2"></span> @DisplayCount(entry.CommentCount)
-                </button>
-                <button class="btn shadow-none ml-3" style="color: gray" @onclick="async () => await SetRetweet()">
-                    <span class="oi oi-loop-square mr-2" style="@(isRetweeted ? "color: blue": "color: gray")"></span> @DisplayCount(entry.RetweetCount)
-                </button>
-                <button class="btn shadow-none ml-3" style="color: gray" @onclick="async () => await SetFavorite()">
-                    <span class="oi oi-heart mr-2" style="@(isFavorite ? "color: blue": "color: gray")"></span> @DisplayCount(entry.LikeCount)
-                </button>
-            </div>
-        </div>
+        @if (entry.AuthorId == appUser.Id)
+        {
+            <button class="btn shadow-none" @onclick="async () => await DeleteTweet(entry.Id)">
+                <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
+            </button>
+        }
+    </div>
 </div>
+
+<div class="row border-bottom border-secondary">
+    <div class="col-sm-1"></div>
+    <div class="col-8">
+        <p>
+            <a class="mb-2" style="color: white; word-wrap: break-word; text-decoration: none;" href="tweet/@entry.Id">@(entry.Text)</a>
+        </p>
+        <div class="btn-group">
+            <button class="btn shadow-none" style="color: gray" @onclick="GoToComments">
+                <span class="oi oi-comment-square mr-2"></span> @DisplayCount(entry.CommentCount)
+            </button>
+            <button class="btn shadow-none ml-3" style="color: gray" @onclick="async () => await SetRetweet()">
+                <span class="oi oi-loop-square mr-2" style="@(isRetweeted ? "color: blue" : "color: gray")"></span> @DisplayCount(entry.RetweetCount)
+            </button>
+            <button class="btn shadow-none ml-3" style="color: gray" @onclick="async () => await SetFavorite()">
+                <span class="oi oi-heart mr-2" style="@(isFavorite ? "color: blue" : "color: gray")"></span> @DisplayCount(entry.LikeCount)
+            </button>
+        </div>
+    </div>
+</div>
+}
 
 @code {
     [Parameter]
     public Entry entry { get; set; }
+
+    [Parameter]
+    public List<Entry> entries { get; set; }
 
     private bool isFavorite;
     private bool isRetweeted;
@@ -59,11 +78,28 @@
     {
         if (!appUser.Logged)
         {
-            NavigationManager.NavigateTo("login");
+            NavigationManager.NavigateTo($"tweet/{entry.Id}");
             return;
         }
 
         NavigationManager.NavigateTo($"tweet/{entry.Id}/{true}");
+    }
+
+    private async Task DeleteTweet(int id)
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+
+        var response = await client.DeleteAsync($"api/entries/{id}");
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            if (entries.Any(e => e.Id == entry.Id))
+            {
+                entries.Remove(entry);
+                entry = null;
+                StateHasChanged();
+            }
+        }
     }
 
     private async Task SetFavorite()

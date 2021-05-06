@@ -21,16 +21,7 @@ namespace Frontend.Models
 
         public async Task SetLogin(AuthenticationResponse auth, HttpClient client)
         {
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
-
-            var response = await client.GetAsync("api/authentication/test");
-
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                return;
-            }
-
-            response = await client.GetAsync($"api/users/{auth.Id}");
+            var response = await client.GetAsync($"api/users/{auth.Id}");
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -50,6 +41,14 @@ namespace Frontend.Models
 
             if (auth is not null)
             {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+
+                var response = await client.GetAsync("api/authentication/test");
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return;
+                }
+
                 await SetLogin(auth, client);
 
                 Favorites = await client.GetFromJsonAsync<List<Entry>>($"api/users/{Id}/favorites");

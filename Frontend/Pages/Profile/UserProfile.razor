@@ -4,19 +4,19 @@
 
 @inject HttpClient client
 
-@if (User is not null)
+@if (user is not null)
 {
 <div class="container-fluid border-left border-right border-secondary">
-    <ProfileHeader @ref="profileHeader" user="@User" tweetCount="@entries.Count"></ProfileHeader>
+    <ProfileHeader @ref="profileHeader" user="@user" tweetCount="@entries.Count"></ProfileHeader>
 
-    @if (entries.Count == 0 && !noContent)
+    @if (loading)
     {
         <div class="d-flex justify-content-center mt-5">
             <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
         </div>
     }
 
-    @if (noContent)
+    else if (entries.Count == 0)
     {
         <div class="d-flex justify-content-center mt-5">
             <h3 class="text-light">No tweets</h3>
@@ -32,25 +32,20 @@
 
 @code {
     [Parameter]
-    public string Username { get; set; }
+    public string username { get; set; }
 
-    private User User { get; set; }
+    private User user { get; set; }
 
     private List<Entry> entries = new();
 
-    private bool noContent = false;
-
     private ProfileHeader profileHeader;
+
+    private bool loading = true;
 
     protected override async Task OnParametersSetAsync()
     {
-        User = await client.GetFromJsonAsync<User>($"api/users/username/{Username}");
-        entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{User.Id}/entries");
-
-        noContent = false;
-        if (entries.Count == 0)
-        {
-            noContent = true;
-        }
+        user = await client.GetFromJsonAsync<User>($"api/users/username/{username}");
+        entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{user.Id}/entries");
+        loading = false;
     }
 }

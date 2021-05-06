@@ -72,10 +72,17 @@
 </div>
 
 <div class="container-fluid border border-secondary">
-    @if (entry is null || comments.Count == 0)
+    @if (entry is null)
     {
         <div class="d-flex justify-content-center m-5">
             <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
+        </div>
+    }
+
+    @if (entry is not null && entry.CommentCount == 0)
+    {
+        <div class="d-flex justify-content-center m-5">
+            <h3 class="text-light">No comments</h3>
         </div>
     }
 
@@ -91,7 +98,13 @@
                 <a class="mr-1" style="color: white;" href="@(comment.Author.Username)">@(comment.Author.Name)</a>
                 <span class="mr-1" style="color: gray">@("@" + comment.Author.Username)</span>
                 <span class="mr-1" style="color: gray">@(" - " + GetDate(comment.Timestamp))</span>
-                <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
+
+                @if (comment.AuthorId == appUser.Id)
+                {
+                    <button class="btn shadow-none" @onclick="async () => await DeleteComment(comment)">
+                        <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
+                    </button>
+                }
 
                 <p class="mt-2">
                     <span class="mt-2" style="color: white; word-wrap: break-word;">@(comment.Text)</span>
@@ -142,6 +155,22 @@
     private void GoToProfile(User user)
     {
         NavigationManager.NavigateTo(user.Username);
+    }
+
+    private async Task DeleteComment(Comment comment)
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+
+        var response = await client.DeleteAsync($"api/entries/{comment.ParentId}/comments/{comment.Id}");
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            if (comments.Any(e => e.Id == comment.Id))
+            {
+                comments.Remove(comment);
+                entry.CommentCount--;
+            }
+        }
     }
 
     private async Task SetFavorite()

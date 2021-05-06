@@ -4,6 +4,7 @@
 
 @inject HttpClient client
 @inject AppUser AppUser
+@inject NavigationManager NavigationManager
 
 <div class="container-fluid border-left border-right border-secondary">
     <ProfileHeader user="@AppUser" tweetCount="@entries.Count"></ProfileHeader>
@@ -24,7 +25,7 @@
 
     @foreach (Entry entry in entries)
     {
-        <Tweet entry="@entry"></Tweet>
+        <Tweet entry="@entry" entries="@entries"></Tweet>
     }
 </div>
 
@@ -35,11 +36,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{AppUser.Id}/entries");
-
-        if (entries.Count == 0)
+        if (!AppUser.Logged)
         {
-            noContent = true;
+            NavigationManager.NavigateTo("login");
         }
+
+        entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{AppUser.Id}/entries");
+        entries.Reverse();
+
+        noContent = entries.Count == 0;
     }
 }

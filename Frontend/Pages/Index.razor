@@ -20,7 +20,10 @@
 
     @foreach (Entry entry in entries)
     {
-        <Tweet entry="@entry"></Tweet>
+        @if (entry is not null)
+        {
+            <Tweet entry="@entry" entries="@entries"></Tweet>
+        }
     }
 
     @if (entries.Count != 0)
@@ -56,7 +59,8 @@
 
         if (additionalEntries is not null)
         {
-            entries = (List<Entry>)entries.Concat(additionalEntries);
+            entries = entries.Concat(additionalEntries).ToList();
+            part++;
         }
     }
 }

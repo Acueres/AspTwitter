@@ -27,16 +27,20 @@ namespace AspTwitter.Authentication
                 return;
             }
 
+            if (descriptor.ControllerName == "Admin")
+            {
+                if ((User)context.HttpContext.Items["Admin"] is null)
+                {
+                    context.Result = new RedirectResult("admin/login");
+                }
+
+                return;
+            }
+
             User user = (User)context.HttpContext.Items["User"];
 
             if (user is null)
             {
-                if (descriptor.ControllerName == "Admin")
-                {
-                    context.Result = new RedirectResult("admin/login");
-                    return;
-                }
-
                 context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
             }
         }

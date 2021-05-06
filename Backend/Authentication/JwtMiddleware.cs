@@ -29,18 +29,18 @@ namespace AspTwitter.Authentication
 
             if (token is not null)
             {
-                AttachUserToContext(context, auth, token);
+                AttachUserToContext(context, auth, token, "User");
             }
 
             if (adminToken is not null)
             {
-                AttachUserToContext(context, auth, adminToken);
+                AttachUserToContext(context, auth, adminToken, "Admin");
             }
 
             await next(context);
         }
 
-        private void AttachUserToContext(HttpContext context, IAuthenticationManager auth, string token)
+        private void AttachUserToContext(HttpContext context, IAuthenticationManager auth, string token, string name)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace AspTwitter.Authentication
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 int userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-                context.Items["User"] = auth.GetUser(userId);
+                context.Items[name] = auth.GetUser(userId);
             }
             catch { }
         }
