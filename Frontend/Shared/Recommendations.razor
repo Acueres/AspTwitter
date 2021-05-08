@@ -3,23 +3,19 @@
 @inject HttpClient client
 @inject AppUser appUser 
 
-<div class="container">
-    <div class="row border-bottom border-secondary p-3">
-        <h5 class="text-light">Recommended</h5>
-    </div>
-
-    @if (recommended.Count == 0)
-    {
-        <div class="d-flex justify-content-center mt-5">
-            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
-        </div>
-    }
-
-    @foreach (var user in recommended)
-    {
-        <ProfileInfo user="@user"></ProfileInfo>
-    }
+<div class="row border-bottom border-secondary p-3">
+    <h5 class="text-light">Recommended</h5>
 </div>
+
+@if (recommended.Count == 0)
+{
+    <Spinner></Spinner>
+}
+
+@foreach (var user in recommended)
+{
+    <ProfileInfo user="@user"></ProfileInfo>
+}
 
 @code {
     private List<User> recommended = new();

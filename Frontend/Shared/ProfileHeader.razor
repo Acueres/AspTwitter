@@ -21,13 +21,13 @@
         {
             @if (isFollowing)
             {
-                <button class="btn btn-primary float-right" @onclick="async () => await appUser.UnfollowUser(user, client)">
+                <button class="btn btn-primary float-right" @onclick="Unfollow">
                     Following
                 </button>
             }
             else
             {
-                <button class="btn btn-outline-primary float-right" @onclick="async () => await appUser.FollowUser(user, client)">
+                <button class="btn btn-outline-primary float-right" @onclick="Follow">
                     Follow
                 </button>
             }
@@ -89,10 +89,26 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (appUser.Id != 0)
+        if (appUser.Logged)
         {
             appUser.Following = await client.GetFromJsonAsync<List<User>>($"api/users/{appUser.Id}/following");
             isFollowing = appUser.Following.Any(e => e.Id == user.Id);
         }
+    }
+
+    private async Task Unfollow()
+    {
+        await appUser.UnfollowUser(user, client);
+        isFollowing = false;
+        user.FollowerCount--;
+        StateHasChanged();
+    }
+
+    private async Task Follow()
+    {
+        await appUser.FollowUser(user, client);
+        isFollowing = true;
+        user.FollowerCount++;
+        StateHasChanged();
     }
 }

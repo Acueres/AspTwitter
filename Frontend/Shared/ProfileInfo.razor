@@ -9,12 +9,12 @@
         <img src="api/users/@user.Id/avatar" class="img rounded-circle"
              style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(user)" />
     </div>
-    <div class="col-4">
+    <div class="col-auto">
         <a style="color: white;" href="@(user.Username)">@(user.Name)</a>
         <br />
         <span style="color: gray">@("@" + user.Username)</span>
     </div>
-    <div class="col ml-5">
+    <div class="col">
         @if (IsFollowing(user))
         {
             <button class="btn btn-primary" @onclick="async () => await appUser.UnfollowUser(user, client)">

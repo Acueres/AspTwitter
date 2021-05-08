@@ -1,49 +1,172 @@
-﻿@page "/profile"
+﻿@page "/{username}"
+@page "/profile"
 
 @using Frontend.Models
 
 @inject HttpClient client
-@inject AppUser AppUser
 @inject NavigationManager NavigationManager
+@inject AppUser appUser
 
+@if (user is not null)
+{
 <div class="container-fluid border-left border-right border-secondary">
-    <ProfileHeader user="@AppUser" tweetCount="@entries.Count"></ProfileHeader>
+    <ProfileHeader user="@user" tweetCount="@entries.Count"></ProfileHeader>
 
-    @if (entries.Count == 0 && !noContent)
+    <ul class="nav nav-pills justify-content-center border-bottom border-secondary">
+        <li class="nav-item p-3">
+            <a class="nav-link text-light @(category == Category.Tweets ? "active": null)"
+               @onclick="() => ToggleCategory(Category.Tweets)" style="cursor: pointer">Tweets</a>
+        </li>
+        <li class="nav-item p-3">
+            <a class="nav-link text-light @(category == Category.Comments ? "active": null)"
+               @onclick="() => ToggleCategory(Category.Comments)" style="cursor: pointer">Comments</a>
+        </li>
+        <li class="nav-item p-3">
+            <a class="nav-link text-light @(category == Category.Likes ? "active": null)"
+               @onclick="() => ToggleCategory(Category.Likes)" style="cursor: pointer">Likes</a>
+        </li>
+        <li class="nav-item p-3">
+            <a class="nav-link text-light @(category == Category.Following ? "active": null)"
+               @onclick="() => ToggleCategory(Category.Following)" style="cursor: pointer">Following</a>
+        </li>
+        <li class="nav-item p-3">
+            <a class="nav-link text-light @(category == Category.Followers ? "active": null)"
+               @onclick="() => ToggleCategory(Category.Followers)" style="cursor: pointer">Followers</a>
+        </li>
+    </ul>
+
+    @if (loading)
     {
-        <div class="d-flex justify-content-center mt-5">
-            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
-        </div>
+        <Spinner></Spinner>
     }
 
-    @if (noContent)
+    @if (category == Category.Tweets)
     {
-        <div class="d-flex justify-content-center mt-5">
-            <h3 class="text-light">No tweets</h3>
-        </div>
+        @if (!loading && entries.Count == 0)
+        {
+            <div class="d-flex justify-content-center mt-5">
+                <h3 class="text-light">No tweets</h3>
+            </div>
+        }
+        @foreach (var entry in entries)
+        {
+            if (entry.AuthorId != user.Id)
+            {
+                <span class="oi oi-loop-square text-secondary pr-2 pt-2"></span>
+                <span class="text-secondary pt-2">@(user.Name) retweeted</span>
+            }
+            <Tweet entry="@entry" entries="@entries"></Tweet>
+        }
     }
-
-    @foreach (Entry entry in entries)
+    else if (category == Category.Comments)
     {
-        <Tweet entry="@entry" entries="@entries"></Tweet>
+        @if (!loading && comments.Count == 0)
+        {
+            <div class="d-flex justify-content-center mt-5">
+                <h3 class="text-light">No comments</h3>
+            </div>
+        }
+        @foreach (var comment in comments)
+        {
+            <a class="text-info pl-3 pt-2" href="tweet/@comment.ParentId">Go to tweet</a>
+            <CommentComponent comment="@comment" comments="@comments"></CommentComponent>
+        }
+    }
+    else if (category == Category.Likes)
+    {
+        @if (!loading && likes.Count == 0)
+        {
+            <div class="d-flex justify-content-center mt-5">
+                <h3 class="text-light">No likes</h3>
+            </div>
+        }
+        @foreach (var likedEntry in likes)
+        {
+            <Tweet entry="@likedEntry" entries="@likes"></Tweet>
+        }
+    }
+    else if (category == Category.Following)
+    {
+        @if (!loading && followings.Count == 0)
+        {
+            <div class="d-flex justify-content-center mt-5">
+                <h3 class="text-light">Not following anyone</h3>
+            </div>
+        }
+        @foreach (var following in followings)
+        {
+            <ProfileInfo user="@following"></ProfileInfo>
+        }
+    }
+    else if (category == Category.Followers)
+    {
+        @if (!loading && followers.Count == 0)
+        {
+            <div class="d-flex justify-content-center mt-5">
+                <h3 class="text-light">No followers</h3>
+            </div>
+        }
+        @foreach (var follower in followers)
+        {
+            <ProfileInfo user="@follower"></ProfileInfo>
+        }
     }
 </div>
+}
 
 @code {
-    private bool noContent = false;
+    private enum Category
+    {
+        Tweets,
+        Comments,
+        Likes,
+        Following,
+        Followers
+    }
+
+    [Parameter]
+    public string username { get; set; }
+
+    private Category category = Category.Tweets;
+
+    private User user;
 
     private List<Entry> entries = new();
+    private List<Comment> comments = new();
+    private List<Entry> likes = new();
+    private List<User> followings = new();
+    private List<User> followers = new();
 
-    protected override async Task OnInitializedAsync()
+    private bool loading = true;
+
+    protected override async Task OnParametersSetAsync()
     {
-        if (!AppUser.Logged)
+        if (NavigationManager.ToBaseRelativePath(NavigationManager.Uri) == "profile")
         {
-            NavigationManager.NavigateTo("login");
+            if (!appUser.Logged)
+            {
+                NavigationManager.NavigateTo("login");
+                return;
+            }
+
+            username = appUser.Username;
         }
 
-        entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{AppUser.Id}/entries");
-        entries.Reverse();
+        user = await client.GetFromJsonAsync<User>($"api/users/username/{username}");
+        entries = await client.GetFromJsonAsync<List<Entry>>($"api/users/{user.Id}/entries");
+        comments = await client.GetFromJsonAsync<List<Comment>>($"api/users/{user.Id}/comments");
+        likes = await client.GetFromJsonAsync<List<Entry>>($"api/users/{user.Id}/favorites");
+        followings = await client.GetFromJsonAsync<List<User>>($"api/users/{user.Id}/following");
+        followers = await client.GetFromJsonAsync<List<User>>($"api/users/{user.Id}/followers");
 
-        noContent = entries.Count == 0;
+        var retweets = await client.GetFromJsonAsync<List<Entry>>($"api/users/{user.Id}/retweets");
+        entries = entries.Concat(retweets).OrderByDescending(e => e.Timestamp).ToList();
+
+        loading = false;
+    }
+
+    private void ToggleCategory(Category newCategory)
+    {
+        category = newCategory;
     }
 }

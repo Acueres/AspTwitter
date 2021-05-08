@@ -14,9 +14,7 @@
 <div class="container-fluid border border-secondary">
     @if (entry is null)
     {
-        <div class="d-flex justify-content-center m-5">
-            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
-        </div>
+        <Spinner></Spinner>
     }
     else
     {
@@ -59,11 +57,11 @@
             <div class="row">
                 <div class="container m-3">
                     <EditForm Model="@commentData" OnValidSubmit="@SendData" class="text-light">
-                        <textarea class="form-control bg-dark text-light"
+                        <textarea class="form-control bg-dark text-light shadow-none border-0" rows="1"
                                   style="resize: none; overflow: hidden;"
                                   oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'
-                                  @bind="@(commentData.Text)" maxlength="128"></textarea>
-                        <button type="submit" class="btn btn-primary mt-2 float-right">Reply</button>
+                                  @bind="@(commentData.Text)" maxlength="128" placeholder="Write a reply"></textarea>
+                        <button type="submit" class="btn btn-primary mt-2 float-left">Reply</button>
                     </EditForm>
                 </div>
             </div>
@@ -74,9 +72,7 @@
 <div class="container-fluid border border-secondary">
     @if (entry is null)
     {
-        <div class="d-flex justify-content-center m-5">
-            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
-        </div>
+        <Spinner></Spinner>
     }
 
     @if (entry is not null && entry.CommentCount == 0)
@@ -88,29 +84,7 @@
 
     @foreach (var comment in comments)
     {
-        <div class="row m-3 border-bottom border-secondary">
-            <div class="col-sm-1">
-                <img src="api/users/@comment.AuthorId/avatar" class="img rounded-circle"
-                     style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(comment.Author)" />
-            </div>
-
-            <div class="col-auto">
-                <a class="mr-1" style="color: white;" href="@(comment.Author.Username)">@(comment.Author.Name)</a>
-                <span class="mr-1" style="color: gray">@("@" + comment.Author.Username)</span>
-                <span class="mr-1" style="color: gray">@(" - " + GetDate(comment.Timestamp))</span>
-
-                @if (comment.AuthorId == appUser.Id)
-                {
-                    <button class="btn shadow-none" @onclick="async () => await DeleteComment(comment)">
-                        <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
-                    </button>
-                }
-
-                <p class="mt-2">
-                    <span class="mt-2" style="color: white; word-wrap: break-word;">@(comment.Text)</span>
-                </p>
-            </div>
-        </div>
+        <CommentComponent comment="@comment" comments="@comments" entry="@entry"></CommentComponent>
     }
 </div>
 
@@ -155,22 +129,6 @@
     private void GoToProfile(User user)
     {
         NavigationManager.NavigateTo(user.Username);
-    }
-
-    private async Task DeleteComment(Comment comment)
-    {
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
-
-        var response = await client.DeleteAsync($"api/entries/{comment.ParentId}/comments/{comment.Id}");
-
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            if (comments.Any(e => e.Id == comment.Id))
-            {
-                comments.Remove(comment);
-                entry.CommentCount--;
-            }
-        }
     }
 
     private async Task SetFavorite()

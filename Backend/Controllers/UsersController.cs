@@ -221,7 +221,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Relationships.
+            return await context.Relationships.Include(x => x.Entry).Include(x => x.Entry.Author).
                  Where(x => x.UserId == id && x.Type == RelationshipType.Retweet).Select(x => x.Entry).ToListAsync();
         }
 
@@ -235,7 +235,7 @@ namespace AspTwitter.Controllers
                 return NotFound();
             }
 
-            return await context.Relationships.
+            return await context.Relationships.Include(x => x.Entry).Include(x => x.Entry.Author).
                 Where(x => x.UserId == id && x.Type == RelationshipType.Like).Select(x => x.Entry).ToListAsync();
         }
 

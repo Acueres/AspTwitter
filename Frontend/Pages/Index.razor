@@ -2,19 +2,44 @@
 
 @using Blazored.LocalStorage
 @using Frontend.Models;
+@using Frontend.Requests
 @using System.Net
 @using System.Net.Http
+@using System.Net.Http.Headers;
+@using System.Text
 @using Newtonsoft.Json
 
-@inject AppUser appUser 
+@inject AppUser appUser
 @inject HttpClient client
 @inject ILocalStorageService localStorage
 
 <div class="container-fluid border border-secondary">
+    <div class="row border-bottom border-secondary p-3">
+        <h2 class="text-light">Home</h2>
+    </div>
     @if (entries.Count == 0)
     {
-        <div class="d-flex justify-content-center m-5">
-            <div class="spinner-border" style="color: whitesmoke;" role="status"></div>
+        <Spinner></Spinner>
+    }
+    else if (appUser.Logged)
+    {
+        <div class="row border-bottom border-secondary p-3">
+            <div class="col-sm-auto">
+                <img src="api/users/@appUser.Id/avatar" class="img rounded-circle"
+                     style="width: 50px; height: 50px; outline: none; cursor: pointer" />
+            </div>
+            <div class="col-8">
+                <div class="container">
+                    <EditForm Model="@entryData" OnValidSubmit="@SendData">
+                        <textarea class="form-control bg-dark text-light shadow-none border-0" rows="1"
+                                  style="resize: none; overflow: hidden; font-size: large;"
+                                  oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'
+                                  @bind="@(entryData.Text)" maxlength="256" placeholder="What's happening?"></textarea>
+
+                        <button type="submit" class="btn btn-primary mt-2 float-left">Tweet</button>
+                    </EditForm>
+                </div>
+            </div>
         </div>
     }
 
@@ -37,6 +62,8 @@
 @code{
     private List<Entry> entries = new();
     private int part = 1;
+
+    private EntryRequest entryData = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,6 +88,32 @@
         {
             entries = entries.Concat(additionalEntries).ToList();
             part++;
+        }
+    }
+
+    private async Task SendData()
+    {
+        if (string.IsNullOrEmpty(entryData.Text) || string.IsNullOrWhiteSpace(entryData.Text)) return;
+
+        entryData.AuthorId = appUser.Id;
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"api/entries")
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(entryData), Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            string result = await response.Content.ReadAsStringAsync();
+            int entryId = JsonConvert.DeserializeObject<int>(result);
+
+            entries.Insert(0, await client.GetFromJsonAsync<Entry>($"api/entries/{entryId}"));
+
+            entryData.Text = "";
         }
     }
 }

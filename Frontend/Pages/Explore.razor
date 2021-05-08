@@ -1,1 +1,129 @@
 ﻿@page "/explore"
+
+@using System.Text
+@using System.Net
+@using System.Net.Http.Headers
+@using Newtonsoft.Json
+
+@inject HttpClient client
+@inject AppUser appUser 
+
+<div class="container-fluid border border-secondary">
+    <EditForm Model="query" OnValidSubmit="SendData">
+        <div class="row">
+            <div class="container m-3">
+                <div class="d-flex w-75">
+                    <input type="text" class="form-control bg-dark text-light" @bind="query" placeholder="Search by tweets, people" />
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+
+    <ul class="nav nav-pills justify-content-center border-bottom border-secondary">
+        <li class="nav-item p-3">
+            <a class="nav-link text-light @(category == Category.Tweets ? "active": null)"
+               @onclick="() => ToggleCategory(Category.Tweets)" style="cursor: pointer">Tweets</a>
+        </li>
+        <li class="nav-item p-3">
+            <a class="nav-link text-light @(category == Category.Users ? "active": null)"
+               @onclick="() => ToggleCategory(Category.Users)" style="cursor: pointer">Users</a>
+        </li>
+    </ul>
+
+    @if (loading)
+    {
+        <Spinner></Spinner>
+    }
+
+    @if (category == Category.Tweets)
+    {
+        @if (!loading && entries.Count == 0)
+        {
+            <h3 class="text-light text-center m-5">No tweets found</h3>
+        }
+        @foreach (var entry in entries)
+        {
+            <Tweet entry="@entry" entries="@entries"></Tweet>
+        }
+    }
+    else if (category == Category.Users)
+    {
+        @if (!loading && users.Count == 0)
+        {
+            <h3 class="text-light text-center m-5">No users found</h3>
+        }
+        @foreach (var user in users)
+        {
+            <ProfileInfo user="@user"></ProfileInfo>
+        }
+    }
+</div>
+
+@code {
+    private enum Category
+    {
+        Tweets,
+        Users
+    }
+
+    private Category category = Category.Tweets;
+
+    private string query = "";
+
+    private bool noTweets;
+    private bool noUsers;
+    private bool loading = false;
+
+    private List<Entry> entries = new();
+    private List<User> users = new();
+
+    private void ToggleCategory(Category newCategory)
+    {
+        category = newCategory;
+    }
+
+    private async Task SendData()
+    {
+        if (string.IsNullOrEmpty(query) || string.IsNullOrWhiteSpace(query)) return;
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+
+        string dest = category switch
+        {
+            Category.Tweets => "entries",
+            Category.Users => "users",
+            _ => null
+        };
+
+        if (dest is null) return;
+
+        loading = true;
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"api/{dest}/search")
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(query), Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            loading = false;
+
+            if (category == Category.Tweets)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                entries = JsonConvert.DeserializeObject<List<Entry>>(result);
+                return;
+            }
+
+            if (category == Category.Users)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                users = JsonConvert.DeserializeObject<List<User>>(result);
+                return;
+            }
+        }
+    }
+}

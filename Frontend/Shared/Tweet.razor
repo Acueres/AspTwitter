@@ -1,6 +1,8 @@
-﻿@using Frontend.Models
+﻿@using Frontend.Requests
 @using System.Net.Http.Headers;
 @using System.Net;
+@using Newtonsoft.Json
+@using System.Text
 
 @inject HttpClient client
 @inject NavigationManager NavigationManager
@@ -23,6 +25,9 @@
             <button class="btn shadow-none" @onclick="async () => await DeleteTweet(entry.Id)">
                 <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
             </button>
+            <button class="btn shadow-none float-right" @onclick="ToggleEdit">
+                <span class="oi oi-pencil" style="color: whitesmoke" aria-hidden="true"></span>
+            </button>
         }
     </div>
 </div>
@@ -30,9 +35,25 @@
 <div class="row border-bottom border-secondary">
     <div class="col-sm-1"></div>
     <div class="col-8">
-        <p>
-            <a class="mb-2" style="color: white; word-wrap: break-word; text-decoration: none;" href="tweet/@entry.Id">@(entry.Text)</a>
-        </p>
+        @if (edit)
+        {
+            <div class="row container pb-3">
+                <EditForm Model="@editData" OnValidSubmit="@SendData">
+                    <textarea class="form-control bg-dark text-light shadow-none border-0"
+                              style="resize: none; overflow: hidden; font-size: large;"
+                              oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'
+                              @bind="@(editData.Text)" maxlength="256"></textarea>
+
+                    <button type="submit" class="btn btn-primary mt-2 float-left">Save</button>
+                </EditForm>
+            </div>
+        }
+        else
+        {
+            <p>
+                <a class="mb-2" style="color: white; word-wrap: break-word; text-decoration: none;" href="tweet/@entry.Id">@(entry.Text)</a>
+            </p>
+        }
         <div class="btn-group">
             <button class="btn shadow-none" style="color: gray" @onclick="GoToComments">
                 <span class="oi oi-comment-square mr-2"></span> @DisplayCount(entry.CommentCount)
@@ -55,6 +76,9 @@
     [Parameter]
     public List<Entry> entries { get; set; }
 
+    private EntryRequest editData = new();
+
+    private bool edit;
     private bool isFavorite;
     private bool isRetweeted;
 
@@ -62,7 +86,11 @@
     {
         isFavorite = appUser.Logged && appUser.Favorites.Any(e => e.Id == entry.Id);
         isRetweeted = appUser.Logged && appUser.Retweets.Any(e => e.Id == entry.Id);
+
+        editData.Text = entry.Text;
     }
+
+    private void ToggleEdit() => edit ^= true;
 
     private string GetDate(DateTime timestamp)
     {
@@ -155,5 +183,27 @@
         }
 
         return n.ToString();
+    }
+
+    private async Task SendData()
+    {
+        if (string.IsNullOrEmpty(editData.Text) || string.IsNullOrWhiteSpace(editData.Text)) return;
+
+        editData.AuthorId = appUser.Id;
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+
+        var request = new HttpRequestMessage(HttpMethod.Patch, $"api/entries/{entry.Id}")
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(editData), Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            entry = await client.GetFromJsonAsync<Entry>($"api/entries/{entry.Id}");
+            edit = false;
+        }
     }
 }

@@ -8,17 +8,17 @@
 @inject HttpClient client
 
 <div class="page">
-    <div class="sidebar">
+    <div class="sidebar border-right border-secondary">
         <NavMenu />
     </div>
 
-    <div class="main bg-dark">
+    <div class="main">
         <div class="content px-4">
             @Body
         </div>
     </div>
 
-    <div class="col-3 bg-dark d-none d-sm-none d-md-block">
+    <div class="col-auto border-left border-secondary d-none d-sm-none d-md-block">
         <Recommendations></Recommendations>
     </div>
 </div>
