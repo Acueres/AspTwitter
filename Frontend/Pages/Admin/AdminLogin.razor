@@ -1,0 +1,85 @@
+﻿@page "/admin/login"
+@layout EmptyLayout
+
+@using Frontend.Requests
+@using Frontend.Models
+@using Newtonsoft.Json
+@using System.Net
+@using System.Text
+@using System.Net.Http
+
+@inject HttpClient client
+@inject AppUser appUser
+@inject NavigationManager NavigationManager
+
+<div class="container p-5 w-25 border border-secondary">
+    <EditForm Model="@loginData" OnValidSubmit="@SendData" class="text-light">
+        <h1>Admin - Log in</h1>
+        <div class="mb-3">
+            <label class="form-label">@(setPassword ? "Set password": "Password")</label>
+            <InputText type="password" class="form-control bg-dark text-light" @bind-Value="loginData.Password"></InputText>
+        </div>
+        @foreach (string error in errors)
+        {
+            <b class="text-danger">Error: @(error)</b> <br />
+        }
+        <button type="submit" class="btn btn-primary mt-3">Log in</button>
+    </EditForm>
+</div>
+
+@code {
+    private AuthenticationRequest loginData = new();
+    private List<string> errors = new();
+
+    private bool setPassword;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (appUser.AdminRights)
+        {
+            NavigationManager.NavigateTo("administrator");
+            return;
+        }
+
+        setPassword = await client.GetFromJsonAsync<bool>("admin/set-password");
+    }
+
+    private async Task SendData()
+    {
+        errors.Clear();
+
+        if (loginData.Password is null)
+        {
+            errors.Add("Password is required");
+        }
+
+        if (loginData.Password != null && setPassword && loginData.Password.Length < 5)
+        {
+            errors.Add("Password is too short");
+        }
+
+        if (errors.Count > 0)
+        {
+            return;
+        }
+        Console.WriteLine(loginData.Password);
+        var request = new HttpRequestMessage(HttpMethod.Post, "admin/login")
+        {
+            Content = new StringContent(JsonConvert.SerializeObject(loginData.Password), Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            appUser.AdminRights = true;
+            NavigationManager.NavigateTo("");
+            return;
+        }
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            errors.Add("Incorrect password");
+        }
+    }
+}

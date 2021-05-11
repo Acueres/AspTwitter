@@ -13,7 +13,7 @@ using AspTwitter.Models;
 namespace AspTwitter.Authentication
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-    public class AuthorizeAttribute : Attribute, IAuthorizationFilter
+    public class AdminAuthorizeAttribute : Attribute, IAuthorizationFilter
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
@@ -25,9 +25,9 @@ namespace AspTwitter.Authentication
                 return;
             }
 
-            User user = (User)context.HttpContext.Items["User"];
+            User admin = (User)context.HttpContext.Items["Admin"];
 
-            if (user is null)
+            if (admin is null)
             {
                 context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
             }

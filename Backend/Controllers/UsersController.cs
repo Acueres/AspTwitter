@@ -133,7 +133,6 @@ namespace AspTwitter.Controllers
             using var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate);
             await image.CopyToAsync(stream);
 
-
             return Ok();
         }
 
@@ -146,7 +145,7 @@ namespace AspTwitter.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
 
-            request = ProcessEditRequest(request);
+            request = Util.ProcessEditRequest(request);
             if (request is null)
             {
                 return BadRequest();
@@ -184,11 +183,44 @@ namespace AspTwitter.Controllers
             return Ok();
         }
 
+        // PATCH: api/Users/5/edit-password
+        [HttpPatch("{id}/edit-password")]
+        public async Task<IActionResult> EditAdminPassword(int id, [FromBody] ChangePasswordRequest request)
+        {
+            if (!HasPermission(id))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            User user = await context.Users.FindAsync(id);
+
+            string oldPassword = request.OldPassword;
+            string newPassword = request.NewPassword;
+
+            if (string.IsNullOrEmpty(oldPassword) || string.IsNullOrEmpty(newPassword) ||
+                oldPassword == newPassword || newPassword.Length < 5)
+            {
+                return BadRequest();
+            }
+
+            if (!Util.CompareHash(oldPassword, user.PasswordHash))
+            {
+                return StatusCode(StatusCodes.Status401Unauthorized);
+            }
+
+            user.PasswordHash = Util.Hash(newPassword);
+
+            context.Entry(user).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            if (!HasPermission(id))
+            if (!HasPermission(id) || id == 1)
             {
                 return StatusCode(StatusCodes.Status403Forbidden);
             }
@@ -396,7 +428,7 @@ namespace AspTwitter.Controllers
             int total = await context.Users.CountAsync();
             if (total <= count)
             {
-                return null;
+                return new List<User>();
             }
 
             return await context.Users.OrderByDescending(x => x.FollowerCount).Include(x => x.Followers).
@@ -406,33 +438,6 @@ namespace AspTwitter.Controllers
         private bool HasPermission(int id)
         {
             return ((User)HttpContext.Items["User"]).Id == id;
-        }
-
-        private EditUserRequest ProcessEditRequest(EditUserRequest request)
-        {
-            if (request.Name is null || request.Username is null)
-            {
-                return null;
-            }
-
-            request.Name = request.Name.Trim();
-            request.Username = request.Username.Replace(" ", string.Empty);
-
-            if (request.Name == string.Empty || request.Username == string.Empty)
-            {
-                return null;
-            }
-
-            if (request.About != null)
-            {
-                request.About = request.About.Trim();
-            }
-
-            request.Name = Util.Truncate(request.Name, MaxLength.Name);
-            request.Username = Util.Truncate(request.Username, MaxLength.Username);
-            request.About = Util.Truncate(request.About, MaxLength.About);
-
-            return request;
         }
     }
 }

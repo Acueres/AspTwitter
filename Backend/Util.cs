@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 
 using AspTwitter.AppData;
+using AspTwitter.Requests;
 
 
 namespace AspTwitter
@@ -62,6 +63,33 @@ namespace AspTwitter
                 numBytesRequested: 32);
 
             return key.SequenceEqual(keyToCheck);
+        }
+
+        public static EditUserRequest ProcessEditRequest(EditUserRequest request)
+        {
+            if (request.Name is null || request.Username is null)
+            {
+                return null;
+            }
+
+            request.Name = request.Name.Trim();
+            request.Username = request.Username.Replace(" ", string.Empty);
+
+            if (request.Name == string.Empty || request.Username == string.Empty)
+            {
+                return null;
+            }
+
+            if (request.About != null)
+            {
+                request.About = request.About.Trim();
+            }
+
+            request.Name = Truncate(request.Name, MaxLength.Name);
+            request.Username = Truncate(request.Username, MaxLength.Username);
+            request.About = Truncate(request.About, MaxLength.About);
+
+            return request;
         }
     }
 }

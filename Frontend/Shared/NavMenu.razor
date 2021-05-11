@@ -7,7 +7,7 @@
 @inject NavigationManager NavigationManager
 
 <div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">AspTwitter</a>
+    <a class="navbar-brand" href="">AspTwitter @(appUser.AdminRights ? "| Admin": null)</a>
 </div>
 
 <button class="navbar-toggler" @onclick="ToggleNavMenu">

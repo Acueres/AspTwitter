@@ -20,7 +20,7 @@
         <span class="mr-1" style="color: gray">@("@" + entry.Author.Username)</span>
         <span class="mr-1" style="color: gray">@(" - " + GetDate(entry.Timestamp))</span>
 
-        @if (entry.AuthorId == appUser.Id)
+        @if (entry.AuthorId == appUser.Id || appUser.AdminRights)
         {
             <button class="btn shadow-none" @onclick="async () => await DeleteTweet(entry.Id)">
                 <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
@@ -70,11 +70,11 @@
 }
 
 @code {
-    [Parameter]
-    public Entry entry { get; set; }
+        [Parameter]
+        public Entry entry { get; set; }
 
-    [Parameter]
-    public List<Entry> entries { get; set; }
+        [Parameter]
+        public List<Entry> entries { get; set; }
 
     private EntryRequest editData = new();
 
@@ -115,9 +115,16 @@
 
     private async Task DeleteTweet(int id)
     {
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
-
-        var response = await client.DeleteAsync($"api/entries/{id}");
+        HttpResponseMessage response;
+        if (appUser.AdminRights)
+        {
+            response = await client.DeleteAsync($"admin/entries/{id}");
+        }
+        else
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+            response = await client.DeleteAsync($"api/entries/{id}");
+        }
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
@@ -191,9 +198,18 @@
 
         editData.AuthorId = appUser.Id;
 
+        string url = $"api/entries/{entry.Id}";
+
+        if (appUser.AdminRights)
+        {
+            url = $"admin/entries/{entry.Id}";
+        }
+
+        Console.WriteLine(editData.Text);
+
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
 
-        var request = new HttpRequestMessage(HttpMethod.Patch, $"api/entries/{entry.Id}")
+        var request = new HttpRequestMessage(HttpMethod.Patch, url)
         {
             Content = new StringContent(JsonConvert.SerializeObject(editData), Encoding.UTF8, "application/json")
         };

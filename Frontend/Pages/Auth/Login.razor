@@ -11,7 +11,7 @@
 
 @inject HttpClient client
 @inject NavigationManager NavigationManager
-@inject AppUser AppUser
+@inject AppUser appUser
 @inject ILocalStorageService localStorage
 
 <div class="container p-5 w-25 border border-secondary">
@@ -37,23 +37,18 @@
     private AuthenticationRequest loginData = new();
     private List<string> errors = new();
 
-    private string usernameRequired = "Username is required";
-    private string passwordRequired = "Password is required";
-    private string usernameInvalid = "User not found";
-    private string passwordInvalid = "Incorrect password";
-
     private async Task SendData()
     {
         errors.Clear();
 
         if (loginData.Username is null)
         {
-            errors.Add(usernameRequired);
+            errors.Add("Username is required");
         }
 
-        if (loginData.Password is null)
+        if (loginData.Password is null && !appUser.AdminRights)
         {
-            errors.Add(passwordRequired);
+            errors.Add("Password is required");
         }
 
         if (errors.Count > 0)
@@ -61,7 +56,14 @@
             return;
         }
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "api/authentication/login")
+        string url = "api/authentication/login";
+
+        if (appUser.AdminRights)
+        {
+            url = "admin/users/login";
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = new StringContent(JsonConvert.SerializeObject(loginData), Encoding.UTF8, "application/json")
         };
@@ -72,22 +74,22 @@
         {
             string value = await response.Content.ReadAsStringAsync();
             AuthenticationResponse auth = JsonConvert.DeserializeObject<AuthenticationResponse>(value);
-            await AppUser.SetLogin(auth, client);
+            await appUser.SetLogin(auth, client);
 
             await localStorage.SetItemAsync("auth", auth);
 
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
             return;
         }
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            errors.Add(usernameInvalid);
+            errors.Add("User not found");
         }
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            errors.Add(passwordInvalid);
+            errors.Add("Incorrect password");
         }
     }
 }

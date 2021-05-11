@@ -45,49 +45,37 @@
     private RegisterRequest registerData = new();
     private List<string> errors = new();
 
-    private string nameRequired = "Name is required";
-
-    private string emailInvalid = "Invalid email format";
-
-    private string usernameRequired = "Username is required";
-    private string usernameExists = "Username already exists";
-    private string usernameWhitespace = "Username cannot contain whitespace";
-
-    private string passwordRequired = "Password is required";
-    private string passwordLength = "Password must be at least 5 characters long";
-    private string passwordWhitespace = "Password cannot contain whitespace";
-
     private async Task SendData()
     {
         errors.Clear();
 
         if (registerData.Name is null)
         {
-            errors.Add(nameRequired);
+            errors.Add("Name is required");
         }
 
         if (registerData.Username is null)
         {
-            errors.Add(usernameRequired);
+            errors.Add("Username is required");
         }
 
         if (registerData.Username is not null && registerData.Username.Contains(' '))
         {
-            errors.Add(usernameWhitespace);
+            errors.Add("Username cannot contain whitespace");
         }
 
         if (registerData.Password is null)
         {
-            errors.Add(passwordRequired);
+            errors.Add("Password is required");
         }
         else if (registerData.Password.Length < 5)
         {
-            errors.Add(passwordLength);
+            errors.Add("Password must be at least 5 characters long");
         }
 
         if (registerData.Password is not null && registerData.Password.Contains(' '))
         {
-            errors.Add(passwordWhitespace);
+            errors.Add("Password cannot contain whitespace");
         }
 
         if (!string.IsNullOrEmpty(registerData.Email))
@@ -98,7 +86,7 @@
             }
             catch (FormatException)
             {
-                errors.Add(emailInvalid);
+                errors.Add("Invalid email format");
             }
         }
 
@@ -123,13 +111,13 @@
 
             await localStorage.SetItemAsync("auth", auth);
 
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
             return;
         }
 
         if (response.StatusCode == HttpStatusCode.Conflict)
         {
-            errors.Add(usernameExists);
+            errors.Add("Username already exists");
         }
     }
 }

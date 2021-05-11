@@ -17,6 +17,7 @@ namespace Frontend.Models
     public class AppUser: User
     {
         public bool Logged { get; set; }
+        public bool AdminRights { get; set; }
         public string Token { get; set; }
 
         public async Task SetLogin(AuthenticationResponse auth, HttpClient client)
@@ -37,13 +38,15 @@ namespace Frontend.Models
 
         public async Task InitializeAsync(ILocalStorageService localStorage, HttpClient client)
         {
-            var auth = await localStorage.GetItemAsync<AuthenticationResponse>("auth");
+            var response = await client.GetAsync("admin/test");
+            AdminRights = response.StatusCode == HttpStatusCode.OK;
 
+            var auth = await localStorage.GetItemAsync<AuthenticationResponse>("auth");
             if (auth is not null)
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
 
-                var response = await client.GetAsync("api/authentication/test");
+                response = await client.GetAsync("api/authentication/test");
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     return;
@@ -58,6 +61,8 @@ namespace Frontend.Models
 
         public async Task Logout(ILocalStorageService localStorage)
         {
+            bool adminRights = AdminRights;
+
             Type type = GetType();
             PropertyInfo[] properties = type.GetProperties();
 
@@ -65,6 +70,8 @@ namespace Frontend.Models
             {
                 properties[i].SetValue(this, null);
             }
+
+            AdminRights = adminRights;
 
             await localStorage.RemoveItemAsync("auth");
         }

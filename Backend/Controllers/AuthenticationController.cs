@@ -48,7 +48,7 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            User user = await context.Users.Where(x => x.Username == request.Username).SingleOrDefaultAsync();
+            User user = await context.Users.SingleOrDefaultAsync(x => x.Username == request.Username);
 
             if (user is null)
             {

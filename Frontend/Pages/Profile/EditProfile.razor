@@ -5,7 +5,6 @@
 @using Newtonsoft.Json
 @using System.Text
 @using System.Net.Http.Headers;
-@using System.IO
 
 @inject AppUser appUser
 @inject HttpClient client
@@ -45,12 +44,23 @@
                       @bind="editData.About" maxlength="160" />
         </div>
 
+        <div class="mb-3 mt-3">
+            <label class="form-label">Enter password</label>
+            <input type="password" class="form-control bg-dark text-light" @bind="oldPassword" />
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">Enter new password</label>
+            <input type="password" class="form-control bg-dark text-light" @bind="newPassword" />
+        </div>
+
         @foreach (string error in errors)
         {
             <b class="text-danger">Error: @(error)</b> <br />
         }
 
         <button type="submit" class="btn btn-primary mt-3">Save</button>
+        <a type="button" class="btn btn-danger mt-3 float-right" href="profile/delete">Delete profile</a>
     </EditForm>
 </div>
 
@@ -58,15 +68,17 @@
     private EditUserRequest editData = new();
     private List<string> errors = new();
     private IBrowserFile image;
-
-    private string nameRequired = "Name is required";
-
-    private string usernameRequired = "Username is required";
-    private string usernameExists = "Username already exists";
-    private string usernameWhitespace = "Username cannot contain whitespace";
+    private string oldPassword;
+    private string newPassword;
 
     protected override void OnInitialized()
     {
+        if (!appUser.Logged)
+        {
+            NavigationManager.NavigateTo("login");
+            return;
+        }
+
         editData.Name = appUser.Name;
         editData.Username = appUser.Username;
         editData.About = appUser.About;
@@ -79,7 +91,7 @@
 
     private async Task LoadImage()
     {
-        var result = await js.InvokeAsync<string>("functions.loadAvatar");
+        await js.InvokeVoidAsync("functions.loadAvatar");
     }
 
     private async Task SendData()
@@ -90,24 +102,36 @@
 
         if (editData.Name == appUser.Name &&
         editData.Username == appUser.Username &&
-        editData.About == appUser.About)
+        editData.About == appUser.About &&
+        (oldPassword is null || newPassword is null))
         {
             NavigationManager.NavigateTo("profile");
+            return;
         }
 
         if (string.IsNullOrEmpty(editData.Name))
         {
-            errors.Add(nameRequired);
+            errors.Add("Name is required");
         }
 
         if (string.IsNullOrEmpty(editData.Username))
         {
-            errors.Add(usernameRequired);
+            errors.Add("Username is required");
         }
 
-        if (editData.Username is not null && editData.Username.Contains(' '))
+        if (editData.Username != null && editData.Username.Contains(' '))
         {
-            errors.Add(usernameWhitespace);
+            errors.Add("Username cannot contain whitespace");
+        }
+
+        if (newPassword != null && newPassword.Length < 5)
+        {
+            errors.Add("Password must be at least 5 characters long");
+        }
+
+        if (newPassword != null && newPassword.Contains(' '))
+        {
+            errors.Add("Password cannot contain whitespace");
         }
 
         if (errors.Count > 0)
@@ -117,12 +141,39 @@
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
 
-        var request = new HttpRequestMessage(HttpMethod.Patch, $"api/users/{appUser.Id}")
+        HttpRequestMessage request;
+        HttpResponseMessage response;
+
+        if (oldPassword != null && newPassword != null)
+        {
+            request = new HttpRequestMessage(HttpMethod.Patch, $"api/users/{appUser.Id}/edit-password")
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(new ChangePasswordRequest
+                {
+                    OldPassword = oldPassword,
+                    NewPassword = newPassword
+                }), Encoding.UTF8, "application/json")
+            };
+
+            response = await client.SendAsync(request);
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                errors.Add("There was a problem processing passwords");
+            }
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                errors.Add("Incorrect password");
+            }
+        }
+
+        request = new HttpRequestMessage(HttpMethod.Patch, $"api/users/{appUser.Id}")
         {
             Content = new StringContent(JsonConvert.SerializeObject(editData), Encoding.UTF8, "application/json")
         };
 
-        var response = await client.SendAsync(request);
+        response = await client.SendAsync(request);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
@@ -131,12 +182,11 @@
             appUser.About = editData.About;
 
             NavigationManager.NavigateTo("profile");
-            return;
         }
 
         if (response.StatusCode == HttpStatusCode.Conflict)
         {
-            errors.Add(usernameExists);
+            errors.Add("Username already exists");
         }
     }
 }

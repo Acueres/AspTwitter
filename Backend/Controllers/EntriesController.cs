@@ -63,7 +63,7 @@ namespace AspTwitter.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Entry>>> GetEntries()
         {
-            return await context.Entries.ToListAsync();
+            return await context.Entries.Include(x => x.Author).ToListAsync();
         }
 
         // GET: api/Entries/5
@@ -83,7 +83,7 @@ namespace AspTwitter.Controllers
 
         // PATCH: api/Entries/5
         [HttpPatch("{id}")]
-        public async Task<IActionResult> EditEntry(int id, EntryRequest request)
+        public async Task<IActionResult> EditEntry(int id, [FromBody] EntryRequest request)
         {
             Entry entry = await context.Entries.FindAsync(id);
             if (entry is null)
@@ -348,6 +348,11 @@ namespace AspTwitter.Controllers
         [HttpPost("{id}/comments")]
         public async Task<IActionResult> PostComment(int id, EntryRequest request)
         {
+            if (!HasPermission(request.AuthorId))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
             Entry entry = await context.Entries.FindAsync(id);
 
             if (entry is null)

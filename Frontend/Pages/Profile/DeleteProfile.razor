@@ -1,0 +1,43 @@
+﻿@page "/profile/delete"
+
+@using Blazored.LocalStorage
+@using System.Net.Http.Headers;
+@using System.Net
+
+@inject AppUser appUser
+@inject NavigationManager NavigationManager
+@inject HttpClient client
+@inject ILocalStorageService localStorage
+
+<div class="container-fluid p-3 border border-secondary">
+    <h3 class="text-light">Delete Profile</h3>
+</div>
+
+<div class="container-fluid p-3 border border-secondary text-center">
+    <h4 class="text-light">Are you sure you want to delete your profile?</h4>
+    <button type="button" class="btn btn-primary mt-3" @onclick="Delete">Confirm</button>
+    <a type="button" class="btn btn-info mt-3" href="profile/edit">Go back</a>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (!appUser.Logged)
+        {
+            NavigationManager.NavigateTo("login");
+            return;
+        }
+    }
+
+    private async Task Delete()
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+        var response = await client.DeleteAsync($"api/users/{appUser.Id}");
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            await appUser.Logout(localStorage);
+            NavigationManager.NavigateTo("");
+        }
+    }
+}

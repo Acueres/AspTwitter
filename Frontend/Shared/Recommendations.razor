@@ -20,8 +20,8 @@
 @code {
     private List<User> recommended = new();
 
-        protected override async Task OnInitializedAsync()
-        {
-            recommended = await client.GetFromJsonAsync<List<User>>($"api/users/{appUser.Id}/recommended/3");
-        }
+    protected override async Task OnInitializedAsync()
+    {
+        recommended = await client.GetFromJsonAsync<List<User>>($"api/users/{appUser.Id}/recommended/3");
+    }
 }

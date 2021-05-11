@@ -54,3 +54,5 @@
 /Frontend/Frontend.csproj
 /Frontend/Properties/launchSettings.json
 /Frontend/Shared/ProfileInfo.razor~RF625c2a12.TMP
+/Frontend/bin/Release/net5.0
+/Frontend/Frontend.csproj.user
