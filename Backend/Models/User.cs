@@ -45,5 +45,9 @@ namespace AspTwitter.Models
         [Newtonsoft.Json.JsonIgnore]
         [JsonIgnore]
         public virtual IList<Following> Followers { get; set; } = new List<Following>();
+
+        [Newtonsoft.Json.JsonIgnore]
+        [JsonIgnore]
+        public byte[] Avatar { get; set; }
     }
 }

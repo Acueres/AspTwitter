@@ -88,21 +88,19 @@ namespace AspTwitter.Controllers
         [HttpGet("{id}/avatar")]
         public async Task<IActionResult> GetAvatar(int id)
         {
-            if (await context.Users.FindAsync(id) is null)
+            User user = await context.Users.FindAsync(id);
+            if (user is null)
             {
                 return NotFound();
             }
 
-            System.IO.FileStream image;
-
-            string path = $"wwwroot/avatars/{id}.jpg";
-            if (System.IO.File.Exists(path))
+            if (user.Avatar != null)
             {
-                image = System.IO.File.OpenRead(path);
-                return File(image, "image/jpeg");
+                using System.IO.MemoryStream ms = new(user.Avatar);
+                return File(user.Avatar, "image/jpeg");
             }
 
-            image = System.IO.File.OpenRead($"wwwroot/avatars/default.png");
+            System.IO.FileStream image = System.IO.File.OpenRead($"wwwroot/avatars/default.png");
             return File(image, "image/jpeg");
         }
 
@@ -111,7 +109,8 @@ namespace AspTwitter.Controllers
         [Consumes("multipart/form-data", "image/jpg", "image/png")]
         public async Task<IActionResult> PostAvatar(int id, [FromForm(Name = "avatar")] IFormFile image)
         {
-            if (await context.Users.FindAsync(id) is null)
+            User user = await context.Users.FindAsync(id);
+            if (user is null)
             {
                 return NotFound();
             }
@@ -128,10 +127,14 @@ namespace AspTwitter.Controllers
                 return BadRequest();
             }
 
-            string path = $"wwwroot/Avatars/{id}.jpg";
+            using System.IO.MemoryStream ms = new();
+            image.CopyTo(ms);
+            user.Avatar = ms.ToArray();
 
-            using var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate);
-            await image.CopyToAsync(stream);
+            ms.Close();
+
+            context.Entry(user).State = EntityState.Modified;
+            await context.SaveChangesAsync();
 
             return Ok();
         }
@@ -233,12 +236,6 @@ namespace AspTwitter.Controllers
 
             context.Users.Remove(user);
             await context.SaveChangesAsync();
-
-            string avatarPath = $"wwwroot/avatars/{id}.jpg";
-            if (System.IO.File.Exists(avatarPath))
-            {
-                System.IO.File.Delete(avatarPath);
-            }
 
             return Ok();
         }
