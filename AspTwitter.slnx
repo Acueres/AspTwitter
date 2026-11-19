@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AspTwitter.Api/AspTwitter.Api.csproj" />
+  <Project Path="AspTwitter.Frontend/AspTwitter.Frontend.Client/AspTwitter.Frontend.Client.csproj" />
+  <Project Path="AspTwitter.Tests/AspTwitter.Tests.csproj" />
+</Solution>

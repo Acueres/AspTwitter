@@ -1,0 +1,29 @@
+@using Frontend.Models 
+
+@inject HttpClient client
+@inject AppUser appUser 
+
+<div class="row border-bottom border-secondary p-3">
+    <h5 class="text-light">Recommended</h5>
+</div>
+
+@if (loading)
+{
+    <Spinner></Spinner>
+}
+
+@foreach (var user in recommended)
+{
+    <ProfileInfo user="@user"></ProfileInfo>
+}
+
+@code {
+    private List<User> recommended = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        recommended = await client.GetFromJsonAsync<List<User>>($"api/users/{appUser.Id}/recommended/3");
+        loading = false;
+    }
+}

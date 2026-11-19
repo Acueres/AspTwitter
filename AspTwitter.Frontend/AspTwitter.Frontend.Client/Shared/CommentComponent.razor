@@ -1,0 +1,77 @@
+﻿@using System.Net
+@using System.Net.Http.Headers;
+
+@inject NavigationManager NavigationManager
+@inject HttpClient client
+@inject AppUser appUser
+
+@if (comment is not null)
+{
+<div class="row m-3 border-bottom border-secondary">
+    <div class="col-sm-1">
+        <img src="api/users/@comment.AuthorId/avatar" class="img rounded-circle"
+             style="width: 50px; height: 50px; outline: none; cursor: pointer" @onclick="() => GoToProfile(comment.Author)" />
+    </div>
+
+    <div class="col-auto">
+        <a class="mr-1" style="color: white;" href="@(comment.Author.Username)">@(comment.Author.Name)</a>
+        <span class="mr-1" style="color: gray">@("@" + comment.Author.Username)</span>
+        <span class="mr-1" style="color: gray">@(" - " + GetDate(comment.Timestamp))</span>
+
+        @if (comment.AuthorId == appUser.Id)
+        {
+            <button class="btn shadow-none" @onclick="DeleteComment">
+                <span class="oi oi-trash" style="color: whitesmoke" aria-hidden="true"></span>
+            </button>
+        }
+
+        <p class="mt-2">
+            <span class="mt-2" style="color: white; word-wrap: break-word;">@(comment.Text)</span>
+        </p>
+    </div>
+</div>
+}
+
+@code {
+    [Parameter]
+    public Comment comment { get; set; }
+
+    [Parameter]
+    public List<Comment> comments { get; set; }
+
+    [Parameter]
+    public Entry entry { get; set; }
+
+    private void GoToProfile(User user)
+    {
+        NavigationManager.NavigateTo(user.Username);
+    }
+
+    private string GetDate(DateTime timestamp)
+    {
+        return timestamp.Date.ToString("dd/M/yyyy");
+    }
+
+    private async Task DeleteComment()
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appUser.Token);
+
+        var response = await client.DeleteAsync($"api/entries/{comment.ParentId}/comments/{comment.Id}");
+
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            if (comments.Any(e => e.Id == comment.Id))
+            {
+                comments.Remove(comment);
+
+                if (entry is not null)
+                {
+                    entry.CommentCount--;
+                }
+
+                comment = null;
+                StateHasChanged();
+            }
+        }
+    }
+}

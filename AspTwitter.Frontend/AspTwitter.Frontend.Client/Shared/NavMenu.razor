@@ -1,0 +1,67 @@
+﻿@using Frontend.Models
+@using Blazored.LocalStorage
+
+@inject AppUser appUser
+@inject ILocalStorageService localStorage
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+
+<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">AspTwitter @(appUser.AdminRights ? "| Admin": null)</a>
+</div>
+
+<button class="navbar-toggler" @onclick="ToggleNavMenu">
+    <span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="explore">
+                <span class="oi oi-magnifying-glass" aria-hidden="true"></span> Explore
+            </NavLink>
+        </li>
+
+        @if (appUser.Logged)
+        {
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="profile">
+                    <span class="oi oi-person" aria-hidden="true"></span> Profile
+                </NavLink>
+            </li>
+        }
+
+        @if (appUser.Logged)
+        {
+            <li class="pt-5 m-3">
+                <a type="button" class="btn btn-secondary" href="logout">
+                    <span class="oi oi-account-logout" aria-hidden="true"></span> Sign out
+                </a>
+            </li>
+        }
+        else
+        {
+            <li class="pt-5 m-3">
+                <a type="button" class="btn btn-outline-primary" href="login">
+                    <span class="oi oi-account-login" aria-hidden="true"></span> Log in
+                </a>
+                <a type="button" class="btn btn-primary" href="register">Sign up</a>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu ^= true;
+    }
+}
